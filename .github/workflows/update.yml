@@ -2,18 +2,20 @@ name: Update NSE Index Data
 
 on:
   schedule:
-    # Runs at 1:00 PM UTC = 6:30 PM IST, every weekday (Mon-Fri)
     - cron: '0 13 * * 1-5'
-  # Also allows manual trigger from GitHub Actions tab
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
