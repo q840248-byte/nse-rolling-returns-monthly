@@ -1,15 +1,16 @@
 """
 update_data.py  —  Fetches latest NSE index data and patches rolling_returns.html
 ==================================================================================
-Run by GitHub Actions every night at 6:30pm IST (1:00pm UTC).
+Run by GitHub Actions every weekday at 6:30pm IST (1:00pm UTC).
 Also safe to run manually anytime.
 
 How it works:
   1. Reads rolling_returns.html and finds all RAW["Index Name"] = {...} blocks
-  2. For each index, finds the latest date already in the data
-  3. Fetches any newer data from niftyindices.com API
-  4. Patches the HTML in-place with the new data points
-  5. Commits the updated HTML back to the repo (done by the workflow)
+  2. For each index, finds the latest month already stored
+  3. Fetches ALL daily data for the last 6 months from niftyindices.com
+  4. Groups daily rows by month, picks the LAST trading day's close for each month
+  5. Patches the HTML in-place with correct end-of-month closing prices
+  6. Commits the updated HTML back to the repo (done by the workflow)
 """
 
 import re
@@ -31,7 +32,6 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-# Map display names used in HTML → API names used by niftyindices.com
 API_NAME_MAP = {
     "Nifty 50":                                     "NIFTY 50",
     "Nifty Next 50":                                "NIFTY NEXT 50",
@@ -94,52 +94,77 @@ API_NAME_MAP = {
     "Nifty500 Multicap 50-25-25":                   "Nifty500 Multicap",
 }
 
-def fmt(d): return d.strftime("%d-%b-%Y")
+def fmt(d):
+    return d.strftime("%d-%b-%Y")
 
-def fetch_monthly(api_name, from_date, to_date):
-    """Fetch monthly closing prices from niftyindices.com."""
+def parse_date(dt_str):
+    """Try multiple date formats, return datetime or None."""
+    dt_str = dt_str.strip()
+    for fmt_str in ["%d %b %Y", "%d-%b-%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"]:
+        try:
+            return datetime.strptime(dt_str, fmt_str)
+        except:
+            pass
+    return None
+
+def fetch_data(api_name, from_date, to_date):
+    """Fetch all daily rows from niftyindices.com for the given date range."""
     payload = {"cinfo": json.dumps({
-        "name": api_name, "startDate": fmt(from_date),
-        "endDate": fmt(to_date), "indexName": api_name,
+        "name":      api_name,
+        "startDate": fmt(from_date),
+        "endDate":   fmt(to_date),
+        "indexName": api_name,
     })}
     try:
         r = requests.post(API_URL, headers=HEADERS, json=payload, timeout=30)
+        r.raise_for_status()
         outer = r.json()
-        raw = outer.get("d", "[]")
-        rows = json.loads(raw) if isinstance(raw, str) else raw
+        raw   = outer.get("d", "[]")
+        rows  = json.loads(raw) if isinstance(raw, str) else raw
         return rows or []
     except Exception as e:
         print(f"    API error: {e}")
         return []
 
-def rows_to_monthly(rows):
-    """Convert API rows to {YYYY-MM: close_value} dict."""
-    monthly = {}
+def rows_to_month_end_close(rows):
+    """
+    Convert daily API rows to {YYYY-MM: close} dict.
+    For each calendar month, picks the LAST trading day's closing price.
+    """
+    # month_best: YYYY-MM -> (latest_datetime, close_value)
+    month_best = {}
+
     for row in rows:
-        # Find date field
-        dt_str = row.get("TIMESTAMP") or row.get("HistoricalDate") or row.get("date") or ""
-        close  = row.get("CLOSE") or row.get("close") or 0
+        dt_str = (
+            row.get("TIMESTAMP") or
+            row.get("HistoricalDate") or
+            row.get("date") or ""
+        )
+        close_raw = row.get("CLOSE") or row.get("close") or 0
+
+        dt = parse_date(dt_str) if dt_str else None
+        if not dt:
+            continue
+
         try:
-            dt = datetime.strptime(dt_str.strip(), "%d %b %Y") if dt_str else None
-            if not dt:
-                # Try other formats
-                for fmt_str in ["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"]:
-                    try: dt = datetime.strptime(dt_str.strip(), fmt_str); break
-                    except: pass
-            if dt:
-                key = dt.strftime("%Y-%m")
-                val = round(float(close), 2)
-                # Keep last value of each month
-                if key not in monthly or dt.day > datetime.strptime(monthly.get("_d_" + key, "1"), "%d").day:
-                    monthly[key] = val
+            close_val = round(float(str(close_raw).replace(",", "")), 2)
         except:
-            pass
-    # Remove internal day-tracking keys
-    return {k: v for k, v in monthly.items() if not k.startswith("_d_")}
+            continue
+
+        if close_val <= 0:
+            continue
+
+        key = dt.strftime("%Y-%m")
+
+        # Keep the row with the latest date within each month
+        if key not in month_best or dt > month_best[key][0]:
+            month_best[key] = (dt, close_val)
+
+    return {k: v[1] for k, v in month_best.items()}
 
 def get_last_month_in_data(data_dict):
     """Return the latest YYYY-MM key in a data dict."""
-    keys = [k for k in data_dict.keys() if re.match(r"\d{4}-\d{2}", k)]
+    keys = [k for k in data_dict.keys() if re.match(r"^\d{4}-\d{2}$", k)]
     return max(keys) if keys else None
 
 def main():
@@ -147,16 +172,15 @@ def main():
     with open(HTML_FILE, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Find all RAW["..."] = {...} blocks
     pattern = re.compile(
         r'(RAW\["([^"]+)"\]\s*=\s*)(\{[^;]+\})\s*;',
         re.DOTALL
     )
 
-    today     = date.today()
+    today      = date.today()
     this_month = today.strftime("%Y-%m")
-    updated   = 0
-    total     = 0
+    updated    = 0
+    total      = 0
 
     def replace_block(m):
         nonlocal updated, total
@@ -164,7 +188,6 @@ def main():
         index_name = m.group(2)
         old_json   = m.group(3)
 
-        # Skip commodity data (Gold, Silver etc.)
         if index_name in ("Gold (INR)", "Silver (INR)"):
             return m.group(0)
 
@@ -184,25 +207,27 @@ def main():
         if not last_month:
             return m.group(0)
 
-        # Check if already up to date — only skip if last month is AHEAD of current month
-        # (never skip the current month — new trading days may have been added within it)
-        if last_month > this_month:
-            print(f"  [{index_name}] ✓ Already current ({last_month})")
-            return m.group(0)
-
-        # Fetch last 6 months (catches any missed months if action failed)
-        fetch_from = (today - relativedelta(months=6)).replace(day=1)
+        # Always fetch last 6 months of DAILY data:
+        #   - Gives us every trading day so we can find true last-day-of-month close
+        #   - Catches any months missed by previous failed runs
+        #   - Re-corrects current month as new trading days arrive
+        fetch_from = (today - relativedelta(months=5)).replace(day=1)
         fetch_to   = today
 
         print(f"  [{index_name}] Fetching {fmt(fetch_from)} → {fmt(fetch_to)}...", end=" ", flush=True)
         time.sleep(0.8)
 
-        rows = fetch_monthly(api_name, fetch_from, fetch_to)
+        rows = fetch_data(api_name, fetch_from, fetch_to)
         if not rows:
-            print("no new data")
+            print("❌ no data returned from API")
             return m.group(0)
 
-        new_monthly = rows_to_monthly(rows)
+        new_monthly = rows_to_month_end_close(rows)
+
+        if not new_monthly:
+            print("❌ could not parse any rows")
+            return m.group(0)
+
         added = 0
         for k, v in sorted(new_monthly.items()):
             if k <= this_month:
@@ -211,13 +236,13 @@ def main():
                     added += 1
 
         if added == 0:
-            print("no new months")
+            print("✓ no changes")
             return m.group(0)
 
-        print(f"added {added} month(s) → latest: {max(data.keys())}")
+        latest = max(k for k in data if re.match(r'^\d{4}-\d{2}$', k))
+        print(f"✅ updated {added} month(s) → latest: {latest} (close: {data[latest]})")
         updated += 1
 
-        # Rebuild compact JSON (no spaces, sorted by key)
         new_json = json.dumps(dict(sorted(data.items())), separators=(",", ":"))
         return f'{prefix}{new_json};'
 
