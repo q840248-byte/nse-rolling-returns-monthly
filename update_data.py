@@ -129,18 +129,22 @@ def fetch_data(api_name, from_date, to_date, retries=3):
                 print(f"    API error: {e}")
     return []
 
-def rows_to_month_end_close(rows):
+def rows_to_month_ohlc(rows):
     """
-    Convert daily rows to {YYYY-MM: close} dict.
-    Picks the LAST trading day's closing price for each month.
+    Convert daily rows to {YYYY-MM: {high, low, close}} dict.
+    - high: highest daily high in the month
+    - low: lowest daily low in the month
+    - close: last trading day's closing price in the month
     """
-    month_best = {}
+    monthly = {}
     for row in rows:
         dt_str = (
             row.get("TIMESTAMP") or
             row.get("HistoricalDate") or
             row.get("date") or ""
         )
+        high_raw = row.get("HIGH") or row.get("high") or 0
+        low_raw = row.get("LOW") or row.get("low") or 0
         close_raw = row.get("CLOSE") or row.get("close") or 0
         dt = parse_date(dt_str) if dt_str else None
         if not dt:
@@ -151,27 +155,46 @@ def rows_to_month_end_close(rows):
             continue
         if close_val <= 0:
             continue
+        try:
+            high_val = round(float(str(high_raw).replace(",", "")), 2)
+        except:
+            high_val = None
+        try:
+            low_val = round(float(str(low_raw).replace(",", "")), 2)
+        except:
+            low_val = None
         key = dt.strftime("%Y-%m")
-        if key not in month_best or dt > month_best[key][0]:
-            month_best[key] = (dt, close_val)
-    return {k: v[1] for k, v in month_best.items()}
+        if key not in monthly:
+            monthly[key] = {"date": dt, "high": high_val, "low": low_val, "close": close_val}
+            continue
+        if high_val is not None:
+            monthly[key]["high"] = high_val if monthly[key]["high"] is None else max(monthly[key]["high"], high_val)
+        if low_val is not None:
+            monthly[key]["low"] = low_val if monthly[key]["low"] is None else min(monthly[key]["low"], low_val)
+        if dt > monthly[key]["date"]:
+            monthly[key]["date"] = dt
+            monthly[key]["close"] = close_val
+    return {
+        k: {"high": v["high"], "low": v["low"], "close": v["close"]}
+        for k, v in monthly.items()
+    }
 
 def fetch_full_history(api_name, base_date_str, today):
     """
-    Fetch ALL data from base_date to today in 12-month chunks.
-    Returns merged {YYYY-MM: close} dict.
+    Fetch ALL data from base_date to today in 60-month chunks.
+    Returns merged {YYYY-MM: {high, low, close}} dict.
     """
     start = datetime.strptime(base_date_str, "%Y-%m-%d").date().replace(day=1)
     all_monthly = {}
     chunk_start = start
     while chunk_start <= today:
-        chunk_end = min((chunk_start + relativedelta(months=12) - relativedelta(days=1)), today)
+        chunk_end = min((chunk_start + relativedelta(months=60) - relativedelta(days=1)), today)
         rows = fetch_data(api_name, chunk_start, chunk_end)
         if rows:
-            chunk_monthly = rows_to_month_end_close(rows)
+            chunk_monthly = rows_to_month_ohlc(rows)
             all_monthly.update(chunk_monthly)
-        time.sleep(1.2)
-        chunk_start = chunk_start + relativedelta(months=12)
+        time.sleep(0.25)
+        chunk_start = chunk_start + relativedelta(months=60)
     return all_monthly
 
 def get_last_month_in_data(data_dict):
@@ -229,12 +252,12 @@ def main():
             time.sleep(0.8)
             rows = fetch_data(api_name, fetch_from, fetch_to)
             if not rows:
-                print("❌ no data returned from API")
+                print("no data returned from API")
                 return m.group(0)
-            new_monthly = rows_to_month_end_close(rows)
+            new_monthly = rows_to_month_ohlc(rows)
 
         if not new_monthly:
-            print("❌ could not parse any rows")
+            print("could not parse any rows")
             return m.group(0)
 
         added = 0
@@ -245,11 +268,12 @@ def main():
                     added += 1
 
         if added == 0:
-            print("✓ no changes")
+            print("no changes")
             return m.group(0)
 
         latest = max(k for k in data if re.match(r'^\d{4}-\d{2}$', k))
-        print(f"✅ updated {added} month(s) → latest: {latest} (close: {data[latest]})")
+        latest_close = data[latest]["close"] if isinstance(data[latest], dict) else data[latest]
+        print(f"updated {added} month(s) -> latest: {latest} (close: {latest_close})")
         updated += 1
 
         new_json = json.dumps(dict(sorted(data.items())), separators=(",", ":"))
@@ -260,7 +284,7 @@ def main():
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(new_html)
 
-    print(f"\n✅ Done. Updated {updated}/{total} indices.")
+    print(f"\nDone. Updated {updated}/{total} indices.")
     print(f"   Saved: {HTML_FILE}")
 
 if __name__ == "__main__":
