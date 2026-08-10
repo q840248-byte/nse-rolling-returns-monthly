@@ -1233,18 +1233,7 @@ function getSelDateRange() {
 }
 
 function snapTimelineToSelection() {
-  var range = getSelDateRange();
-  // Always move the start to the intersection point (latest first-date of selected indices)
-  // so all selected indices have data visible by default
-  tlStartIdx = range.minIdx;
-  if (tlEndIdx > range.maxIdx) tlEndIdx = range.maxIdx;
-  // Enforce minimum window of 6 months
-  if (tlEndIdx < tlStartIdx + 6) tlEndIdx = Math.min(range.maxIdx, tlStartIdx + 6);
-  if (tlStartIdx > tlEndIdx - 6) tlStartIdx = Math.max(range.minIdx, tlEndIdx - 6);
-  // Record as the new default so the reset button knows what to return to
-  tlDefaultStartIdx = tlStartIdx;
-  tlDefaultEndIdx   = tlEndIdx;
-  updateTlResetBtn();
+  return; // Disabled as per user request to keep timeline expanded across changes
 }
 
 // ── Charts state ──────────────────────────────────────────────────────────
