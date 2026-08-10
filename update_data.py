@@ -246,6 +246,41 @@ def main():
             print(f"  [{index_name}] ⚠️  Could not parse existing data — skipping")
             return m.group(0)
 
+        # AUTO-HEAL: Detect and remove anomalies (>100% jump or >50% drop)
+        prev_close = None
+        anomalies = []
+        months = sorted([m for m in data.keys() if re.match(r'^\d{4}-\d{2}$', m)])
+        
+        for i, month in enumerate(months):
+            val = data[month]
+            close = val['close'] if isinstance(val, dict) else val
+            if prev_close and prev_close > 0:
+                change = (close / prev_close) - 1
+                if change > 1.0 or change < -0.5:
+                    anomalies.append(i)
+            prev_close = close
+            
+        if anomalies:
+            first_i = anomalies[0]
+            last_i = anomalies[-1]
+            start_month = months[first_i]
+            end_month = months[last_i]
+            print(f"  [{index_name}] ⚠️  Auto-healing anomalies from {start_month} to {end_month}...")
+            
+            start_date = datetime.strptime(start_month + '-01', '%Y-%m-%d')
+            end_date = datetime.strptime(end_month + '-01', '%Y-%m-%d')
+            end_date = end_date + relativedelta(months=1) - relativedelta(days=1)
+            
+            # Fetch specifically to heal this gap
+            rows = fetch_data(api_name, start_date, end_date)
+            if rows:
+                new_data = rows_to_month_ohlc(rows)
+                for m in months[first_i:last_i+1]:
+                    if m in new_data:
+                        data[m] = new_data[m]
+                    else:
+                        del data[m]
+
         if FULL_MODE:
             # Fetch everything from base date in 60-month chunks
             print(f"  [{index_name}] Full fetch from {base_date_str}...", flush=True)
