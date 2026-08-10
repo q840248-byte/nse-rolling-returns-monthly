@@ -20,7 +20,7 @@ from dateutil.relativedelta import relativedelta
 HTML_FILE  = "rolling_returns.html"
 FULL_MODE  = "--full" in sys.argv
 
-API_URL = "https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString"
+API_URL = "https://www.niftyindices.com/BackPage/getHistoricaldatatabletoString"
 HEADERS = {
     "Content-Type":     "application/json; charset=utf-8",
     "User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -118,9 +118,13 @@ def fetch_data(api_name, from_date, to_date, retries=3):
         try:
             r = requests.post(API_URL, headers=HEADERS, json=payload, timeout=30)
             r.raise_for_status()
-            outer = r.json()
-            raw   = outer.get("d", "[]")
-            rows  = json.loads(raw) if isinstance(raw, str) else raw
+            data = r.json()
+            # Handle both new flat array and old {"d": "string"} formats
+            if isinstance(data, dict):
+                raw = data.get("d", "[]")
+                rows = json.loads(raw) if isinstance(raw, str) else raw
+            else:
+                rows = data
             return rows or []
         except Exception as e:
             if attempt < retries - 1:
