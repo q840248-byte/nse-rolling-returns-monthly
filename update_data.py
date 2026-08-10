@@ -102,7 +102,7 @@ def parse_date(dt_str):
     for fmt_str in ["%d %b %Y", "%d-%b-%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"]:
         try:
             return datetime.strptime(dt_str, fmt_str)
-        except:
+        except ValueError:
             pass
     return None
 
@@ -124,9 +124,11 @@ def fetch_data(api_name, from_date, to_date, retries=3):
             return rows or []
         except Exception as e:
             if attempt < retries - 1:
-                time.sleep(3)
+                wait = 3 * (attempt + 1)  # 3s, then 6s, then 9s...
+                print(f"    Retrying in {wait}s (attempt {attempt + 1}/{retries - 1})...")
+                time.sleep(wait)
             else:
-                print(f"    API error: {e}")
+                print(f"    API error after {retries} attempts: {e}")
     return []
 
 def rows_to_month_ohlc(rows):
@@ -151,17 +153,17 @@ def rows_to_month_ohlc(rows):
             continue
         try:
             close_val = round(float(str(close_raw).replace(",", "")), 2)
-        except:
+        except (ValueError, TypeError):
             continue
         if close_val <= 0:
             continue
         try:
             high_val = round(float(str(high_raw).replace(",", "")), 2)
-        except:
+        except (ValueError, TypeError):
             high_val = None
         try:
             low_val = round(float(str(low_raw).replace(",", "")), 2)
-        except:
+        except (ValueError, TypeError):
             low_val = None
         key = dt.strftime("%Y-%m")
         if key not in monthly:
@@ -236,12 +238,12 @@ def main():
 
         try:
             data = json.loads(old_json)
-        except:
+        except Exception:
             print(f"  [{index_name}] ⚠️  Could not parse existing data — skipping")
             return m.group(0)
 
         if FULL_MODE:
-            # Fetch everything from base date in 12-month chunks
+            # Fetch everything from base date in 60-month chunks
             print(f"  [{index_name}] Full fetch from {base_date_str}...", flush=True)
             new_monthly = fetch_full_history(api_name, base_date_str, today)
         else:
