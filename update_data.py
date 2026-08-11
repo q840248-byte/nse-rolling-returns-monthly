@@ -137,9 +137,7 @@ def fetch_data(api_name, from_date, to_date, retries=3):
 
 def rows_to_month_ohlc(rows):
     """
-    Convert daily rows to {YYYY-MM: {high, low, close}} dict.
-    - high: highest daily high in the month
-    - low: lowest daily low in the month
+    Convert daily rows to {YYYY-MM: close} dict.
     - close: last trading day's closing price in the month
     """
     monthly = {}
@@ -149,8 +147,6 @@ def rows_to_month_ohlc(rows):
             row.get("HistoricalDate") or
             row.get("date") or ""
         )
-        high_raw = row.get("HIGH") or row.get("high") or 0
-        low_raw = row.get("LOW") or row.get("low") or 0
         close_raw = row.get("CLOSE") or row.get("close") or 0
         dt = parse_date(dt_str) if dt_str else None
         if not dt:
@@ -161,34 +157,22 @@ def rows_to_month_ohlc(rows):
             continue
         if close_val <= 0:
             continue
-        try:
-            high_val = round(float(str(high_raw).replace(",", "")), 2)
-        except (ValueError, TypeError):
-            high_val = None
-        try:
-            low_val = round(float(str(low_raw).replace(",", "")), 2)
-        except (ValueError, TypeError):
-            low_val = None
+        
         key = dt.strftime("%Y-%m")
         if key not in monthly:
-            monthly[key] = {"date": dt, "high": high_val, "low": low_val, "close": close_val}
+            monthly[key] = {"date": dt, "close": close_val}
             continue
-        if high_val is not None:
-            monthly[key]["high"] = high_val if monthly[key]["high"] is None else max(monthly[key]["high"], high_val)
-        if low_val is not None:
-            monthly[key]["low"] = low_val if monthly[key]["low"] is None else min(monthly[key]["low"], low_val)
+            
         if dt > monthly[key]["date"]:
             monthly[key]["date"] = dt
             monthly[key]["close"] = close_val
-    return {
-        k: {"high": v["high"], "low": v["low"], "close": v["close"]}
-        for k, v in monthly.items()
-    }
+            
+    return { k: v["close"] for k, v in monthly.items() }
 
 def fetch_full_history(api_name, base_date_str, today):
     """
     Fetch ALL data from base_date to today in 60-month chunks.
-    Returns merged {YYYY-MM: {high, low, close}} dict.
+    Returns merged {YYYY-MM: close} dict.
     """
     start = datetime.strptime(base_date_str, "%Y-%m-%d").date().replace(day=1)
     all_monthly = {}
