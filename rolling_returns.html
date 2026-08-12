@@ -668,6 +668,7 @@
           <!-- Tooltip Toggle -->
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
             <button id="tooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">◎ Tip: ON</button>
+            <input id="tooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
           </div>
           <!-- Export -->
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
@@ -1691,29 +1692,48 @@ function renderMain() {
   function externalTooltip(context) {
     if (!chartTooltipEnabled) return;
     const tooltip = context.tooltip;
-    // When mouse leaves, opacity → 0 but we keep the last data visible (no hide)
     if (tooltip.opacity === 0) return;
     hoverInfoEl.style.display = 'block';
     const date = tooltip.title && tooltip.title[0] ? tooltip.title[0] : '';
     hoverDateEl.textContent = date;
-    // Build values HTML — filter out custom lines from hover display
-    // Build a label→dataPoint lookup to avoid index-mismatch with custom lines
+    
     var dpMap = {};
     if (tooltip.dataPoints) {
       tooltip.dataPoints.forEach(function(dp) { if (dp && dp.dataset) dpMap[dp.dataset.label] = dp; });
     }
-    const parts = (tooltip.body || []).map(function(b, i) {
+    
+    var items = (tooltip.body || []).map(function(b, i) {
       var label = b.lines[0] || '';
-      // Try to match dataset by label from the chart's datasets array
       var chartDs = context.chart && context.chart.data && context.chart.data.datasets ? context.chart.data.datasets[i] : null;
       if (chartDs) label = chartDs.label || label;
       var dp = dpMap[label];
       var raw = dp ? dp.raw : undefined;
       var color = chartDs ? (chartDs.borderColor || '#fff') : '#fff';
-      var valStr = (raw !== null && raw !== undefined && typeof raw === 'number') ? raw.toFixed(1) + '%' : 'N/A';
+      return { label: label, raw: raw, color: color };
+    }).filter(function(item) {
+      return item.raw !== null && item.raw !== undefined && typeof item.raw === 'number';
+    });
+    
+    items.sort(function(a, b) { return b.raw - a.raw; });
+    
+    var limitInput = document.getElementById('tooltipLimitInput');
+    var limit = limitInput ? parseInt(limitInput.value, 10) : 2;
+    if (isNaN(limit) || limit < 1) limit = 1;
+    
+    var displayItems = [];
+    if (items.length <= limit * 2) {
+        displayItems = items;
+    } else {
+        var topItems = items.slice(0, limit);
+        var bottomItems = items.slice(-limit);
+        displayItems = topItems.concat(bottomItems);
+    }
+    
+    const parts = displayItems.map(function(item) {
+      var valStr = item.raw.toFixed(1) + '%';
       return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:10px;">' +
-             '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>' +
-             '<span style="color:#8892aa;font-size:0.62rem;">' + label + '</span>' +
+             '<span style="width:8px;height:8px;border-radius:50%;background:' + item.color + ';flex-shrink:0;"></span>' +
+             '<span style="color:#8892aa;font-size:0.62rem;">' + item.label + '</span>' +
              '<span style="color:#e8ecf4;font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;">' + valStr + '</span>' +
              '</span>';
     });
