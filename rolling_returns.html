@@ -1745,8 +1745,7 @@ function renderMain() {
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: {
-        display: true, position: 'top',
+      legend: { display: false, position: 'top',
         labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 14, padding: 14 }
       },
       tooltip: {
@@ -2326,8 +2325,7 @@ function renderRecovery(selKeys, cagrMaps, portfolioMap, p5val) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: true, position: 'top',
+      legend: { display: false, position: 'top',
         labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 12, padding: 12 }
       },
       tooltip: {
@@ -2470,8 +2468,7 @@ function renderRecoveryAvg(selKeys, cagrMaps, portfolioMap, avgVal) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: true, position: 'top',
+      legend: { display: false, position: 'top',
         labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 12, padding: 12 }
       },
       tooltip: {
@@ -3116,7 +3113,7 @@ function runSimulator() {
     responsive: true, maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { display: true, position: 'top', labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 14, padding: 14 } },
+      legend: { display: false, position: 'top', labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 14, padding: 14 } },
       tooltip: {
         backgroundColor: '#12151c', borderColor: '#252a38', borderWidth: 1,
         titleColor: '#8892aa', bodyColor: '#e8ecf4',
