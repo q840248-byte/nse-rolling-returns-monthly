@@ -1158,11 +1158,12 @@ function computeRecoveryForPortfolio(portfolioMap, p5val, horizonYears, selKeys,
 }
 
 // ── Timeline state ────────────────────────────────────────────────────────
-const TL_DATES = (function() {
+const GLOBAL_TL_DATES = (function() {
   var all = new Set();
   Object.values(RAW).forEach(function(d) { Object.keys(d).forEach(function(k) { all.add(k); }); });
   return Array.from(all).sort();
 })();
+var TL_DATES = GLOBAL_TL_DATES.slice();
 let tlStartIdx = 0, tlEndIdx = TL_DATES.length - 1;
 // Track the "default" snapped positions so we know when user has moved away
 let tlDefaultStartIdx = 0, tlDefaultEndIdx = TL_DATES.length - 1;
@@ -1183,7 +1184,7 @@ function resetTimeline() {
 // ── Dynamic timeline range based on selected symbols ─────────────────────
 function getSelDateRange() {
   var sk = Array.from(selected);
-  if (!sk.length) return { minIdx: 0, maxIdx: TL_DATES.length - 1 };
+  if (!sk.length) return { minIdx: 0, maxIdx: GLOBAL_TL_DATES.length - 1 };
   
   var minDate = null, maxDate = null;
   sk.forEach(function(k) {
@@ -1195,22 +1196,25 @@ function getSelDateRange() {
     if (!minDate || firstCagr < minDate) minDate = firstCagr;
     if (!maxDate || last > maxDate) maxDate = last;
   });
-  var minIdx = minDate ? TL_DATES.findIndex(function(d){ return d >= minDate; }) : 0;
+  var minIdx = minDate ? GLOBAL_TL_DATES.findIndex(function(d){ return d >= minDate; }) : 0;
   if (minIdx === -1) minIdx = 0;
-  var maxIdx = maxDate ? TL_DATES.findIndex(function(d){ return d >= maxDate; }) : TL_DATES.length - 1;
-  if (maxIdx === -1) maxIdx = TL_DATES.length - 1;
+  var maxIdx = maxDate ? GLOBAL_TL_DATES.findIndex(function(d){ return d >= maxDate; }) : GLOBAL_TL_DATES.length - 1;
+  if (maxIdx === -1) maxIdx = GLOBAL_TL_DATES.length - 1;
   return { minIdx: minIdx, maxIdx: maxIdx };
 }
 
 function snapTimelineToSelection() {
-  var range = getSelDateRange();
-  tlStartIdx = range.minIdx;
-  if (tlEndIdx > range.maxIdx) tlEndIdx = range.maxIdx;
-  // Enforce minimum window of 6 months
-  if (tlEndIdx < tlStartIdx + 6) tlEndIdx = Math.min(range.maxIdx, tlStartIdx + 6);
-  if (tlStartIdx > tlEndIdx - 6) tlStartIdx = Math.max(range.minIdx, tlEndIdx - 6);
+  var range = getSelDateRange(); // range is now against GLOBAL_TL_DATES
+  var minDate = GLOBAL_TL_DATES[range.minIdx];
+  if (!minDate) minDate = GLOBAL_TL_DATES[0];
+  
+  TL_DATES = GLOBAL_TL_DATES.filter(function(d) { return d >= minDate; });
+  if (TL_DATES.length < 12) TL_DATES = GLOBAL_TL_DATES.slice();
+  
+  tlStartIdx = 0;
+  tlEndIdx = TL_DATES.length - 1;
   tlDefaultStartIdx = tlStartIdx;
-  tlDefaultEndIdx   = tlEndIdx;
+  tlDefaultEndIdx = tlEndIdx;
   updateTlResetBtn();
 }
 
@@ -2694,9 +2698,9 @@ function setupTimeline() {
   if (!wrap || !handleL || !handleR) return;
 
   const MIN_SPAN = 6;
-  const n = TL_DATES.length;
 
   function pctToIdx(pct) {
+    const n = TL_DATES.length;
     return Math.round(Math.max(0, Math.min(1, pct)) * (n - 1));
   }
   function cxToIdx(cx) {
@@ -2723,6 +2727,7 @@ function setupTimeline() {
   function onDragMove(cx) {
     if (!dragTarget) return;
     const r    = wrap.getBoundingClientRect();
+    const n = TL_DATES.length;
     const dIdx = Math.round(((cx - dragStartCx) / r.width) * (n - 1));
     const dr   = getSelDateRange();
 
