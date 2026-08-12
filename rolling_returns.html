@@ -597,6 +597,12 @@
     <button class="tab-btn" onclick="switchTab(1)" id="tabBtn1">
       <span class="tab-icon">📊</span> Latest Stats
     </button>
+    <button class="tab-btn" onclick="switchTab(2)" id="tabBtn2">
+      <span class="tab-icon">🔗</span> Correlation
+    </button>
+    <button class="tab-btn" onclick="switchTab(3)" id="tabBtn3">
+      <span class="tab-icon">⚡</span> Risk vs Nifty 50
+    </button>
   </div>
 
   <div class="layout">
@@ -816,6 +822,41 @@
       </div>
     </div>
 
+    <!-- Tab 2: Correlation Matrix -->
+    <div class="chart-area tab-content" id="tabContent2" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row">
+          <div>
+            <div class="chart-title">Rolling CAGR Correlation Matrix</div>
+            <div class="chart-subtitle">Pearson correlation of rolling CAGR series across selected indices — computed over the timeline window</div>
+          </div>
+        </div>
+        <div id="corrMatrix" style="overflow-x:auto;margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Risk vs Nifty 50 -->
+    <div class="chart-area tab-content" id="tabContent3" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row">
+          <div>
+            <div class="chart-title">Beta &amp; Alpha vs Nifty 50</div>
+            <div class="chart-subtitle">Beta measures sensitivity to Nifty 50 rolling CAGR moves. Alpha is the excess return after accounting for market exposure. Computed over overlapping rolling CAGR periods in the timeline window for the selected indices and the weighted portfolio.</div>
+          </div>
+          <div class="zero-badge">vs Nifty 50</div>
+        </div>
+        <div id="betaAlphaTable" style="overflow-x:auto;margin-top:4px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title-row">
+          <div>
+            <div class="chart-title">Upside / Downside Capture Ratio vs Nifty 50</div>
+            <div class="chart-subtitle">Upside Capture: how much of Nifty 50's positive rolling-CAGR periods the index or weighted portfolio captured. Downside Capture: how much of Nifty 50's negative periods it participated in. Values &gt;100% show over-performance; &lt;100% show under-performance in that regime.</div>
+          </div>
+        </div>
+        <div id="captureTable" style="overflow-x:auto;margin-top:4px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -1983,7 +2024,875 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 var bmSort = { col: null, dir: -1 }; // col = threshold value or 'name'
 
 // ── Correlation Matrix ────────────────────────────────────────────────────
-function renderCorrelation(selKeys, cagrMaps) { return; }
+function renderCorrelation(selKeys, cagrMaps) {
+  var container = document.getElementById('corrMatrix');
+  if (!container) return;
+  var keys = (selKeys || []).filter(function(k){ return cagrMaps[k] && Object.keys(cagrMaps[k]).length > 2; });
+  if (keys.length < 2) {
+    container.innerHTML = '<div class="corr-no-data">Select at least 2 indices to see correlations</div>';
+    return;
+  }
+  // Build aligned value arrays using union of dates in timeline window
+  var allDates = new Set();
+  keys.forEach(function(k){ Object.keys(cagrMaps[k]).forEach(function(d){ allDates.add(d); }); });
+  allDates = Array.from(allDates).sort();
+
+  function mean(arr){ return arr.reduce(function(s,v){return s+v;},0)/arr.length; }
+  function pearson(a, b) {
+    var n = a.length;
+    if (n < 3) return null;
+    var ma = mean(a), mb = mean(b);
+    var num = 0, da2 = 0, db2 = 0;
+    for (var i=0;i<n;i++){ var da=a[i]-ma, db=b[i]-mb; num+=da*db; da2+=da*da; db2+=db*db; }
+    var denom = Math.sqrt(da2*db2);
+    return denom < 1e-10 ? null : +(num/denom).toFixed(3);
+  }
+
+  // For each pair, find overlapping dates
+  function getOverlap(k1, k2) {
+    var m1 = cagrMaps[k1], m2 = cagrMaps[k2];
+    var dates = allDates.filter(function(d){ return m1[d]!==undefined && m2[d]!==undefined; });
+    return { a: dates.map(function(d){return m1[d];}), b: dates.map(function(d){return m2[d];}), n: dates.length };
+  }
+
+  // Compute matrix
+  var matrix = keys.map(function(k1){
+    return keys.map(function(k2){
+      if (k1 === k2) return 1.0;
+      var ov = getOverlap(k1, k2);
+      return pearson(ov.a, ov.b);
+    });
+  });
+
+  function corrClass(v) {
+    if (v === null) return '';
+    if (v === 1.0) return 'corr-self';
+    if (v >= 0.7)  return 'corr-hi';
+    if (v >= 0.4)  return 'corr-mid';
+    if (v >= 0.0)  return 'corr-lo';
+    return 'corr-neg';
+  }
+
+  var series = keys.map(function(k){ return findSeries(k) || {label:k, color:'#8892aa'}; });
+
+  // Header row
+  var thHtml = '<th class="corr-row-label">Index</th>' +
+    series.map(function(s,i){
+      return '<th title="' + s.label + '" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;">' +
+        '<span class="corr-dot" style="background:' + s.color + '"></span>' +
+        (s.label.length > 14 ? s.label.substring(0,13)+'…' : s.label) + '</th>';
+    }).join('');
+
+  var bodyHtml = series.map(function(s, ri){
+    var cells = matrix[ri].map(function(v, ci){
+      var disp = v === null ? '—' : v === 1.0 ? '1.00' : v.toFixed(2);
+      return '<td><span class="corr-cell ' + corrClass(v) + '">' + disp + '</span></td>';
+    }).join('');
+    return '<tr><td class="corr-row-label"><span class="corr-dot" style="background:' + s.color + '"></span>' + s.label + '</td>' + cells + '</tr>';
+  }).join('');
+
+  container.innerHTML = '<table class="corr-table"><thead><tr>' + thHtml + '</tr></thead><tbody>' + bodyHtml + '</tbody></table>';
+
+  // Legend
+  container.innerHTML += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:0.6rem;color:var(--muted);">' +
+    '<span><span class="corr-cell corr-hi" style="padding:2px 6px;font-size:0.65rem;">≥0.70</span> High</span>' +
+    '<span><span class="corr-cell corr-mid" style="padding:2px 6px;font-size:0.65rem;">0.40–0.69</span> Moderate</span>' +
+    '<span><span class="corr-cell corr-lo" style="padding:2px 6px;font-size:0.65rem;">0.00–0.39</span> Low</span>' +
+    '<span><span class="corr-cell corr-neg" style="padding:2px 6px;font-size:0.65rem;">< 0</span> Negative</span>' +
+    '</div>';
+}
+
+// ── Benchmark thresholds state ───────────────────────────────────────────
+var benchmarkThresholds = [0, 6, 8, 10, 12, 15];
+
+// ── Beta/Alpha & Capture sort state ─────────────────────────────────────────
+var baSort  = { col: null, dir: -1 }; // col: 'name'|'beta'|'alpha'|'n'
+var capSort = { col: null, dir: -1 }; // col: 'name'|'upCapture'|'dnCapture'|'ratio'|'upN'|'dnN'
+
+function addBenchmarkThreshold() {
+  var inp = document.getElementById('benchmarkCustomInput');
+  var v = parseFloat(inp.value);
+  if (isNaN(v)) return;
+  if (!benchmarkThresholds.includes(v)) {
+    benchmarkThresholds.push(v);
+    benchmarkThresholds.sort(function(a,b){return a-b;});
+  }
+  inp.value = '';
+  renderMain();
+}
+
+function removeBenchmarkThreshold(v) {
+  benchmarkThresholds = benchmarkThresholds.filter(function(x){return x !== v;});
+  renderMain();
+}
+
+function renderDist(selKeys, cagrMaps, portfolioMap) {
+  var container = document.getElementById('benchmarkTable');
+  if (!container) return;
+  if (!selKeys || selKeys.length === 0) {
+    container.innerHTML = '<div class="bm-no-data">Select at least one index to see benchmark data</div>';
+    return;
+  }
+
+  // Build rows: one per series
+  var rows = [];
+  selKeys.forEach(function(k) {
+    var idx = findSeries(k);
+    if (!idx) return;
+    var vals = Object.values(cagrMaps[k]);
+    if (!vals.length) return;
+    rows.push({ name: idx.label, color: idx.color, vals: vals });
+  });
+  if (selKeys.length > 1 && portfolioMap) {
+    var pvals = Object.values(portfolioMap);
+    if (pvals.length) rows.push({ name: 'Portfolio', color: '#ff4d6a', vals: pvals });
+  }
+
+  if (!rows.length) {
+    container.innerHTML = '<div class="bm-no-data">No data available</div>';
+    return;
+  }
+
+  function beatPct(vals, thresh) {
+    var count = vals.filter(function(v){return v > thresh;}).length;
+    return vals.length ? +(count / vals.length * 100).toFixed(1) : 0;
+  }
+
+  function colorClass(pct) {
+    if (pct >= 75) return 'bm-hi';
+    if (pct >= 50) return 'bm-mid';
+    if (pct >= 25) return 'bm-lo';
+    return 'bm-bad';
+  }
+
+  // Attach beat pct to each row for sorting
+  rows.forEach(function(row) {
+    row.beatPcts = {};
+    benchmarkThresholds.forEach(function(t){ row.beatPcts[t] = beatPct(row.vals, t); });
+  });
+
+  // Sort rows
+  if (bmSort.col !== null) {
+    rows.sort(function(a, b) {
+      var av = bmSort.col === 'name' ? a.name : (a.beatPcts[bmSort.col] || 0);
+      var bv = bmSort.col === 'name' ? b.name : (b.beatPcts[bmSort.col] || 0);
+      if (typeof av === 'string') return bmSort.dir * av.localeCompare(bv);
+      return bmSort.dir * (av - bv);
+    });
+  }
+
+  // Header - name column sortable
+  var nameArrow = bmSort.col === 'name' ? (bmSort.dir === -1 ? ' ↓' : ' ↑') : ' ↕';
+  var nameThHtml = '<th class="bm-name-col bm-sortable' + (bmSort.col==='name'?' bm-sort-active':'') + '" onclick="bmSortBy(&apos;name&apos;)">' +
+    'Index<span class="bm-sort-arrow">' + nameArrow + '</span></th>';
+
+  var threshHtml = benchmarkThresholds.map(function(t) {
+    var arrow = bmSort.col === t ? (bmSort.dir === -1 ? ' ↓' : ' ↑') : ' ↕';
+    return '<th class="bm-thresh-wrap bm-sortable' + (bmSort.col===t?' bm-sort-active':'') + '" onclick="bmSortBy(' + t + ')" style="position:relative;">' +
+      '> ' + t + '%' +
+      '<span class="bm-thresh-del" onclick="event.stopPropagation();removeBenchmarkThreshold(' + t + ')" title="Remove">✕</span>' +
+      '<span class="bm-sort-arrow">' + arrow + '</span>' +
+    '</th>';
+  }).join('');
+
+  var headerHtml = '<tr>' + nameThHtml + threshHtml + '</tr>';
+
+  var bodyHtml = rows.map(function(row) {
+    var cells = benchmarkThresholds.map(function(t) {
+      var pct = row.beatPcts[t];
+      return '<td><span class="bm-val ' + colorClass(pct) + '">' + pct.toFixed(1) + '%</span></td>';
+    }).join('');
+    return '<tr>' +
+      '<td class="bm-name-col"><span class="bm-dot" style="background:' + row.color + '"></span><span class="bm-name">' + row.name + '</span></td>' +
+      cells +
+    '</tr>';
+  }).join('');
+
+  container.innerHTML = '<table class="bm-table"><thead>' + headerHtml + '</thead><tbody>' + bodyHtml + '</tbody></table>';
+}
+
+function bmSortBy(col) {
+  if (bmSort.col === col) { bmSort.dir *= -1; }
+  else { bmSort.col = col; bmSort.dir = col === 'name' ? 1 : -1; }
+  renderMain();
+}
+
+// ── Recovery time chart ───────────────────────────────────────────────────
+
+function renderRecovery(selKeys, cagrMaps, portfolioMap, p5val) {
+  const canvas  = document.getElementById('recoveryChart');
+  const insight = document.getElementById('recoveryInsight');
+  const noData  = document.getElementById('recoveryNoData');
+  const badge   = document.getElementById('p5badge');
+
+  if (!selKeys || selKeys.length === 0 || p5val === null) {
+    badge.textContent = 'P5: —';
+    insight.classList.remove('visible');
+    noData.style.display = 'block';
+    if (recoveryChart) { recoveryChart.destroy(); recoveryChart = null; }
+    return;
+  }
+
+  badge.textContent = 'P5: ' + p5val.toFixed(1) + '%';
+  noData.style.display = 'none';
+
+  // Compute recovery data
+  let allRecovery = []; // [{cagr, extraMonths, label}]
+
+  if (selKeys.length === 1) {
+    const k = selKeys[0];
+    const idx = findSeries(k);
+    if (idx) {
+      const recs = computeRecoveryForKey(k, cagrMaps[k], p5val, horizon);
+      recs.forEach(r => allRecovery.push({ ...r, seriesLabel: idx.label, color: idx.color }));
+    }
+  } else {
+    // Use portfolio
+    const recs = computeRecoveryForPortfolio(portfolioMap, p5val, horizon, selKeys, weights);
+    recs.forEach(r => allRecovery.push({ ...r, seriesLabel: 'Portfolio', color: '#ff4d6a' }));
+  }
+
+  const resolved = allRecovery.filter(r => r.extraMonths !== null);
+  const unresolved = allRecovery.filter(r => r.extraMonths === null);
+
+  // Build insight box
+  if (allRecovery.length === 0) {
+    insight.classList.remove('visible');
+  } else {
+    const months = resolved.map(r => r.extraMonths);
+    const medianM = months.length ? nthPercentile(months, 50) : null;
+    const p75M    = months.length ? nthPercentile(months, 75) : null;
+    const maxM    = months.length ? Math.max(...months) : null;
+    const seriesName = selKeys.length === 1 ? (findSeries(selKeys[0]) || {}).label || selKeys[0] : 'Portfolio';
+
+    document.getElementById('recoveryGrid').innerHTML =
+      '<div class="recovery-stat"><div class="recovery-stat-label">Below P5 periods</div><div class="recovery-stat-val">' + allRecovery.length + '</div></div>' +
+      '<div class="recovery-stat"><div class="recovery-stat-label">Median wait</div><div class="recovery-stat-val">' + (medianM !== null ? medianM + ' mo' : '—') + '</div></div>' +
+      '<div class="recovery-stat"><div class="recovery-stat-label">Worst case</div><div class="recovery-stat-val">' + (maxM !== null ? maxM + ' mo' : '—') + '</div></div>';
+
+    const rule = medianM !== null
+      ? 'If your <strong>' + horizon + 'Y CAGR is below ' + p5val.toFixed(1) + '%</strong>, half the time you only need to wait <strong>' + medianM + ' more months</strong> to cross back above it. ' +
+        (p75M ? 'In 75% of such cases, recovery happened within <strong>' + p75M + ' months</strong>. ' : '') +
+        (unresolved.length > 0 ? unresolved.length + ' case(s) did not recover within 10 years of additional data.' : 'All cases recovered within the available data window.')
+      : 'No recovery data available for the current selection.';
+
+    document.getElementById('recoveryRule').innerHTML = rule;
+    insight.classList.add('visible');
+  }
+
+  // Build scatter datasets
+  // Group by CAGR bucket on x-axis; y = extra months
+  // Scatter: each point = one historical period
+  const scatterDataResolved = resolved.map(r => ({ x: r.cagr, y: r.extraMonths }));
+  const scatterDataUnresolved = unresolved.map(r => ({ x: r.cagr, y: 121 })); // plot at 121 = "didn't recover"
+
+  const color = selKeys.length === 1 ? (findSeries(selKeys[0]) || {}).color || '#ff4d6a' : '#ff4d6a';
+
+  const datasets = [];
+  if (scatterDataResolved.length > 0) {
+    datasets.push({
+      label: 'Recovered (months to P5)',
+      data: scatterDataResolved,
+      backgroundColor: color + 'cc',
+      borderColor: color,
+      borderWidth: 1,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+    });
+  }
+  if (scatterDataUnresolved.length > 0) {
+    datasets.push({
+      label: 'Did not recover within data',
+      data: scatterDataUnresolved,
+      backgroundColor: '#ff4d6a55',
+      borderColor: '#ff4d6a',
+      borderWidth: 1,
+      pointRadius: 5,
+      pointRadius: 5,
+      pointStyle: 'crossRot',
+    });
+  }
+
+  if (datasets.length === 0) {
+    // No below-P5 periods at all — extremely good!
+    if (recoveryChart) { recoveryChart.destroy(); recoveryChart = null; }
+    insight.classList.remove('visible');
+    noData.style.display = 'block';
+    noData.textContent = '✅ No periods fell below the 5th percentile threshold — all rolling windows exceeded ' + p5val.toFixed(1) + '%';
+    return;
+  }
+
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false, position: 'top',
+        labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 12, padding: 12 }
+      },
+      tooltip: {
+        backgroundColor: '#12151c', borderColor: '#252a38', borderWidth: 1,
+        titleColor: '#8892aa', bodyColor: '#e8ecf4',
+        titleFont: { family: 'DM Mono', size: 11 },
+        bodyFont: { family: 'Syne', size: 12, weight: '600' }, padding: 10,
+        callbacks: {
+          title: function() { return ''; },
+          label: function(ctx) {
+            const x = ctx.raw.x, y = ctx.raw.y;
+            if (y === 121) return ' CAGR: ' + x.toFixed(1) + '% → did not recover in data';
+            return ' CAGR: ' + x.toFixed(1) + '%  →  recovered in ' + y + ' months';
+          }
+        }
+      },
+      annotation: {}
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'CAGR at end of ' + horizon + 'Y period (%)', color: '#5c6480', font: { family: 'DM Mono', size: 10 } },
+        ticks: { color: '#5c6480', font: { family: 'DM Mono', size: 10 }, callback: v => v + '%' },
+        grid: { color: '#1c2030' }, border: { color: '#252a38' }
+      },
+      y: {
+        title: { display: true, text: 'Extra months to recover to P5 (' + p5val.toFixed(1) + '%)', color: '#5c6480', font: { family: 'DM Mono', size: 10 } },
+        ticks: {
+          color: '#5c6480', font: { family: 'DM Mono', size: 10 },
+          callback: v => v === 121 ? 'N/R' : v + ' mo'
+        },
+        grid: { color: '#1c2030' }, border: { color: '#252a38' }
+      }
+    },
+    animation: { duration: 300 }
+  };
+
+  if (recoveryChart) {
+    recoveryChart.data = { datasets };
+    recoveryChart.options = opts;
+    recoveryChart.update('none');
+  } else {
+    recoveryChart = new Chart(canvas, { type: 'scatter', data: { datasets }, options: opts });
+  }
+}
+
+// ── Recovery time chart (vs Average Return) ──────────────────────────────
+
+function renderRecoveryAvg(selKeys, cagrMaps, portfolioMap, avgVal) {
+  const canvas  = document.getElementById('recoveryAvgChart');
+  const insight = document.getElementById('recoveryAvgInsight');
+  const noData  = document.getElementById('recoveryAvgNoData');
+  const badge   = document.getElementById('avgbadge');
+
+  if (!selKeys || selKeys.length === 0 || avgVal === null) {
+    badge.textContent = 'Avg: —';
+    insight.classList.remove('visible');
+    noData.style.display = 'block';
+    if (avgRecoveryChart) { avgRecoveryChart.destroy(); avgRecoveryChart = null; }
+    return;
+  }
+
+  badge.textContent = 'Avg: ' + avgVal.toFixed(1) + '%';
+  noData.style.display = 'none';
+
+  // Compute recovery data using avgVal as threshold
+  let allRecovery = [];
+  if (selKeys.length === 1) {
+    const k = selKeys[0];
+    const idx = findSeries(k);
+    if (idx) {
+      const recs = computeRecoveryForKey(k, cagrMaps[k], avgVal, horizon);
+      recs.forEach(r => allRecovery.push({ ...r, seriesLabel: idx.label, color: idx.color }));
+    }
+  } else {
+    const recs = computeRecoveryForPortfolio(portfolioMap, avgVal, horizon, selKeys, weights);
+    recs.forEach(r => allRecovery.push({ ...r, seriesLabel: 'Portfolio', color: '#ff4d6a' }));
+  }
+
+  const resolved   = allRecovery.filter(r => r.extraMonths !== null);
+  const unresolved = allRecovery.filter(r => r.extraMonths === null);
+
+  if (allRecovery.length === 0) {
+    insight.classList.remove('visible');
+    if (avgRecoveryChart) { avgRecoveryChart.destroy(); avgRecoveryChart = null; }
+    noData.style.display = 'block';
+    noData.textContent = '✅ No periods fell below the average return threshold (' + avgVal.toFixed(1) + '%) — every rolling window exceeded the average.';
+    return;
+  }
+
+  // Build insight box
+  const months  = resolved.map(r => r.extraMonths);
+  const medianM = months.length ? nthPercentile(months, 50) : null;
+  const p75M    = months.length ? nthPercentile(months, 75) : null;
+  const maxM    = months.length ? Math.max(...months) : null;
+
+  document.getElementById('recoveryAvgGrid').innerHTML =
+    '<div class="recovery-stat"><div class="recovery-stat-label">Below-avg periods</div><div class="recovery-stat-val">' + allRecovery.length + '</div></div>' +
+    '<div class="recovery-stat"><div class="recovery-stat-label">Median wait</div><div class="recovery-stat-val">' + (medianM !== null ? medianM + ' mo' : '—') + '</div></div>' +
+    '<div class="recovery-stat"><div class="recovery-stat-label">Worst case</div><div class="recovery-stat-val">' + (maxM !== null ? maxM + ' mo' : '—') + '</div></div>';
+
+  const rule = medianM !== null
+    ? 'If your <strong>' + horizon + 'Y CAGR is below the average of ' + avgVal.toFixed(1) + '%</strong>, half the time you only need to wait <strong>' + medianM + ' more months</strong> to cross back above it. ' +
+      (p75M ? 'In 75% of such cases, recovery happened within <strong>' + p75M + ' months</strong>. ' : '') +
+      (unresolved.length > 0 ? unresolved.length + ' case(s) did not recover within 10 years of additional data.' : 'All cases recovered within the available data window.')
+    : 'No recovery data available for the current selection.';
+
+  document.getElementById('recoveryAvgRule').innerHTML = rule;
+  insight.classList.add('visible');
+
+  // Build scatter datasets
+  const scatterDataResolved   = resolved.map(r => ({ x: r.cagr, y: r.extraMonths }));
+  const scatterDataUnresolved = unresolved.map(r => ({ x: r.cagr, y: 121 }));
+  const color = selKeys.length === 1 ? (findSeries(selKeys[0]) || {}).color || '#ff4d6a' : '#ff4d6a';
+
+  const datasets = [];
+  if (scatterDataResolved.length > 0) {
+    datasets.push({
+      label: 'Recovered (months to Avg)',
+      data: scatterDataResolved,
+      backgroundColor: color + 'cc',
+      borderColor: color,
+      borderWidth: 1,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+    });
+  }
+  if (scatterDataUnresolved.length > 0) {
+    datasets.push({
+      label: 'Did not recover within data',
+      data: scatterDataUnresolved,
+      backgroundColor: '#ff4d6a55',
+      borderColor: '#ff4d6a',
+      borderWidth: 1,
+      pointRadius: 5,
+      pointStyle: 'crossRot',
+    });
+  }
+
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false, position: 'top',
+        labels: { color: '#8892aa', font: { family: 'DM Mono', size: 11 }, boxWidth: 12, padding: 12 }
+      },
+      tooltip: {
+        backgroundColor: '#12151c', borderColor: '#252a38', borderWidth: 1,
+        titleColor: '#8892aa', bodyColor: '#e8ecf4',
+        titleFont: { family: 'DM Mono', size: 11 },
+        bodyFont: { family: 'Syne', size: 12, weight: '600' }, padding: 10,
+        callbacks: {
+          title: function() { return ''; },
+          label: function(ctx) {
+            const x = ctx.raw.x, y = ctx.raw.y;
+            if (y === 121) return ' CAGR: ' + x.toFixed(1) + '% → did not recover in data';
+            return ' CAGR: ' + x.toFixed(1) + '%  →  recovered in ' + y + ' months';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'CAGR at end of ' + horizon + 'Y period (%)', color: '#5c6480', font: { family: 'DM Mono', size: 10 } },
+        ticks: { color: '#5c6480', font: { family: 'DM Mono', size: 10 }, callback: v => v + '%' },
+        grid: { color: '#1c2030' }, border: { color: '#252a38' }
+      },
+      y: {
+        title: { display: true, text: 'Extra months to recover to Avg (' + avgVal.toFixed(1) + '%)', color: '#5c6480', font: { family: 'DM Mono', size: 10 } },
+        ticks: {
+          color: '#5c6480', font: { family: 'DM Mono', size: 10 },
+          callback: v => v === 121 ? 'N/R' : v + ' mo'
+        },
+        grid: { color: '#1c2030' }, border: { color: '#252a38' }
+      }
+    },
+    animation: { duration: 300 }
+  };
+
+  if (avgRecoveryChart) {
+    avgRecoveryChart.data = { datasets };
+    avgRecoveryChart.options = opts;
+    avgRecoveryChart.update('none');
+  } else {
+    avgRecoveryChart = new Chart(canvas, { type: 'scatter', data: { datasets }, options: opts });
+  }
+}
+
+// ── Timeline drawing & interaction ─────────────────────────────────────────
+
+// ── Modern Timeline Slider ────────────────────────────────────────────────
+
+function renderTimeline() {
+  const root    = document.getElementById('tlRoot');
+  const wrap    = document.getElementById('tlTrackWrap');
+  const fill    = document.getElementById('tlFill');
+  const handleL = document.getElementById('tlHandleL');
+  const handleR = document.getElementById('tlHandleR');
+  const labelL  = document.getElementById('tlLabelL');
+  const labelR  = document.getElementById('tlLabelR');
+  const ticks   = document.getElementById('tlTicks');
+  const strip   = document.getElementById('tlRangeStrip');
+  const ndL     = document.getElementById('tlNodataLeft');
+  const ndR     = document.getElementById('tlNodataRight');
+  if (!root || !wrap) return;
+
+  const n    = TL_DATES.length;
+  const pctL = tlStartIdx / (n - 1);
+  const pctR = tlEndIdx   / (n - 1);
+
+  // Handles + fill
+  handleL.style.left = (pctL * 100) + '%';
+  handleR.style.left = (pctR * 100) + '%';
+  fill.style.left    = (pctL * 100) + '%';
+  fill.style.width   = ((pctR - pctL) * 100) + '%';
+
+  // Date labels
+  function fmtDate(d) { return d ? d.replace('-', '/') : '—'; }
+  labelL.textContent = fmtDate(TL_DATES[tlStartIdx]);
+  labelR.textContent = fmtDate(TL_DATES[tlEndIdx]);
+
+  // No-data stripes for selected-symbol bounds
+  const dr = getSelDateRange();
+  const pctDL = dr.minIdx / (n - 1);
+  const pctDR = dr.maxIdx / (n - 1);
+  ndL.style.left  = '0';
+  ndL.style.width = (pctDL * 100) + '%';
+  ndR.style.right = '0';
+  ndR.style.left  = 'auto';
+  ndR.style.width = ((1 - pctDR) * 100) + '%';
+
+  // Range strip centered between handles
+  const midPct = (pctL + pctR) / 2;
+  strip.style.left = (midPct * 100) + '%';
+  const startY = TL_DATES[tlStartIdx] ? TL_DATES[tlStartIdx].replace('-', '/') : '';
+  const endY   = TL_DATES[tlEndIdx]   ? TL_DATES[tlEndIdx].replace('-', '/')   : '';
+  strip.textContent = startY + '  ›  ' + endY;
+
+  // Year ticks (rebuild only on first call or resize — track width driven)
+  const wW = wrap.offsetWidth || 600;
+  _buildTlTicks(ticks, wW);
+
+  // Sparkline SVG
+  _drawTlSparkline();
+}
+
+function _buildTlTicks(container, trackW) {
+  container.innerHTML = '';
+}
+
+function _updateTlTickColors(container) {
+  return;
+}
+
+function _drawTlSparkline() {
+  const svg   = document.getElementById('tlSparkSvg');
+  const root  = document.getElementById('tlRoot');
+  const wrap  = document.getElementById('tlTrackWrap');
+  if (!svg || !root || !wrap) return;
+
+  const W  = root.offsetWidth  || 600;
+  const H  = root.offsetHeight || 80;
+  const n  = TL_DATES.length;
+  if (n < 2) return;
+
+  const sparkKey = (selected && selected.size > 0) ? [...selected][0] : 'Nifty 50';
+  const raw = RAW[sparkKey] || RAW['Nifty 50'];
+
+  const vals = TL_DATES.map(d => getMonthlyValue(raw, d, 'close') || null);
+  const valid = vals.filter(v => v != null && isFinite(v));
+  if (!valid.length) return;
+
+  const minV = Math.min(...valid), rng = Math.max(...valid) - minV || 1;
+
+  // Track sits in the vertical middle of root; padding 10px left/right
+  const padX = 10, trackY = 36; // pixels from top to track center
+  const trackW = W - padX * 2;
+  const chartH  = 52; // height of spark area
+  const chartY0 = trackY - chartH * 0.65; // top of spark
+
+  const xOf = i  => padX + (i / (n - 1)) * trackW;
+  const yOf = v  => v == null ? null : (chartY0 + chartH) - ((v - minV) / rng) * chartH;
+
+  // Build path strings
+  let full = '', sel = '';
+  let penFull = false, penSel = false, firstSelX = 0, lastSelX = 0;
+
+  for (let i = 0; i < n; i++) {
+    const v = vals[i];
+    const x = xOf(i), y = yOf(v);
+    if (y == null) { penFull = false; penSel = false; continue; }
+
+    // Full path
+    full += penFull ? 'L' + x.toFixed(1) + ' ' + y.toFixed(1) : 'M' + x.toFixed(1) + ' ' + y.toFixed(1);
+    penFull = true;
+
+    // Selected range path + area fill
+    if (i >= tlStartIdx && i <= tlEndIdx) {
+      if (!penSel) { sel += 'M' + x.toFixed(1) + ' ' + y.toFixed(1); firstSelX = x; penSel = true; }
+      else           sel += 'L' + x.toFixed(1) + ' ' + y.toFixed(1);
+      lastSelX = x;
+    } else {
+      penSel = false;
+    }
+  }
+
+  // Area fill for selected region
+  const baseY = (chartY0 + chartH).toFixed(1);
+  const areaPath = sel
+    ? sel + ' L' + lastSelX.toFixed(1) + ' ' + baseY + ' L' + firstSelX.toFixed(1) + ' ' + baseY + ' Z'
+    : '';
+
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.innerHTML =
+    (full ? '<path d="' + full + '" fill="none" stroke="#252d42" stroke-width="1" stroke-linejoin="round"/>' : '') +
+    (areaPath ? '<path d="' + areaPath + '" fill="url(#tlGradArea)" opacity="0.3"/>' : '') +
+    (sel  ? '<path d="' + sel  + '" fill="none" stroke="url(#tlGradLine)" stroke-width="1.6" stroke-linejoin="round"/>' : '') +
+    '<defs>' +
+      '<linearGradient id="tlGradLine" x1="0%" y1="0%" x2="100%" y2="0%">' +
+        '<stop offset="0%"   stop-color="#4f9ef8"/>' +
+        '<stop offset="100%" stop-color="#a78bfa"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="tlGradArea" x1="0%" y1="0%" x2="0%" y2="100%">' +
+        '<stop offset="0%"   stop-color="#4f9ef8"/>' +
+        '<stop offset="100%" stop-color="#4f9ef8" stop-opacity="0"/>' +
+      '</linearGradient>' +
+    '</defs>';
+}
+
+// drawTimeline alias used by legacy callers
+function drawTimeline() { renderTimeline(); }
+
+function setupTimeline() {
+  const wrap    = document.getElementById('tlTrackWrap');
+  const handleL = document.getElementById('tlHandleL');
+  const handleR = document.getElementById('tlHandleR');
+  if (!wrap || !handleL || !handleR) return;
+
+  const MIN_SPAN = 6;
+
+  function pctToIdx(pct) {
+    const n = TL_DATES.length;
+    return Math.round(Math.max(0, Math.min(1, pct)) * (n - 1));
+  }
+  function cxToIdx(cx) {
+    const r = wrap.getBoundingClientRect();
+    return pctToIdx((cx - r.left) / r.width);
+  }
+
+  // ── Drag state ──────────────────────────────────────────────────────────
+  let dragTarget = null, dragStartCx = 0, dragStartL = 0, dragStartR = 0;
+
+  function startDrag(target, cx) {
+    dragTarget  = target;
+    dragStartCx = cx;
+    dragStartL  = tlStartIdx;
+    dragStartR  = tlEndIdx;
+    target.classList.add('tl-active');
+    document.body.style.cursor = 'ew-resize';
+  }
+  function stopDrag() {
+    if (dragTarget) dragTarget.classList.remove('tl-active');
+    dragTarget = null;
+    document.body.style.cursor = '';
+  }
+  function onDragMove(cx) {
+    if (!dragTarget) return;
+    const r    = wrap.getBoundingClientRect();
+    const n = TL_DATES.length;
+    const dIdx = Math.round(((cx - dragStartCx) / r.width) * (n - 1));
+    const dr   = getSelDateRange();
+
+    if (dragTarget === handleL) {
+      tlStartIdx = Math.max(0, Math.min(dragStartL + dIdx, tlEndIdx - MIN_SPAN));
+    } else if (dragTarget === handleR) {
+      tlEndIdx   = Math.max(tlStartIdx + MIN_SPAN, Math.min(dragStartR + dIdx, n - 1));
+    } else {
+      // Drag the fill (middle) — move whole window
+      const span = dragStartR - dragStartL;
+      const nl   = Math.max(0, Math.min(dragStartL + dIdx, n - 1 - span));
+      tlStartIdx = nl; tlEndIdx = nl + span;
+    }
+    renderTimeline(); renderMain(); updateTlResetBtn();
+  }
+
+  // ── Mouse events ─────────────────────────────────────────────────────────
+  handleL.addEventListener('mousedown', e => { e.preventDefault(); startDrag(handleL, e.clientX); });
+  handleR.addEventListener('mousedown', e => { e.preventDefault(); startDrag(handleR, e.clientX); });
+
+  // Drag the filled bar (middle)
+  const fillEl = document.getElementById('tlFill');
+  if (fillEl) {
+    fillEl.style.cursor = 'grab';
+    fillEl.addEventListener('mousedown', e => {
+      e.preventDefault();
+      fillEl.style.cursor = 'grabbing';
+      startDrag(fillEl, e.clientX);
+    });
+  }
+
+  window.addEventListener('mousemove', e => { onDragMove(e.clientX); });
+  window.addEventListener('mouseup',   () => { if (fillEl) fillEl.style.cursor = 'grab'; stopDrag(); updateTlResetBtn(); });
+
+  // ── Touch events ──────────────────────────────────────────────────────────
+  handleL.addEventListener('touchstart', e => { e.preventDefault(); startDrag(handleL, e.touches[0].clientX); }, { passive: false });
+  handleR.addEventListener('touchstart', e => { e.preventDefault(); startDrag(handleR, e.touches[0].clientX); }, { passive: false });
+  if (fillEl) fillEl.addEventListener('touchstart', e => { e.preventDefault(); startDrag(fillEl, e.touches[0].clientX); }, { passive: false });
+  window.addEventListener('touchmove', e => { if (dragTarget) onDragMove(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchend',  () => stopDrag());
+
+  // ── Keyboard navigation ───────────────────────────────────────────────────
+  handleL.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  tlStartIdx = Math.max(0, tlStartIdx - 1);
+    if (e.key === 'ArrowRight') tlStartIdx = Math.min(tlEndIdx - MIN_SPAN, tlStartIdx + 1);
+    renderTimeline(); renderMain(); updateTlResetBtn();
+  });
+  handleR.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  tlEndIdx = Math.max(tlStartIdx + MIN_SPAN, tlEndIdx - 1);
+    if (e.key === 'ArrowRight') tlEndIdx = Math.min(n - 1, tlEndIdx + 1);
+    renderTimeline(); renderMain(); updateTlResetBtn();
+  });
+
+  // Click on track background to jump nearest handle
+  wrap.addEventListener('click', e => {
+    if (e.target === handleL || e.target === handleR || e.target.closest('.tl-handle')) return;
+    const clickIdx = cxToIdx(e.clientX);
+    const dL = Math.abs(clickIdx - tlStartIdx);
+    const dR = Math.abs(clickIdx - tlEndIdx);
+    const dr = getSelDateRange();
+    if (dL <= dR) {
+      tlStartIdx = Math.max(0, Math.min(clickIdx, tlEndIdx - MIN_SPAN));
+    } else {
+      tlEndIdx   = Math.max(tlStartIdx + MIN_SPAN, Math.min(clickIdx, n - 1));
+    }
+    renderTimeline(); renderMain(); updateTlResetBtn();
+  });
+
+  // Resize
+  let _resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => { renderTimeline(); }, 60);
+  });
+}
+
+// ── Weight system ─────────────────────────────────────────────────────────
+let locked = new Set(); // keys whose weights are pinned
+
+
+function redistributeWeights() {
+  const sk = [...selected]; const n = sk.length;
+  if (!n) return;
+  // Respect locked weights; distribute remainder equally to unlocked
+  const lockedKeys = sk.filter(k => locked.has(k));
+  const unlockedKeys = sk.filter(k => !locked.has(k));
+  const lockedTotal = lockedKeys.reduce((s,k) => s + (weights[k]||0), 0);
+  const remainder = Math.max(0, 100 - lockedTotal);
+  if (unlockedKeys.length) {
+    const each = remainder / unlockedKeys.length;
+    unlockedKeys.forEach(k => weights[k] = each);
+  } else {
+    // All locked - normalize locked
+    sk.forEach((k,i) => weights[k] = i === n-1 ? (100 - Math.round(100/n)*(n-1)) : Math.round(100/n));
+  }
+}
+
+/** Called when user drags key `changedKey` slider to `newVal` */
+function applyWeightChange(changedKey, newVal) {
+  const sk = [...selected];
+  newVal = Math.min(newVal, 100);
+
+  // Keys that can absorb the change (selected, not changed, not locked)
+  const flex = sk.filter(k => k !== changedKey && !locked.has(k));
+  const delta = newVal - (weights[changedKey]||0);
+
+  if (flex.length === 0) {
+    // Nothing can flex — clamp changed key so total stays 100
+    const otherTotal = sk.filter(k=>k!==changedKey).reduce((s,k)=>s+(weights[k]||0),0);
+    weights[changedKey] = Math.max(0, 100 - otherTotal);
+    return;
+  }
+
+  const flexTotal = flex.reduce((s,k) => s+(weights[k]||0), 0);
+
+  if (delta > 0) {
+    // Increasing changedKey → shrink flex proportionally
+    if (flexTotal <= 0) {
+      // Others are already 0 — clamp changedKey
+      weights[changedKey] = Math.max(0, 100 - sk.filter(k=>k!==changedKey).reduce((s,k)=>s+(weights[k]||0),0));
+      return;
+    }
+    const canAbsorb = flexTotal; // flex indices can go down to 0
+    const actualDelta = Math.min(delta, canAbsorb);
+    weights[changedKey] = (weights[changedKey]||0) + actualDelta;
+    flex.forEach(k => {
+      weights[k] = Math.max(0, (weights[k]||0) - actualDelta * ((weights[k]||0) / flexTotal));
+    });
+  } else {
+    // Decreasing changedKey → grow flex proportionally
+    weights[changedKey] = Math.max(0, newVal);
+    const release = -(delta); // positive amount to redistribute
+    if (flexTotal <= 0) {
+      // Distribute equally
+      flex.forEach(k => weights[k] = release / flex.length);
+    } else {
+      flex.forEach(k => {
+        weights[k] = (weights[k]||0) + release * ((weights[k]||0) / flexTotal);
+      });
+    }
+  }
+
+  // Final clamp & normalise to exact 100
+  sk.forEach(k => weights[k] = Math.max(0, weights[k]||0));
+  const tot = sk.reduce((s,k)=>s+weights[k],0);
+  if (tot > 0) sk.forEach(k => weights[k] = weights[k]/tot*100);
+}
+
+function equalWeights() {
+  locked.clear();
+  redistributeWeights();
+  buildCards(); buildCommodityCards(); renderMain();
+}
+
+function unlockAll() {
+  locked.clear();
+  buildCards(); buildCommodityCards(); renderMain();
+}
+
+// ── Allocation bar ────────────────────────────────────────────────────────
+function updateAllocBar() {
+  const sk = [...selected];
+  const acts  = document.getElementById('weightActions');
+  if (!acts) return;
+  if (sk.length < 2) { acts.style.display='none'; return; }
+  acts.style.display='flex';
+}
+
+// ── Update slider fill track ───────────────────────────────────────────────
+function updateSliderFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--fill', pct);
+}
+
+// (buildCards moved above)
+
+// ── Generate horizon buttons (1 to 30, step 0.5) ──────────────────────────
+(function() {
+  var container = document.getElementById('horizonToggle');
+  for (var y = 1; y <= 30.01; y += 0.5) {
+    var val = +y.toFixed(1);
+    var btn = document.createElement('button');
+    btn.className = 'horizon-btn' + (val === horizon ? ' active' : '');
+    btn.dataset.y = val;
+    btn.textContent = val + 'Y';
+    container.appendChild(btn);
+  }
+})();
+
+document.querySelectorAll('.horizon-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.horizon-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    horizon = +btn.dataset.y;
+    snapTimelineToSelection(); renderMain();
+  });
+});
+
 // ── Portfolio Curve Simulator ──────────────────────────────────────────────
 
 let simChart = null;
@@ -2773,7 +3682,171 @@ function buildRiskVsNiftyRow(name, color, map, benchDates, benchMap) {
   return { name: name, color: color, ba: ba, cap: cap, ratio: ratio, n: dates.length };
 }
 
-function renderBetaAlphaCapture(selKeys, cagrMaps) { return; }
+function renderBetaAlphaCapture(selKeys, cagrMaps) {
+  var betaEl = document.getElementById('betaAlphaTable');
+  var captEl = document.getElementById('captureTable');
+  if (!betaEl || !captEl) return;
+
+  var _tlStart = TL_DATES[tlStartIdx], _tlEnd = TL_DATES[tlEndIdx];
+
+  // Get Nifty 50 CAGR map filtered to window
+  var benchMap = {};
+  var rawBench = computeRollingCAGR('Nifty 50', horizon);
+  Object.keys(rawBench).forEach(function(d){
+    if (d >= _tlStart && d <= _tlEnd) benchMap[d] = rawBench[d];
+  });
+  var benchDates = Object.keys(benchMap).sort();
+
+  if (!selKeys || selKeys.length === 0) {
+    betaEl.innerHTML = '<div class="risk-no-data">Select at least one index to see Beta &amp; Alpha</div>';
+    captEl.innerHTML = '<div class="risk-no-data">Select at least one index to see Capture Ratios</div>';
+    return;
+  }
+  if (benchDates.length < 4) {
+    betaEl.innerHTML = '<div class="risk-no-data">Insufficient Nifty 50 data for the current horizon &amp; window</div>';
+    captEl.innerHTML = '<div class="risk-no-data">Insufficient Nifty 50 data for the current horizon &amp; window</div>';
+    return;
+  }
+
+  // Build rows
+  var rows = [];
+  selKeys.forEach(function(k) {
+    var idx = findSeries(k);
+    if (!idx) return;
+    var map = cagrMaps[k] || {};
+    var row = buildRiskVsNiftyRow(idx.label, idx.color, map, benchDates, benchMap);
+    if (row) rows.push(row);
+  });
+
+  if (selKeys.length > 1) {
+    var portfolioMap = {};
+    benchDates.forEach(function(d) {
+      var pv = computePortfolioCagr(d, horizon, selKeys, weights);
+      if (pv !== null) portfolioMap[d] = pv;
+    });
+    var portfolioRow = buildRiskVsNiftyRow('Portfolio', '#f5c842', portfolioMap, benchDates, benchMap);
+    if (portfolioRow) rows.push(portfolioRow);
+  }
+
+  if (rows.length === 0) {
+    betaEl.innerHTML = '<div class="risk-no-data">No overlapping data with Nifty 50 in the current window</div>';
+    captEl.innerHTML = '<div class="risk-no-data">No overlapping data with Nifty 50 in the current window</div>';
+    return;
+  }
+
+  // ── Beta / Alpha table ──
+  function betaClass(b) { return b > 1.1 ? 'warn' : b < 0.7 ? 'good' : 'neutral'; }
+  function alphaClass(a) { return a > 0 ? 'good' : a < 0 ? 'bad' : 'neutral'; }
+
+  // Sort BA rows
+  var baRows = rows.slice();
+  if (baSort.col) {
+    baRows.sort(function(a, b) {
+      var av, bv;
+      if (baSort.col === 'name') { av = a.name; bv = b.name; return baSort.dir * av.localeCompare(bv); }
+      if (baSort.col === 'beta')  { av = a.ba ? a.ba.beta  : null; bv = b.ba ? b.ba.beta  : null; }
+      if (baSort.col === 'alpha') { av = a.ba ? a.ba.alpha : null; bv = b.ba ? b.ba.alpha : null; }
+      if (baSort.col === 'n')     { av = a.n; bv = b.n; }
+      if (av === null) av = -Infinity; if (bv === null) bv = -Infinity;
+      return baSort.dir * (av - bv);
+    });
+  }
+
+  function thBA(col, label, title) {
+    var arrow = baSort.col === col ? (baSort.dir === -1 ? ' ↓' : ' ↑') : ' ↕';
+    var active = baSort.col === col ? ' bm-sort-active' : '';
+    var titleAttr = title ? ' title="' + title + '"' : '';
+    return '<th class="bm-sortable' + active + '" onclick="baSortBy(\'' + col + '\')" style="cursor:pointer;white-space:nowrap;"' + titleAttr + '>' + label + '<span class="bm-sort-arrow">' + arrow + '</span></th>';
+  }
+
+  var betaHeader = '<tr>' + thBA('name','Index') + thBA('beta','Beta') + thBA('alpha','Alpha (%)') + thBA('n','Overlap Periods','Number of overlapping rolling periods') + '<th>Interpretation</th></tr>';
+  var betaBody = baRows.map(function(r) {
+    var ba = r.ba;
+    if (!ba) return '<tr><td class="risk-name-col"><span class="risk-dot" style="background:' + r.color + '"></span><span class="risk-name">' + r.name + '</span></td><td colspan="4" style="color:var(--muted)">Insufficient data</td></tr>';
+    var interp;
+    if (ba.beta > 1.2) interp = 'Aggressive — amplifies market swings';
+    else if (ba.beta > 0.8) interp = 'Tracks market closely';
+    else if (ba.beta > 0.4) interp = 'Defensive — lower volatility';
+    else if (ba.beta > 0)   interp = 'Low market sensitivity';
+    else                     interp = 'Inverse / uncorrelated';
+    return '<tr>' +
+      '<td class="risk-name-col"><span class="risk-dot" style="background:' + r.color + '"></span><span class="risk-name">' + r.name + '</span></td>' +
+      '<td><span class="risk-val ' + betaClass(ba.beta) + '">' + ba.beta.toFixed(2) + '</span></td>' +
+      '<td><span class="risk-val ' + alphaClass(ba.alpha) + '">' + (ba.alpha >= 0 ? '+' : '') + ba.alpha.toFixed(2) + '%</span></td>' +
+      '<td style="color:var(--muted);font-size:0.68rem">' + r.n + '</td>' +
+      '<td style="color:#8892aa;font-size:0.65rem;text-align:left">' + interp + '</td>' +
+      '</tr>';
+  }).join('');
+
+  betaEl.innerHTML = '<table class="risk-table"><thead>' + betaHeader + '</thead><tbody>' + betaBody + '</tbody></table>' +
+    '<div style="margin-top:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:0.62rem;color:var(--muted);line-height:1.6;">' +
+    '<strong style="color:var(--text)">Beta</strong> = slope of index CAGR vs Nifty 50 CAGR. Beta &gt; 1 = more volatile than market. ' +
+    '<strong style="color:var(--text)">Alpha</strong> = annualised excess return after market exposure (positive = outperformance). Click column headers to sort.' +
+    '</div>';
+
+  // ── Capture Ratio table ──
+  function upCls(v) { if (v == null) return 'neutral'; return v > 105 ? 'good' : v > 90 ? 'neutral' : 'bad'; }
+  function dnCls(v) { if (v == null) return 'neutral'; return v < 90 ? 'good' : v < 105 ? 'neutral' : 'bad'; }
+  function barHtml(val, good) {
+    if (val == null) return '—';
+    var pct = Math.min(Math.max(val, 0), 200);
+    var color = good ? '#22d3a0' : '#ff4d6a';
+    if (val > 100 && !good) color = '#ff4d6a';
+    if (val < 100 && good)  color = '#f5c842';
+    return '<div class="capture-bar-wrap">' +
+      '<span class="risk-val ' + (good ? upCls(val) : dnCls(val)) + '">' + val.toFixed(1) + '%</span>' +
+      '<div class="capture-bar-bg"><div class="capture-bar-fill" style="width:' + (pct/2) + '%;background:' + color + '"></div></div>' +
+      '</div>';
+  }
+
+  // Sort Cap rows
+  var capRows = rows.slice();
+  if (capSort.col) {
+    capRows.sort(function(a, b) {
+      var av, bv;
+      if (capSort.col === 'name')      { return capSort.dir * a.name.localeCompare(b.name); }
+      if (capSort.col === 'upCapture') { av = a.cap.upCapture; bv = b.cap.upCapture; }
+      if (capSort.col === 'dnCapture') { av = a.cap.dnCapture; bv = b.cap.dnCapture; }
+      if (capSort.col === 'ratio')     { av = a.ratio; bv = b.ratio; }
+      if (capSort.col === 'upN')       { av = a.cap.upN; bv = b.cap.upN; }
+      if (capSort.col === 'dnN')       { av = a.cap.dnN; bv = b.cap.dnN; }
+      if (av === null || av === undefined) av = -Infinity;
+      if (bv === null || bv === undefined) bv = -Infinity;
+      return capSort.dir * (av - bv);
+    });
+  }
+
+  function thCap(col, label, title) {
+    var arrow = capSort.col === col ? (capSort.dir === -1 ? ' ↓' : ' ↑') : ' ↕';
+    var active = capSort.col === col ? ' bm-sort-active' : '';
+    var titleAttr = title ? ' title="' + title + '"' : '';
+    return '<th class="bm-sortable' + active + '" onclick="capSortBy(\'' + col + '\')" style="cursor:pointer;white-space:nowrap;"' + titleAttr + '>' + label + '<span class="bm-sort-arrow">' + arrow + '</span></th>';
+  }
+
+  var capHeader = '<tr>' + thCap('name','Index') + thCap('upCapture','Upside Capture') + thCap('dnCapture','Downside Capture') + thCap('ratio','Ratio (Up/Down)') + thCap('upN','Up Periods','# periods where Nifty 50 CAGR > 0') + thCap('dnN','Down Periods','# periods where Nifty 50 CAGR < 0') + '</tr>';
+  var capBody = capRows.map(function(r) {
+    var cap = r.cap;
+    var ratio = r.ratio;
+    var ratioCls = ratio ? (ratio > 1.05 ? 'good' : ratio < 0.95 ? 'bad' : 'neutral') : 'neutral';
+    return '<tr>' +
+      '<td class="risk-name-col"><span class="risk-dot" style="background:' + r.color + '"></span><span class="risk-name">' + r.name + '</span></td>' +
+      '<td>' + barHtml(cap.upCapture, true)  + '</td>' +
+      '<td>' + barHtml(cap.dnCapture, false) + '</td>' +
+      '<td>' + (ratio != null ? '<span class="risk-val ' + ratioCls + '">' + ratio.toFixed(2) + 'x</span>' : '—') + '</td>' +
+      '<td style="color:var(--muted);font-size:0.68rem">' + cap.upN + '</td>' +
+      '<td style="color:var(--muted);font-size:0.68rem">' + cap.dnN + '</td>' +
+      '</tr>';
+  }).join('');
+
+  captEl.innerHTML = '<table class="risk-table"><thead>' + capHeader + '</thead><tbody>' + capBody + '</tbody></table>' +
+    '<div style="margin-top:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:0.62rem;color:var(--muted);line-height:1.6;">' +
+    '<strong style="color:#22d3a0">Upside Capture &gt; 100%</strong> = captures more than Nifty 50 in up markets. ' +
+    '<strong style="color:#22d3a0">Downside Capture &lt; 100%</strong> = loses less than Nifty 50 in down markets. ' +
+    '<strong style="color:var(--text)">Ratio &gt; 1x</strong> = overall favourable risk/reward vs benchmark. Click column headers to sort.' +
+    '</div>';
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
 function switchTab(idx) {
   var tabs = document.querySelectorAll('.tab-content');
   var btns = document.querySelectorAll('.tab-btn');
