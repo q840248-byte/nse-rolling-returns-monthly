@@ -1184,7 +1184,11 @@ function resetTimeline() {
 // ── Dynamic timeline range based on selected symbols ─────────────────────
 function getSelDateRange() {
   var sk = Array.from(selected);
-  if (!sk.length) return { minIdx: 0, maxIdx: GLOBAL_TL_DATES.length - 1 };
+  if (!sk.length) {
+    var defIdx = GLOBAL_TL_DATES.indexOf("1990-01");
+    if (defIdx === -1) defIdx = 0;
+    return { minIdx: defIdx, maxIdx: GLOBAL_TL_DATES.length - 1 };
+  }
   
   var minDate = null, maxDate = null;
   sk.forEach(function(k) {
@@ -1204,6 +1208,9 @@ function getSelDateRange() {
 }
 
 function snapTimelineToSelection() {
+  var oldStart = TL_DATES && TL_DATES[tlStartIdx];
+  var oldEnd   = TL_DATES && TL_DATES[tlEndIdx];
+
   var range = getSelDateRange(); // range is now against GLOBAL_TL_DATES
   var minDate = GLOBAL_TL_DATES[range.minIdx];
   if (!minDate) minDate = GLOBAL_TL_DATES[0];
@@ -1211,10 +1218,24 @@ function snapTimelineToSelection() {
   TL_DATES = GLOBAL_TL_DATES.filter(function(d) { return d >= minDate; });
   if (TL_DATES.length < 12) TL_DATES = GLOBAL_TL_DATES.slice();
   
-  tlStartIdx = 0;
-  tlEndIdx = TL_DATES.length - 1;
-  tlDefaultStartIdx = tlStartIdx;
-  tlDefaultEndIdx = tlEndIdx;
+  tlDefaultStartIdx = 0;
+  tlDefaultEndIdx = TL_DATES.length - 1;
+
+  if (oldStart && oldEnd && (tlStartIdx !== 0 || tlEndIdx !== (TL_DATES.length - 1))) {
+    var newStartIdx = TL_DATES.indexOf(oldStart);
+    var newEndIdx = TL_DATES.indexOf(oldEnd);
+    if (newStartIdx !== -1 && newEndIdx !== -1 && newStartIdx < newEndIdx) {
+      tlStartIdx = newStartIdx;
+      tlEndIdx = newEndIdx;
+    } else {
+      tlStartIdx = 0;
+      tlEndIdx = TL_DATES.length - 1;
+    }
+  } else {
+    tlStartIdx = 0;
+    tlEndIdx = TL_DATES.length - 1;
+  }
+  
   updateTlResetBtn();
 }
 
