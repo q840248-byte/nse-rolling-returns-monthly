@@ -1184,37 +1184,34 @@ function resetTimeline() {
 function getSelDateRange() {
   var sk = Array.from(selected);
   if (!sk.length) return { minIdx: 0, maxIdx: TL_DATES.length - 1 };
-  // minDate = latest (first-date + horizon years) across selected indices
-  // — the earliest point where ALL selected indices have a full rolling window
+  
   var minDate = null, maxDate = null;
   sk.forEach(function(k) {
     var dates = Object.keys(RAW[k] || {}).sort();
     if (!dates.length) return;
     var first = dates[0], last = dates[dates.length - 1];
-    // Add the rolling horizon to the first date to get the first valid CAGR date
     var firstCagr = addMonths(first, horizon * 12);
-    if (!minDate || firstCagr > minDate) minDate = firstCagr;
-    if (!maxDate || last < maxDate) maxDate = last;
+    // Find absolute earliest start date (Union)
+    if (!minDate || firstCagr < minDate) minDate = firstCagr;
+    if (!maxDate || last > maxDate) maxDate = last;
   });
-  // Fallback to union if intersection is empty
-  if (minDate && maxDate && minDate > maxDate) {
-    minDate = null; maxDate = null;
-    sk.forEach(function(k) {
-      var dates = Object.keys(RAW[k] || {}).sort();
-      if (!dates.length) return;
-      if (!minDate || dates[0] < minDate) minDate = dates[0];
-      if (!maxDate || dates[dates.length-1] > maxDate) maxDate = dates[dates.length-1];
-    });
-  }
   var minIdx = minDate ? TL_DATES.findIndex(function(d){ return d >= minDate; }) : 0;
-  var maxIdx = maxDate ? (function(){ for(var i=TL_DATES.length-1;i>=0;i--) if(TL_DATES[i]<=maxDate) return i; return TL_DATES.length-1; })() : TL_DATES.length-1;
-  if (minIdx < 0) minIdx = 0;
-  if (maxIdx < 0) maxIdx = TL_DATES.length - 1;
+  if (minIdx === -1) minIdx = 0;
+  var maxIdx = maxDate ? TL_DATES.findIndex(function(d){ return d >= maxDate; }) : TL_DATES.length - 1;
+  if (maxIdx === -1) maxIdx = TL_DATES.length - 1;
   return { minIdx: minIdx, maxIdx: maxIdx };
 }
 
 function snapTimelineToSelection() {
-  return; // Disabled as per user request to keep timeline expanded across changes
+  var range = getSelDateRange();
+  tlStartIdx = range.minIdx;
+  if (tlEndIdx > range.maxIdx) tlEndIdx = range.maxIdx;
+  // Enforce minimum window of 6 months
+  if (tlEndIdx < tlStartIdx + 6) tlEndIdx = Math.min(range.maxIdx, tlStartIdx + 6);
+  if (tlStartIdx > tlEndIdx - 6) tlStartIdx = Math.max(range.minIdx, tlEndIdx - 6);
+  tlDefaultStartIdx = tlStartIdx;
+  tlDefaultEndIdx   = tlEndIdx;
+  updateTlResetBtn();
 }
 
 // ── Charts state ──────────────────────────────────────────────────────────
