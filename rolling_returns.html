@@ -2573,44 +2573,11 @@ function renderTimeline() {
 }
 
 function _buildTlTicks(container, trackW) {
-  // Only rebuild if count has changed significantly
-  if (container._lastW && Math.abs(container._lastW - trackW) < 4) {
-    _updateTlTickColors(container);
-    return;
-  }
-  container._lastW = trackW;
   container.innerHTML = '';
-
-  const n     = TL_DATES.length;
-  const years = [...new Set(TL_DATES.map(d => d.slice(0, 4)))];
-  const MIN_PX = 36; // min pixels between ticks
-  let stride = 1;
-  while ((trackW / (years.length / stride)) < MIN_PX) stride++;
-
-  years.forEach((yr, i) => {
-    if (i % stride !== 0) return;
-    const idx = TL_DATES.findIndex(d => d.startsWith(yr + '-'));
-    if (idx < 0) return;
-    const pct = idx / (n - 1);
-    const isMajor = yr % 10 === 0;
-    const tick = document.createElement('div');
-    tick.className = 'tl-tick' + (isMajor ? ' tl-tick-major' : '');
-    tick.dataset.idx = idx;
-    tick.style.left = (pct * 100) + '%';
-    tick.innerHTML = '<div class="tl-tick-line"></div><div class="tl-tick-yr">' + yr + '</div>';
-    container.appendChild(tick);
-  });
-  _updateTlTickColors(container);
 }
 
 function _updateTlTickColors(container) {
-  const sD = TL_DATES[tlStartIdx], eD = TL_DATES[tlEndIdx];
-  container.querySelectorAll('.tl-tick').forEach(function(t) {
-    const idx = +t.dataset.idx;
-    const d   = TL_DATES[idx];
-    if (d >= sD && d <= eD) t.classList.add('tl-tick-in');
-    else                     t.classList.remove('tl-tick-in');
-  });
+  return;
 }
 
 function _drawTlSparkline() {
