@@ -306,12 +306,7 @@ def main():
 
     new_html = pattern.sub(replace_block, html)
 
-    # UI PATCH: Disable snapTimelineToSelection so timeline doesn't reset on changes
-    new_html = re.sub(
-        r'function snapTimelineToSelection\(\)\s*\{[^\}]+\}',
-        'function snapTimelineToSelection() {\n  return; // Disabled as per user request to keep timeline expanded across changes\n}',
-        new_html
-    )
+    # UI PATCH removed: snapTimelineToSelection is maintained cleanly in rolling_returns.html
 
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(new_html)
