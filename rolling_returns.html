@@ -1436,7 +1436,8 @@ function snapTimelineToSelection() {
 
 // ── Charts state ──────────────────────────────────────────────────────────
 
-let mainChart = null, distChart = null, recoveryChart = null, avgRecoveryChart = null;
+let mainChart = null, distChart = null, recoveryChart = null, avgRecoveryChart = null, priceChart = null;
+let priceScaleType = 'logarithmic', priceDisplayMode = 'raw';
 
 // ── Persistent chart customisations (survive symbol/window changes) ────────
 let customLines = []; // [{value, color, label}]
@@ -3765,9 +3766,6 @@ setupTimeline(); renderTimeline();
 setTimeout(runSimulator, 0);
 
 // ── TradingView-Style Log Price Chart ──────────────────────────────────────
-let priceChart = null;
-let priceScaleType = 'logarithmic'; // 'logarithmic' or 'linear'
-let priceDisplayMode = 'raw';       // 'raw' or 'norm'
 
 function setPriceScale(type) {
   priceScaleType = type;
@@ -3842,17 +3840,28 @@ function renderPriceChart(selKeys) {
   if (!canvas) return;
 
   if (!selKeys || selKeys.length === 0) {
-    if (noData) noData.style.display = 'block';
+    if (noData) {
+      noData.textContent = 'Select at least one index in the sidebar to view price chart';
+      noData.style.display = 'block';
+    }
     canvas.style.display = 'none';
     if (priceChart) { priceChart.destroy(); priceChart = null; }
     if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view price chart</span>';
     return;
   }
 
+  var tab2 = document.getElementById('tabContent2');
+  var isTab2Visible = tab2 && tab2.style.display !== 'none';
+  if (!isTab2Visible && !priceChart) {
+    // If Tab 2 is hidden and chart not yet built, defer creation until tab is opened
+    return;
+  }
+
   if (noData) noData.style.display = 'none';
   canvas.style.display = 'block';
 
-  var _tlStart = TL_DATES[tlStartIdx], _tlEnd = TL_DATES[tlEndIdx];
+  var _tlStart = (TL_DATES && TL_DATES[tlStartIdx]) || '1900-01';
+  var _tlEnd   = (TL_DATES && TL_DATES[tlEndIdx])   || '2099-12';
 
   // Collect unique dates in timeline window for selected series
   var dateSet = new Set();
@@ -3865,6 +3874,11 @@ function renderPriceChart(selKeys) {
 
   var allDates = Array.from(dateSet).sort();
   if (allDates.length === 0) {
+    if (noData) {
+      noData.textContent = 'No price data available in the selected timeline range';
+      noData.style.display = 'block';
+    }
+    canvas.style.display = 'none';
     if (priceChart) { priceChart.destroy(); priceChart = null; }
     return;
   }
@@ -3988,7 +4002,10 @@ function renderPriceChart(selKeys) {
           callback: function(val, index) {
             var d = allDates[index];
             if (!d) return '';
-            return d.endsWith('-01') ? d.split('-')[0] : '';
+            if (allDates.length > 60) {
+              return d.endsWith('-01') ? d.split('-')[0] : '';
+            }
+            return d;
           }
         },
         grid: { color: '#1c2030' },
@@ -4004,14 +4021,6 @@ function renderPriceChart(selKeys) {
             if (priceDisplayMode === 'norm') {
               return val.toFixed(0);
             }
-            if (priceScaleType === 'logarithmic') {
-              var log10 = Math.log10(val);
-              var r = val / Math.pow(10, Math.floor(log10));
-              if (Math.abs(r - 1) < 1e-3 || Math.abs(r - 2) < 1e-3 || Math.abs(r - 5) < 1e-3) {
-                return formatPriceTick(val);
-              }
-              return '';
-            }
             return formatPriceTick(val);
           }
         },
@@ -4019,13 +4028,13 @@ function renderPriceChart(selKeys) {
         border: { color: '#252a38' }
       }
     },
-    animation: { duration: 250 }
+    animation: { duration: 200 }
   };
 
   if (priceChart) {
     priceChart.data = { labels: allDates, datasets: datasets };
     priceChart.options = opts;
-    priceChart.update('none');
+    priceChart.update();
   } else {
     priceChart = new Chart(canvas, {
       type: 'line',
@@ -4034,9 +4043,6 @@ function renderPriceChart(selKeys) {
     });
   }
 }
-
-// ── Tab switching ─────────────────────────────────────────────────────────
-// (Beta/Alpha & Capture functions removed — tabs deleted)
 
 // ── Tab switching ─────────────────────────────────────────────────────────
 function switchTab(idx) {
@@ -4052,7 +4058,10 @@ function switchTab(idx) {
     }, 50);
   } else if (idx === 2) {
     setTimeout(function() {
-      if (priceChart && typeof priceChart.resize === 'function') priceChart.resize();
+      if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+      }
       renderPriceChart([...selected]);
     }, 50);
   }
