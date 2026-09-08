@@ -463,8 +463,35 @@
   /* ── Stats sort bar ──────────────────────────────────────────────────────── */
   .stats-sort-bar {
     display: flex; gap: 4px; flex-wrap: wrap;
+    align-items: center; margin-bottom: 6px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  /* ── Stats filter bar (Coverage) ── */
+  .stats-filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
     align-items: center; margin-bottom: 8px;
     padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+  }
+  .stats-filter-label {
+    font-size: 0.56rem; color: var(--muted); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-right: 2px; white-space: nowrap;
+  }
+  .cov-filter-inputs {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .cov-filter-input {
+    width: 44px; padding: 2px 4px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; text-align: center;
+  }
+  .cov-filter-input:focus { outline: none; border-color: var(--accent); }
+  .cov-filter-unit {
+    font-size: 0.58rem; color: var(--muted); margin-right: 3px;
+  }
+  .cov-filter-status {
+    font-size: 0.60rem; color: var(--muted); margin-left: auto;
   }
   .stats-sort-label {
     font-size: 0.56rem; color: var(--muted); letter-spacing: 0.08em;
@@ -777,6 +804,17 @@
           </div>
         </div>
         <div id="statsSortBar" class="stats-sort-bar" style="display:none"></div>
+        <div id="statsFilterBar" class="stats-filter-bar" style="display:none">
+          <span class="stats-filter-label">Coverage Filter:</span>
+          <div class="cov-filter-inputs">
+            <input type="number" id="covFilterYears" min="0" max="60" step="1" placeholder="0" class="cov-filter-input">
+            <span class="cov-filter-unit">years</span>
+            <input type="number" id="covFilterMonths" min="0" max="11" step="1" placeholder="0" class="cov-filter-input">
+            <span class="cov-filter-unit">months</span>
+          </div>
+          <button id="covFilterResetBtn" class="stat-sort-btn" style="padding:2px 7px;">Reset</button>
+          <span id="covFilterStatus" class="cov-filter-status"></span>
+        </div>
         <div class="stats-wrap" id="statsGrid" style="overflow-y:visible;"></div>
       </div>
     </div>
@@ -1899,13 +1937,17 @@ function renderMain() {
 function renderStats(selKeys, cagrMaps, portfolioMap) {
   const grid = document.getElementById('statsGrid');
   const sortBar = document.getElementById('statsSortBar');
+  const filterBar = document.getElementById('statsFilterBar');
   grid.innerHTML = '';
   if (!selKeys || selKeys.length === 0) {
     if (sortBar) sortBar.style.display = 'none';
+    if (filterBar) filterBar.style.display = 'none';
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:8px">Select indices above</div>';
     return;
   }
   if (sortBar) sortBar.style.display = 'flex';
+  if (filterBar) filterBar.style.display = 'flex';
+
   // Filter by timeline range
   const _tlStart = TL_DATES[tlStartIdx], _tlEnd = TL_DATES[tlEndIdx];
   const all = [];
@@ -1928,29 +1970,31 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     const p5 = nthPercentile(vals, 5);
     const idx = findSeries(k);
     if (!idx) return;
-    // Sharpe & Sortino (risk-free = 6% annualised CAGR)
-    const rf = 6.0;
-    const sharpe = stddev > 0 ? +((avg - rf) / stddev).toFixed(2) : null;
-    const downDevVals = vals.filter(function(v){return v < rf;});
-    const downDev = downDevVals.length > 1
-      ? +Math.sqrt(downDevVals.reduce(function(s,v){return s+(v-rf)*(v-rf);},0)/downDevVals.length).toFixed(2)
-      : (downDevVals.length === 1 ? Math.abs(downDevVals[0]-rf) : 0);
-    const sortino = downDev > 0 ? +((avg - rf) / downDev).toFixed(2) : null;
-    // Skewness & Kurtosis (excess)
-    const n_sk = vals.length;
-    let skewness = null, kurtosis = null;
-    if (n_sk >= 4) {
-      const m2 = vals.reduce(function(s,v){return s+(v-avg)*(v-avg);},0)/n_sk;
-      const m3 = vals.reduce(function(s,v){var d=v-avg;return s+d*d*d;},0)/n_sk;
-      const m4 = vals.reduce(function(s,v){var d=v-avg;return s+d*d*d*d;},0)/n_sk;
-      const sd_pop = Math.sqrt(m2);
-      if (sd_pop > 1e-10) {
-        skewness = +(m3 / (sd_pop * sd_pop * sd_pop)).toFixed(2);
-        kurtosis = +(m4 / (m2 * m2) - 3).toFixed(2); // excess kurtosis
-      }
+
+    let covM = 0;
+    if (dates_k.length > 0) {
+      const f = dates_k[0].split('-'), l = dates_k[dates_k.length - 1].split('-');
+      covM = (+l[0] - +f[0]) * 12 + (+l[1] - +f[1]);
     }
-    all.push({ name: idx.label, color: idx.color, latest, avg, median, midAvg, stddev, p5, sharpe, sortino, skewness, kurtosis, max: Math.max.apply(null,vals), pct: percentileOf(vals, latest), n: vals.length, firstDate: dates_k[0], lastDate: dates_k[dates_k.length-1] });
+
+    all.push({
+      name: idx.label,
+      color: idx.color,
+      latest,
+      avg,
+      median,
+      midAvg,
+      stddev,
+      p5,
+      max: Math.max.apply(null, vals),
+      pct: +percentileOf(vals, latest),
+      n: vals.length,
+      firstDate: dates_k[0],
+      lastDate: dates_k[dates_k.length - 1],
+      coverageMonths: covM
+    });
   });
+
   if (selKeys.length > 1 && portfolioMap) {
     const pdates = Object.keys(portfolioMap).sort();
     const vals = pdates.map(d => portfolioMap[d]);
@@ -1963,40 +2007,76 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       const pp25 = nthPercentile(vals, 25), pp75 = nthPercentile(vals, 75);
       const pmidVals = vals.filter(function(v){ return v >= pp25 && v <= pp75; });
       const pmidAvg = pmidVals.length ? +(pmidVals.reduce(function(a,b){return a+b;},0)/pmidVals.length).toFixed(2) : pavg;
-      const prf = 6.0;
-      const psharpe = pstddev > 0 ? +((pavg - prf) / pstddev).toFixed(2) : null;
-      const pdownDevVals = vals.filter(function(v){return v < prf;});
-      const pdownDev = pdownDevVals.length > 1
-        ? +Math.sqrt(pdownDevVals.reduce(function(s,v){return s+(v-prf)*(v-prf);},0)/pdownDevVals.length).toFixed(2)
-        : (pdownDevVals.length === 1 ? Math.abs(pdownDevVals[0]-prf) : 0);
-      const psortino = pdownDev > 0 ? +((pavg - prf) / pdownDev).toFixed(2) : null;
-      // Skewness & Kurtosis for portfolio
-      const pn_sk = vals.length;
-      let pskewness = null, pkurtosis = null;
-      if (pn_sk >= 4) {
-        const pm2 = vals.reduce(function(s,v){return s+(v-pavg)*(v-pavg);},0)/pn_sk;
-        const pm3 = vals.reduce(function(s,v){var d=v-pavg;return s+d*d*d;},0)/pn_sk;
-        const pm4 = vals.reduce(function(s,v){var d=v-pavg;return s+d*d*d*d;},0)/pn_sk;
-        const psd_pop = Math.sqrt(pm2);
-        if (psd_pop > 1e-10) {
-          pskewness = +(pm3 / (psd_pop * psd_pop * psd_pop)).toFixed(2);
-          pkurtosis = +(pm4 / (pm2 * pm2) - 3).toFixed(2);
-        }
+
+      let pcovM = 0;
+      if (pdates.length > 0) {
+        const f = pdates[0].split('-'), l = pdates[pdates.length - 1].split('-');
+        pcovM = (+l[0] - +f[0]) * 12 + (+l[1] - +f[1]);
       }
-      all.push({ name: 'Portfolio', color: '#ff4d6a', latest, avg: pavg, median: pmedian, midAvg: pmidAvg, stddev: pstddev, p5, sharpe: psharpe, sortino: psortino, skewness: pskewness, kurtosis: pkurtosis, max: Math.max.apply(null,vals), pct: percentileOf(vals, latest), n: vals.length, firstDate: pdates[0], lastDate: pdates[pdates.length-1] });
+
+      all.push({
+        name: 'Portfolio',
+        color: '#ff4d6a',
+        latest,
+        avg: pavg,
+        median: pmedian,
+        midAvg: pmidAvg,
+        stddev: pstddev,
+        p5,
+        max: Math.max.apply(null, vals),
+        pct: +percentileOf(vals, latest),
+        n: vals.length,
+        firstDate: pdates[0],
+        lastDate: pdates[pdates.length - 1],
+        coverageMonths: pcovM
+      });
     }
   }
+
+  // Save args so we can re-render on hide/restore/filter/sort
+  _lastStatArgs = Array.from(arguments);
+
+  // Coverage filter (X years Y months)
+  const covYInp = document.getElementById('covFilterYears');
+  const covMInp = document.getElementById('covFilterMonths');
+  const covStatus = document.getElementById('covFilterStatus');
+  const filterYears = covYInp && covYInp.value !== '' ? parseInt(covYInp.value, 10) || 0 : 0;
+  const filterMonths = covMInp && covMInp.value !== '' ? parseInt(covMInp.value, 10) || 0 : 0;
+  const minCoverageMonths = filterYears * 12 + filterMonths;
+
+  const totalCount = all.length;
+  let filtered = all;
+  if (minCoverageMonths > 0) {
+    filtered = all.filter(function(s) {
+      return (s.coverageMonths || 0) >= minCoverageMonths;
+    });
+  }
+
+  if (covStatus) {
+    if (minCoverageMonths > 0) {
+      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' (≥ ' + filterYears + 'y' + (filterMonths > 0 ? ' ' + filterMonths + 'm' : '') + ')';
+    } else {
+      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' indices' : '';
+    }
+  }
+
   // Apply sorting
   if (statSort.col) {
-    all.sort(function(a, b) {
+    filtered.sort(function(a, b) {
       var av = a[statSort.col], bv = b[statSort.col];
       if (typeof av === 'string') return statSort.dir * av.localeCompare(bv);
       return statSort.dir * ((av||0) - (bv||0));
     });
   }
 
-  // Save args so we can re-render on hide/restore
-  _lastStatArgs = Array.from(arguments);
+  // Empty state if no indices match coverage filter
+  if (filtered.length === 0 && totalCount > 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:16px">' +
+      'No indices match coverage filter (≥ ' + filterYears + 'y' + (filterMonths > 0 ? ' ' + filterMonths + 'm' : '') + '). ' +
+      '<button class="stat-sort-btn" style="display:inline-flex;margin-left:8px;padding:2px 8px;" onclick="resetCoverageFilter()">Reset Filter</button>' +
+      '</div>';
+    return;
+  }
 
   // All columns definition
   function _fmt(v) { return v != null && typeof v === 'number' ? v.toFixed(1) + '%' : '—'; }
@@ -2007,34 +2087,12 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     { key: 'midavg',  label: 'Mid Avg', html: function(s){ return '<div class="stat-item-label">Mid Avg</div><div class="stat-item-val" style="color:#a78bfa" title="Avg of P25-P75 returns">' + _fmt(s.midAvg) + '</div>'; } },
     { key: 'stddev',  label: 'Std Dev', html: function(s){ return '<div class="stat-item-label">Std Dev</div><div class="stat-item-val" style="color:#f5c842">' + _fmt(s.stddev) + '</div>'; } },
     { key: 'p5',      label: 'P5',      html: function(s){ return '<div class="stat-item-label">P5</div><div class="stat-item-val ' + ((s.p5||0)>=0?'pos':'neg') + '">' + _fmt(s.p5) + '</div>'; } },
-    { key: 'sharpe',  label: 'Sharpe',  html: function(s){
-        var v = s.sharpe; var cls = v == null ? '' : v >= 1 ? 'pos' : v >= 0 ? '' : 'neg';
-        var style = v == null ? 'color:var(--muted)' : v >= 1 ? '' : v >= 0.5 ? 'color:#f5c842' : v >= 0 ? 'color:#f97316' : '';
-        return '<div class="stat-item-label" title="(Avg CAGR - 6%) / Std Dev">Sharpe</div><div class="stat-item-val ' + cls + '" style="' + style + '">' + (v == null ? '—' : v.toFixed(2)) + '</div>';
-    } },
-    { key: 'sortino', label: 'Sortino', html: function(s){
-        var v = s.sortino; var cls = v == null ? '' : v >= 1.5 ? 'pos' : v >= 0 ? '' : 'neg';
-        var style = v == null ? 'color:var(--muted)' : v >= 1.5 ? '' : v >= 0.75 ? 'color:#f5c842' : v >= 0 ? 'color:#f97316' : '';
-        return '<div class="stat-item-label" title="(Avg CAGR - 6%) / Downside Dev">Sortino</div><div class="stat-item-val ' + cls + '" style="' + style + '">' + (v == null ? '—' : v.toFixed(2)) + '</div>';
-    } },
-    { key: 'skewness', label: 'Skewness', html: function(s){
-        var v = s.skewness;
-        var style = v == null ? 'color:var(--muted)' : Math.abs(v) < 0.5 ? 'color:#22d3a0' : Math.abs(v) < 1 ? 'color:#f5c842' : 'color:#f97316';
-        var tip = 'Skewness of rolling CAGR distribution. Near 0 = symmetric; negative = left tail risk';
-        return '<div class="stat-item-label" title="' + tip + '">Skewness</div><div class="stat-item-val" style="' + style + '">' + (v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2)) + '</div>';
-    } },
-    { key: 'kurtosis', label: 'Kurtosis', html: function(s){
-        var v = s.kurtosis;
-        var style = v == null ? 'color:var(--muted)' : v > 1 ? 'color:#ff4d6a' : v > 0 ? 'color:#f5c842' : 'color:#22d3a0';
-        var tip = 'Excess kurtosis (vs normal = 0). Positive = fat tails / extreme return risk';
-        return '<div class="stat-item-label" title="' + tip + '">Excess Kurt</div><div class="stat-item-val" style="' + style + '">' + (v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2)) + '</div>';
-    } },
   ];
 
   var visibleCols = ALL_COLS.filter(function(c){ return !hiddenStatCols.has(c.key); });
   var hiddenCols  = ALL_COLS.filter(function(c){ return  hiddenStatCols.has(c.key); });
 
-  all.forEach(function(s) {
+  filtered.forEach(function(s) {
     var div = document.createElement('div');
     div.className = 'stat-row';
     div.style.borderLeftColor = s.color;
@@ -2055,15 +2113,11 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       '<div class="stat-pct">Latest at <span style="color:' + s.color + ';font-weight:600">' + s.pct + 'th percentile</span> of all ' + horizon + 'Y periods</div>' +
       (function(){
         if (!s.firstDate || !s.lastDate) return '';
-        // Parse YYYY-MM dates
-        var f = s.firstDate.split('-'), l = s.lastDate.split('-');
-        var fy = +f[0], fm = +f[1], ly = +l[0], lm = +l[1];
-        var totalMonths = (ly - fy) * 12 + (lm - fm);
+        var totalMonths = s.coverageMonths != null ? s.coverageMonths : 0;
         var years = Math.floor(totalMonths / 12);
         var months = totalMonths % 12;
         var spanStr = years > 0 ? years + 'y' + (months > 0 ? ' ' + months + 'm' : '') : months + 'm';
         var rangeStr = s.firstDate + ' → ' + s.lastDate;
-        // Max possible months in dataset (~53 years of S&P 500 data)
         var maxMonths = 636;
         var barW = Math.min(100, Math.round(totalMonths / maxMonths * 100));
         var conf, barColor;
@@ -2078,6 +2132,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
           '<span class="datapts-label" style="color:' + barColor + ';font-weight:600">' + conf + '</span>' +
         '</div>';
       })();
+
     // Wire up hide buttons (can't use inline onclick with dynamic string keys)
     div.querySelectorAll('.hide-col-btn').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
@@ -3219,17 +3274,14 @@ function dndMove(fromIdx, toIdx) {
   var bar = document.getElementById('statsSortBar');
   if (!bar) return;
   var COLS = [
-    {col:'name',    label:'Name',    numeric:false},
-    {col:'latest',  label:'Latest',  numeric:true},
-    {col:'avg',     label:'Avg',     numeric:true},
-    {col:'median',  label:'Median',  numeric:true},
-    {col:'midAvg',  label:'Mid Avg', numeric:true},
-    {col:'p5',      label:'P5',      numeric:true},
-    {col:'stddev',  label:'Std Dev', numeric:true},
-    {col:'sharpe',  label:'Sharpe',  numeric:true},
-    {col:'sortino', label:'Sortino', numeric:true},
-    {col:'skewness', label:'Skewness', numeric:true},
-    {col:'kurtosis', label:'Kurtosis', numeric:true},
+    {col:'name',       label:'Name',       numeric:false},
+    {col:'latest',     label:'Latest',     numeric:true},
+    {col:'pct',        label:'Percentile', numeric:true},
+    {col:'avg',        label:'Avg',        numeric:true},
+    {col:'median',     label:'Median',     numeric:true},
+    {col:'midAvg',     label:'Mid Avg',    numeric:true},
+    {col:'p5',         label:'P5',         numeric:true},
+    {col:'stddev',     label:'Std Dev',    numeric:true},
   ];
   var label = document.createElement('span');
   label.className = 'stats-sort-label';
@@ -3254,6 +3306,24 @@ function dndMove(fromIdx, toIdx) {
     });
     bar.appendChild(btn);
   });
+})();
+
+// ── Coverage filter controls ──────────────────────────────────────────────
+function resetCoverageFilter() {
+  var cy = document.getElementById('covFilterYears');
+  var cm = document.getElementById('covFilterMonths');
+  if (cy) cy.value = '';
+  if (cm) cm.value = '';
+  renderMainStats();
+}
+
+(function initCoverageFilter() {
+  var cy = document.getElementById('covFilterYears');
+  var cm = document.getElementById('covFilterMonths');
+  var resetBtn = document.getElementById('covFilterResetBtn');
+  if (cy) cy.addEventListener('input', function() { renderMainStats(); });
+  if (cm) cm.addEventListener('input', function() { renderMainStats(); });
+  if (resetBtn) resetBtn.addEventListener('click', resetCoverageFilter);
 })();
 
 // ── Index search filter ────────────────────────────────────────────────────
