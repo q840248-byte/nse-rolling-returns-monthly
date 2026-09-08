@@ -572,6 +572,46 @@
   }
   .tab-icon { font-size: 0.85rem; }
 
+  /* ── TradingView-style Price Chart Toolbar & HUD ───────────────────────── */
+  .tv-toolbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .tv-btn-group {
+    display: flex; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; padding: 2px; gap: 2px;
+  }
+  .tv-tool-btn {
+    padding: 3px 8px; background: transparent; border: none; border-radius: 4px;
+    color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .tv-tool-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+  .tv-tool-btn.active {
+    background: rgba(79,158,248,0.18); color: #4f9ef8; font-weight: 700;
+  }
+  .price-hover-hud {
+    font-family: 'DM Mono', monospace; padding: 6px 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; min-height: 28px;
+  }
+  .price-hud-item {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .price-hud-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+  }
+  .price-hud-name {
+    color: var(--muted); font-size: 0.65rem;
+  }
+  .price-hud-val {
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.76rem; font-weight: 700;
+  }
+  .price-hud-chg {
+    font-size: 0.65rem; font-weight: 600;
+  }
+  .price-hud-chg.pos { color: #22d3a0; }
+  .price-hud-chg.neg { color: #ff4d6a; }
+
 </style>
 </head>
 <body>
@@ -583,12 +623,14 @@
   <!-- Tab Bar -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab(0)" id="tabBtn0">
-      <span class="tab-icon">📈</span> Charts
+      <span class="tab-icon">📈</span> Rolling Returns
     </button>
     <button class="tab-btn" onclick="switchTab(1)" id="tabBtn1">
       <span class="tab-icon">📊</span> Latest Stats
     </button>
-
+    <button class="tab-btn" onclick="switchTab(2)" id="tabBtn2">
+      <span class="tab-icon">📉</span> Chart
+    </button>
   </div>
 
   <div class="layout">
@@ -819,6 +861,48 @@
       </div>
     </div>
 
+    <!-- Tab 2: Price Chart (Log Scale / TradingView-style) -->
+    <div class="chart-area tab-content" id="tabContent2" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title">Price Chart</div>
+            <div class="chart-subtitle">Historical monthly close price series on logarithmic scale (TradingView-style) for selected indices</div>
+          </div>
+          <!-- TradingView-style Toolbar -->
+          <div class="tv-toolbar">
+            <!-- Scale Toggle: Log / Lin -->
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn active" id="tvScaleLogBtn" onclick="setPriceScale('logarithmic')" title="Logarithmic scale">LOG</button>
+              <button class="tv-tool-btn" id="tvScaleLinBtn" onclick="setPriceScale('linear')" title="Linear scale">LIN</button>
+            </div>
+            <!-- Mode Toggle: Raw Price / Normalized % -->
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn active" id="tvModeRawBtn" onclick="setPriceMode('raw')" title="Raw price values">₹ Price</button>
+              <button class="tv-tool-btn" id="tvModeNormBtn" onclick="setPriceMode('norm')" title="Normalized to 100 at start of visible range">% Normalized</button>
+            </div>
+            <!-- Quick Timeframe Pills -->
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn tv-tf-btn" onclick="setPriceTimeframe(1, this)" title="Last 1 Year">1Y</button>
+              <button class="tv-tool-btn tv-tf-btn" onclick="setPriceTimeframe(3, this)" title="Last 3 Years">3Y</button>
+              <button class="tv-tool-btn tv-tf-btn" onclick="setPriceTimeframe(5, this)" title="Last 5 Years">5Y</button>
+              <button class="tv-tool-btn tv-tf-btn" onclick="setPriceTimeframe(10, this)" title="Last 10 Years">10Y</button>
+              <button class="tv-tool-btn tv-tf-btn active" onclick="setPriceTimeframe(0, this)" title="All available data">MAX</button>
+            </div>
+            <!-- Reset Zoom -->
+            <button class="tv-tool-btn" onclick="resetPriceZoom()" title="Reset zoom and pan" style="border:1px solid var(--border);">⟲ Reset Zoom</button>
+          </div>
+        </div>
+        <!-- Interactive Hover HUD / Legend -->
+        <div id="priceHoverHud" class="price-hover-hud" style="min-height:28px;margin-bottom:10px;font-size:0.68rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to view details</span>
+        </div>
+        <div id="priceNoData" class="no-data-msg" style="display:none;">Select at least one index in the sidebar to view price chart</div>
+        <div style="position:relative;height:520px;width:100%;">
+          <canvas id="priceChartCanvas"></canvas>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -1719,6 +1803,7 @@ function renderMain() {
 
     renderRecovery([], null, null, null);
     renderRecoveryAvg([], null, null, null);
+    renderPriceChart([]);
     return;
   }
   noData.style.display = 'none'; canvas.style.display = 'block';
@@ -1930,6 +2015,7 @@ function renderMain() {
   renderRecoveryAvg(selKeys, cagrMaps, selKeys.length > 1 ? portfolioMap : null, effectiveAvg);
   drawTimeline();
   runSimulator();
+  renderPriceChart(selKeys);
 }
 
 // ── Stats panel ───────────────────────────────────────────────────────────
@@ -3678,6 +3764,277 @@ snapTimelineToSelection(); buildCards(); buildCommodityCards(); renderMain();
 setupTimeline(); renderTimeline();
 setTimeout(runSimulator, 0);
 
+// ── TradingView-Style Log Price Chart ──────────────────────────────────────
+let priceChart = null;
+let priceScaleType = 'logarithmic'; // 'logarithmic' or 'linear'
+let priceDisplayMode = 'raw';       // 'raw' or 'norm'
+
+function setPriceScale(type) {
+  priceScaleType = type;
+  var logBtn = document.getElementById('tvScaleLogBtn');
+  var linBtn = document.getElementById('tvScaleLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', type === 'logarithmic');
+  if (linBtn) linBtn.classList.toggle('active', type === 'linear');
+  if (priceChart) {
+    priceChart.options.scales.y.type = type;
+    priceChart.update();
+  }
+}
+
+function setPriceMode(mode) {
+  priceDisplayMode = mode;
+  var rawBtn = document.getElementById('tvModeRawBtn');
+  var normBtn = document.getElementById('tvModeNormBtn');
+  if (rawBtn) rawBtn.classList.toggle('active', mode === 'raw');
+  if (normBtn) normBtn.classList.toggle('active', mode === 'norm');
+  renderPriceChart([...selected]);
+}
+
+function setPriceTimeframe(years, btn) {
+  document.querySelectorAll('.tv-tf-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (years === 0) {
+    tlStartIdx = 0;
+    tlEndIdx = TL_DATES.length - 1;
+  } else {
+    var end = TL_DATES[tlEndIdx];
+    var parts = end.split('-').map(Number);
+    var ey = parts[0], em = parts[1];
+    var sy = ey - years;
+    var sm = em;
+    var targetDate = sy + '-' + (sm < 10 ? '0' + sm : sm);
+    var idx = TL_DATES.findIndex(function(d) { return d >= targetDate; });
+    if (idx === -1) idx = 0;
+    tlStartIdx = Math.min(idx, tlEndIdx);
+  }
+  renderTimeline();
+  updateTlResetBtn();
+  renderMain();
+}
+
+function resetPriceZoom() {
+  if (priceChart && typeof priceChart.resetZoom === 'function') {
+    priceChart.resetZoom();
+  }
+}
+
+function formatPriceVal(v) {
+  if (v == null || isNaN(v)) return '—';
+  if (v >= 10000000) return '₹' + (v / 10000000).toFixed(2) + ' Cr';
+  if (v >= 100000)   return '₹' + (v / 100000).toFixed(2) + ' L';
+  if (v >= 1000)     return '₹' + Math.round(v).toLocaleString('en-IN');
+  if (v >= 10)       return '₹' + v.toFixed(1);
+  return '₹' + v.toFixed(2);
+}
+
+function formatPriceTick(v) {
+  if (v == null || isNaN(v) || v <= 0) return '';
+  if (v >= 100000) return (v / 1000).toFixed(0) + 'k';
+  if (v >= 1000)   return (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'k';
+  if (v >= 10)     return Math.round(v).toString();
+  return v.toFixed(1);
+}
+
+function renderPriceChart(selKeys) {
+  var canvas = document.getElementById('priceChartCanvas');
+  var noData = document.getElementById('priceNoData');
+  var hud    = document.getElementById('priceHoverHud');
+  if (!canvas) return;
+
+  if (!selKeys || selKeys.length === 0) {
+    if (noData) noData.style.display = 'block';
+    canvas.style.display = 'none';
+    if (priceChart) { priceChart.destroy(); priceChart = null; }
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view price chart</span>';
+    return;
+  }
+
+  if (noData) noData.style.display = 'none';
+  canvas.style.display = 'block';
+
+  var _tlStart = TL_DATES[tlStartIdx], _tlEnd = TL_DATES[tlEndIdx];
+
+  // Collect unique dates in timeline window for selected series
+  var dateSet = new Set();
+  selKeys.forEach(function(k) {
+    var raw = RAW[k] || {};
+    Object.keys(raw).forEach(function(d) {
+      if (d >= _tlStart && d <= _tlEnd) dateSet.add(d);
+    });
+  });
+
+  var allDates = Array.from(dateSet).sort();
+  if (allDates.length === 0) {
+    if (priceChart) { priceChart.destroy(); priceChart = null; }
+    return;
+  }
+
+  // Build datasets
+  var datasets = [];
+  var initialPrices = {};
+  var latestPrices = {};
+
+  selKeys.forEach(function(k) {
+    var idx = findSeries(k);
+    if (!idx) return;
+    var raw = RAW[k] || {};
+
+    // Find base price for normalized mode (first available price in range)
+    var basePrice = null;
+    for (var i = 0; i < allDates.length; i++) {
+      var v = getMonthlyValue(raw, allDates[i], 'close');
+      if (v !== undefined && v !== null && v > 0) {
+        basePrice = v;
+        break;
+      }
+    }
+    initialPrices[k] = basePrice;
+
+    var lastValid = null;
+    var pts = allDates.map(function(d) {
+      var v = getMonthlyValue(raw, d, 'close');
+      if (v === undefined || v === null || v <= 0) return null;
+      lastValid = v;
+      if (priceDisplayMode === 'norm') {
+        return basePrice ? +((v / basePrice) * 100).toFixed(2) : 100;
+      }
+      return v;
+    });
+    latestPrices[k] = lastValid;
+
+    datasets.push({
+      label: idx.label,
+      seriesKey: k,
+      borderColor: idx.color,
+      backgroundColor: idx.color + '10',
+      borderWidth: 2,
+      pointRadius: 0,
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: idx.color,
+      pointHoverBorderColor: '#ffffff',
+      pointHoverBorderWidth: 1.5,
+      tension: 0.15,
+      spanGaps: true,
+      data: pts
+    });
+  });
+
+  // HUD readout updater
+  function updateHud(dateIndex) {
+    if (!hud) return;
+    var d = allDates[dateIndex !== undefined ? dateIndex : allDates.length - 1];
+    var html = '<span style="color:#8892aa;font-weight:600;margin-right:8px;">📅 ' + d + '</span>';
+    datasets.forEach(function(ds) {
+      var k = ds.seriesKey;
+      var raw = RAW[k] || {};
+      var val = getMonthlyValue(raw, d, 'close');
+      var base = initialPrices[k];
+      var chgStr = '';
+      if (val && base && base > 0) {
+        var chg = ((val / base - 1) * 100);
+        chgStr = ' <span class="price-hud-chg ' + (chg >= 0 ? 'pos' : 'neg') + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>';
+      }
+      var valStr = priceDisplayMode === 'norm'
+        ? (val && base ? ((val / base) * 100).toFixed(1) : '—')
+        : formatPriceVal(val);
+
+      html += '<span class="price-hud-item" style="margin-right:12px;">' +
+        '<span class="price-hud-dot" style="background:' + ds.borderColor + '"></span>' +
+        '<span class="price-hud-name">' + ds.label + ':</span>' +
+        '<span class="price-hud-val">' + valStr + '</span>' +
+        chgStr +
+        '</span>';
+    });
+    hud.innerHTML = html;
+  }
+
+  updateHud();
+
+  function externalPriceTooltip(ctx) {
+    if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) {
+      return;
+    }
+    var idx = ctx.tooltip.dataPoints[0].dataIndex;
+    updateHud(idx);
+  }
+
+  var opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: false,
+        external: externalPriceTooltip
+      },
+      zoom: {
+        pan: { enabled: true, mode: 'x' },
+        zoom: {
+          wheel: { enabled: true },
+          pinch: { enabled: true },
+          mode: 'x'
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#3d4560',
+          font: { family: 'DM Mono', size: 10 },
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 15,
+          callback: function(val, index) {
+            var d = allDates[index];
+            if (!d) return '';
+            return d.endsWith('-01') ? d.split('-')[0] : '';
+          }
+        },
+        grid: { color: '#1c2030' },
+        border: { color: '#252a38' }
+      },
+      y: {
+        type: priceScaleType,
+        ticks: {
+          color: '#5c6480',
+          font: { family: 'DM Mono', size: 10 },
+          callback: function(val) {
+            if (val == null || val <= 0) return '';
+            if (priceDisplayMode === 'norm') {
+              return val.toFixed(0);
+            }
+            if (priceScaleType === 'logarithmic') {
+              var log10 = Math.log10(val);
+              var r = val / Math.pow(10, Math.floor(log10));
+              if (Math.abs(r - 1) < 1e-3 || Math.abs(r - 2) < 1e-3 || Math.abs(r - 5) < 1e-3) {
+                return formatPriceTick(val);
+              }
+              return '';
+            }
+            return formatPriceTick(val);
+          }
+        },
+        grid: { color: '#1c2030' },
+        border: { color: '#252a38' }
+      }
+    },
+    animation: { duration: 250 }
+  };
+
+  if (priceChart) {
+    priceChart.data = { labels: allDates, datasets: datasets };
+    priceChart.options = opts;
+    priceChart.update('none');
+  } else {
+    priceChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels: allDates, datasets: datasets },
+      options: opts
+    });
+  }
+}
+
 // ── Tab switching ─────────────────────────────────────────────────────────
 // (Beta/Alpha & Capture functions removed — tabs deleted)
 
@@ -3692,6 +4049,11 @@ function switchTab(idx) {
       [mainChart, recoveryChart, avgRecoveryChart, simChart].forEach(function(c) {
         if (c && typeof c.resize === 'function') c.resize();
       });
+    }, 50);
+  } else if (idx === 2) {
+    setTimeout(function() {
+      if (priceChart && typeof priceChart.resize === 'function') priceChart.resize();
+      renderPriceChart([...selected]);
     }, 50);
   }
 }
