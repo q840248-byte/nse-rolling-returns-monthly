@@ -3937,29 +3937,114 @@ function renderPriceChart(selKeys) {
     });
   });
 
+  // ── Portfolio dataset (when 2+ indices selected) ─────────────────────────
+  var portBaseVal = null;
+  var portValsByDate = {};
+  if (selKeys.length > 1) {
+    var firstAvailMap = {};
+    var rawWtSum = 0;
+    selKeys.forEach(function(k) {
+      rawWtSum += (weights[k] || 0);
+      var raw = RAW[k] || {};
+      var dMatch = allDates.find(function(d) {
+        var v = getMonthlyValue(raw, d, 'close');
+        return v !== undefined && v !== null && v > 0;
+      });
+      if (dMatch) firstAvailMap[k] = dMatch;
+    });
+
+    if (rawWtSum >= 0.5) {
+      var activeKeys = selKeys.filter(function(k) { return (weights[k] || 0) > 0; });
+      if (!activeKeys.length) activeKeys = selKeys;
+      var pStartDates = activeKeys.map(function(k) { return firstAvailMap[k]; }).filter(Boolean).sort();
+      var pStart = pStartDates[pStartDates.length - 1];
+
+      if (pStart) {
+        var baseAtPStart = {};
+        var weightedBasePrice = 0;
+        activeKeys.forEach(function(k) {
+          var v = getMonthlyValue(RAW[k] || {}, pStart, 'close');
+          baseAtPStart[k] = v;
+          if (v) weightedBasePrice += ((weights[k] || 0) / rawWtSum) * v;
+        });
+
+        portBaseVal = priceDisplayMode === 'norm' ? 100 : weightedBasePrice;
+
+        var portPts = allDates.map(function(d) {
+          if (d < pStart) return null;
+          var valSum = 0;
+          var validWt = 0;
+          activeKeys.forEach(function(k) {
+            var bv = baseAtPStart[k];
+            var cv = getMonthlyValue(RAW[k] || {}, d, 'close');
+            if (bv && cv && cv > 0) {
+              validWt += (weights[k] || 0);
+            }
+          });
+          if (validWt < 0.5 * rawWtSum) return null;
+          activeKeys.forEach(function(k) {
+            var bv = baseAtPStart[k];
+            var cv = getMonthlyValue(RAW[k] || {}, d, 'close');
+            if (bv && cv && cv > 0) {
+              var w = (weights[k] || 0) / validWt;
+              valSum += w * (cv / bv) * portBaseVal;
+            }
+          });
+          var finalVal = +valSum.toFixed(2);
+          portValsByDate[d] = finalVal;
+          return finalVal;
+        });
+
+        datasets.push({
+          label: 'Portfolio',
+          seriesKey: '__portfolio__',
+          isPortfolio: true,
+          borderColor: '#ff4d6a',
+          backgroundColor: 'rgba(255, 77, 106, 0.08)',
+          borderWidth: 2.8,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#ff4d6a',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2,
+          tension: 0.15,
+          spanGaps: false,
+          data: portPts
+        });
+      }
+    }
+  }
+
   // HUD readout updater
   function updateHud(dateIndex) {
     if (!hud) return;
     var d = allDates[dateIndex !== undefined ? dateIndex : allDates.length - 1];
     var html = '<span style="color:#8892aa;font-weight:600;margin-right:8px;">📅 ' + d + '</span>';
     datasets.forEach(function(ds) {
-      var k = ds.seriesKey;
-      var raw = RAW[k] || {};
-      var val = getMonthlyValue(raw, d, 'close');
-      var base = initialPrices[k];
-      var chgStr = '';
+      var val, base, valStr, chgStr = '';
+      if (ds.isPortfolio) {
+        val = portValsByDate[d];
+        base = portBaseVal;
+      } else {
+        var k = ds.seriesKey;
+        var raw = RAW[k] || {};
+        val = getMonthlyValue(raw, d, 'close');
+        base = initialPrices[k];
+      }
+
       if (val && base && base > 0) {
         var chg = ((val / base - 1) * 100);
         chgStr = ' <span class="price-hud-chg ' + (chg >= 0 ? 'pos' : 'neg') + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>';
       }
-      var valStr = priceDisplayMode === 'norm'
+      valStr = priceDisplayMode === 'norm'
         ? (val && base ? ((val / base) * 100).toFixed(1) : '—')
         : formatPriceVal(val);
 
-      html += '<span class="price-hud-item" style="margin-right:12px;">' +
+      var isPort = ds.isPortfolio;
+      html += '<span class="price-hud-item" style="margin-right:12px;' + (isPort ? 'font-weight:700;' : '') + '">' +
         '<span class="price-hud-dot" style="background:' + ds.borderColor + '"></span>' +
         '<span class="price-hud-name">' + ds.label + ':</span>' +
-        '<span class="price-hud-val">' + valStr + '</span>' +
+        '<span class="price-hud-val" style="' + (isPort ? 'color:#ff4d6a;' : '') + '">' + valStr + '</span>' +
         chgStr +
         '</span>';
     });
