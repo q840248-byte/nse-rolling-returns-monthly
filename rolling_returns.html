@@ -1133,8 +1133,14 @@ function getSelDateRange() {
 }
 
 function snapTimelineToSelection() {
-  return; // Disabled as per user request to keep timeline expanded across changes
-});
+  var oldStart = TL_DATES && TL_DATES[tlStartIdx];
+  var oldEnd   = TL_DATES && TL_DATES[tlEndIdx];
+
+  var range = getSelDateRange(); // range is now against GLOBAL_TL_DATES
+  var minDate = GLOBAL_TL_DATES[range.minIdx];
+  if (!minDate) minDate = GLOBAL_TL_DATES[0];
+  
+  TL_DATES = GLOBAL_TL_DATES.filter(function(d) { return d >= minDate; });
   if (TL_DATES.length < 12) TL_DATES = GLOBAL_TL_DATES.slice();
   
   tlDefaultStartIdx = 0;
