@@ -21,7 +21,7 @@
   body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(79,158,248,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(79,158,248,0.03) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
   .wrapper { position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:24px 24px 40px; }
   header { display:flex; align-items:baseline; gap:16px; margin-bottom:28px; border-bottom:1px solid var(--border); padding-bottom:20px; }
-  header h1 { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; background:linear-gradient(90deg,#4f9ef8,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  header h1 { font-family:Syne,sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; background:linear-gradient(90deg,#4f9ef8,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
   header .sub { font-size:0.7rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
   .layout { display:grid; grid-template-columns:290px 1fr; gap:20px; align-items:start; }
   .sidebar { display:flex; flex-direction:column; gap:14px; position:sticky; top:20px; }
@@ -29,21 +29,21 @@
   .panel-label { font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
   .panel-label::after { content:''; flex:1; height:1px; background:var(--border); }
   .horizon-toggle { display:flex; flex-wrap:wrap; gap:5px; }
-  .horizon-btn { padding:5px 7px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.15s; text-align:center; white-space:nowrap; }
+  .horizon-btn { padding:5px 7px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-family:Syne,sans-serif; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.15s; text-align:center; white-space:nowrap; }
   .horizon-btn:hover { border-color:#4f9ef8; color:var(--text); }
   .horizon-btn.active { background:rgba(79,158,248,0.12); border-color:#4f9ef8; color:#4f9ef8; }
   .index-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; transition:border-color 0.15s; cursor:pointer; --card-color:#fff; }
   .index-card.selected { border-color:var(--card-color); }
   .card-header { display:flex; align-items:center; gap:10px; }
   .card-dot { width:10px; height:10px; border-radius:50%; background:var(--card-color); flex-shrink:0; }
-  .card-name { font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:600; flex:1; line-height:1.2; }
+  .card-name { font-family:Syne,sans-serif; font-size:0.82rem; font-weight:600; flex:1; line-height:1.2; }
   .card-check { width:18px; height:18px; border:1.5px solid var(--border); border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; }
   .index-card.selected .card-check { background:var(--card-color); border-color:var(--card-color); }
   .card-check svg { display:none; }
   .index-card.selected .card-check svg { display:block; }
   .weight-row { margin-top:10px; display:none; align-items:center; gap:7px; }
   .index-card.selected .weight-row { display:flex; }
-  .weight-val { font-family:'Syne',sans-serif; font-size:0.88rem; font-weight:700; color:var(--card-color); min-width:36px; text-align:right; }
+  .weight-val { font-family:Syne,sans-serif; font-size:0.88rem; font-weight:700; color:var(--card-color); min-width:36px; text-align:right; }
   input[type=range] { -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; background:var(--border); outline:none; cursor:pointer; flex:1; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--card-color,#4f9ef8); cursor:pointer; border:2px solid var(--bg); box-shadow:0 0 0 3px rgba(0,0,0,0.3); transition:transform 0.1s; }
   input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.25); }
@@ -62,7 +62,7 @@
   .chart-area { display:flex; flex-direction:column; gap:16px; }
   .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; }
   .chart-title-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:12px; }
-  .chart-title { font-family:'Syne',sans-serif; font-size:0.9rem; font-weight:700; }
+  .chart-title { font-family:Syne,sans-serif; font-size:0.9rem; font-weight:700; }
   .chart-subtitle { font-size:0.65rem; color:var(--muted); margin-top:3px; line-height:1.4; }
   .zero-badge { font-size:0.6rem; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:3px 8px; white-space:nowrap; }
   .no-data-msg { display:none; text-align:center; padding:60px 20px; color:var(--muted); font-size:0.85rem; }
@@ -71,7 +71,7 @@
   .stat-name { font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
   .stat-cols { display:grid; grid-template-columns:repeat(6,1fr); gap:3px; }
   .stat-item-label { font-size:0.50rem; color:var(--muted); }
-  .stat-item-val { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; }
+  .stat-item-val { font-family:Syne,sans-serif; font-size:0.78rem; font-weight:700; }
   .pos { color:#22d3a0; } .neg { color:#ff4d6a; }
   .stat-pct { font-size:0.6rem; color:var(--muted); margin-top:5px; }
 
@@ -148,7 +148,7 @@
   .datapts-bar-wrap { flex:1; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
   .datapts-bar { height:100%; border-radius:2px; transition:width 0.3s ease; }
   .datapts-label { font-size:0.58rem; color:var(--muted); white-space:nowrap; }
-  .datapts-count { font-family:'Syne',sans-serif; font-size:0.7rem; font-weight:700; white-space:nowrap; }
+  .datapts-count { font-family:Syne,sans-serif; font-size:0.7rem; font-weight:700; white-space:nowrap; }
 
   /* Recovery insight box */
   .recovery-insight {
@@ -373,12 +373,12 @@
   .sim-label { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
   .sim-input { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:0.82rem; outline:none; transition:border-color 0.15s; width:160px; }
   .sim-input:focus { border-color:#4f9ef8; }
-  .sim-btn { background:rgba(79,158,248,0.12); border:1px solid #4f9ef8; border-radius:7px; color:#4f9ef8; font-family:'Syne',sans-serif; font-size:0.8rem; font-weight:700; padding:8px 18px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .sim-btn { background:rgba(79,158,248,0.12); border:1px solid #4f9ef8; border-radius:7px; color:#4f9ef8; font-family:Syne,sans-serif; font-size:0.8rem; font-weight:700; padding:8px 18px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
   .sim-btn:hover { background:rgba(79,158,248,0.22); }
   .sim-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
   .sim-stat { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; flex:1; min-width:100px; }
   .sim-stat-label { font-size:0.58rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; }
-  .sim-stat-val { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; margin-top:3px; }
+  .sim-stat-val { font-family:Syne,sans-serif; font-size:1.05rem; font-weight:800; margin-top:3px; }
   /* ── Sections in Index List ─────────────────────────────────────────────── */
   .idx-section-header {
     display: flex; align-items: center; gap: 6px;
@@ -686,20 +686,20 @@
           <div id="customLineChips" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;"></div>
           <div style="display:flex;gap:6px;align-items:center;">
             <input id="customLineInput" type="number" step="0.5" placeholder="e.g. 0 or -20" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
-            <button onclick="addCustomLine()" style="padding:5px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">+ Add</button>
-            <button onclick="clearCustomLines()" style="padding:5px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.7rem;cursor:pointer;">Clear All</button>
+            <button onclick="addCustomLine()" style="padding:5px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">+ Add</button>
+            <button onclick="clearCustomLines()" style="padding:5px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:Syne,sans-serif;font-size:0.7rem;cursor:pointer;">Clear All</button>
           </div>
           <!-- Zoom Controls -->
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
             <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Zoom</span>
             <button onclick="zoomMainChart('in')" title="Zoom In" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.75rem;cursor:pointer;">＋</button>
             <button onclick="zoomMainChart('out')" title="Zoom Out" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.75rem;cursor:pointer;">－</button>
-            <button onclick="resetMainZoom()" title="Reset Zoom" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.65rem;cursor:pointer;">Reset</button>
+            <button onclick="resetMainZoom()" title="Reset Zoom" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:Syne,sans-serif;font-size:0.65rem;cursor:pointer;">Reset</button>
           </div>
           <!-- Tooltip Toggle -->
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
             <button id="tooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">◎ Tip: ON</button>
-            <input id="tooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
+            <input id="tooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
           </div>
           <!-- Export -->
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
@@ -707,9 +707,9 @@
           </div>
         </div>
         <!-- Hover Info Panel -->
-        <div id="chartHoverInfo" style="display:none;min-height:36px;margin-bottom:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:0.72rem;line-height:1.6;">
-          <span id="chartHoverDate" style="color:var(--muted);font-size:0.65rem;margin-right:8px;"></span>
-          <span id="chartHoverValues"></span>
+        <div id="chartHoverInfo" style="display:none;min-height:36px;margin-bottom:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:0.72rem;line-height:1.6;align-items:center;flex-wrap:wrap;gap:6px;">
+          <span id="chartHoverDate" style="display:none;"></span>
+          <span id="chartHoverValues" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;width:100%;"></span>
         </div>
         <div id="noDataMsg" class="no-data-msg">Select at least one index to begin</div>
         <div style="position: relative; height: 340px; width: 100%;">
@@ -746,7 +746,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
             <input id="benchmarkCustomInput" type="number" step="0.5" placeholder="Add %" style="width:72px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 7px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;" />
-            <button onclick="addBenchmarkThreshold()" style="padding:4px 9px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;cursor:pointer;">+ Add</button>
+            <button onclick="addBenchmarkThreshold()" style="padding:4px 9px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:Syne,sans-serif;font-size:0.68rem;font-weight:700;cursor:pointer;">+ Add</button>
           </div>
         </div>
         <div id="benchmarkTable" style="overflow-x:auto;margin-top:4px;"></div>
@@ -768,7 +768,7 @@
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;">
           <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Custom threshold</span>
           <input id="customThreshP5" type="number" step="0.1" placeholder="e.g. 7 or -5" style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
-          <button onclick="applyCustomThreshP5()" style="padding:5px 10px;background:rgba(167,139,250,0.12);border:1px solid #a78bfa;border-radius:6px;color:#a78bfa;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">▶ Analyse</button>
+          <button onclick="applyCustomThreshP5()" style="padding:5px 10px;background:rgba(167,139,250,0.12);border:1px solid #a78bfa;border-radius:6px;color:#a78bfa;font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">▶ Analyse</button>
           <button onclick="resetCustomThreshP5()" style="padding:5px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;">Reset to P5</button>
           <span id="customThreshP5Badge" style="font-size:0.65rem;color:#a78bfa;display:none;"></span>
         </div>
@@ -795,7 +795,7 @@
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;">
           <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Custom threshold</span>
           <input id="customThreshAvg" type="number" step="0.1" placeholder="e.g. 12 or 7" style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
-          <button onclick="applyCustomThreshAvg()" style="padding:5px 10px;background:rgba(167,139,250,0.12);border:1px solid #a78bfa;border-radius:6px;color:#a78bfa;font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">▶ Analyse</button>
+          <button onclick="applyCustomThreshAvg()" style="padding:5px 10px;background:rgba(167,139,250,0.12);border:1px solid #a78bfa;border-radius:6px;color:#a78bfa;font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">▶ Analyse</button>
           <button onclick="resetCustomThreshAvg()" style="padding:5px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;">Reset to Avg</button>
           <span id="customThreshAvgBadge" style="font-size:0.65rem;color:#a78bfa;display:none;"></span>
         </div>
@@ -894,6 +894,11 @@
             </div>
             <!-- Reset Zoom -->
             <button class="tv-tool-btn" onclick="resetPriceZoom()" title="Reset zoom and pan" style="border:1px solid var(--border);">⟲ Reset Zoom</button>
+            <!-- Tooltip Toggle & Top/Bottom Limit (Synced with Tab 0) -->
+            <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
+              <button id="priceTooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">◎ Tip: ON</button>
+              <input id="priceTooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
+            </div>
           </div>
         </div>
         <!-- Interactive Hover HUD / Legend -->
@@ -1907,59 +1912,22 @@ function renderMain() {
     return parts[1] === '01' ? parts[0] : '';
   };
 
-  // External tooltip handler — renders info ABOVE the chart, not over it
-  const hoverInfoEl  = document.getElementById('chartHoverInfo');
-  const hoverDateEl  = document.getElementById('chartHoverDate');
-  const hoverValsEl  = document.getElementById('chartHoverValues');
+  // Save data snapshot for reliable HUD updates
+  lastMainData.allDates = allDates;
+  lastMainData.selKeys = selKeys;
+  lastMainData.cagrMaps = cagrMaps;
+  lastMainData.portfolioMap = portfolioMap;
+  if (lastMainData.dateIndex === null || lastMainData.dateIndex >= allDates.length) {
+    lastMainData.dateIndex = allDates.length - 1;
+  }
+
   function externalTooltip(context) {
     if (!chartTooltipEnabled) return;
     const tooltip = context.tooltip;
-    if (tooltip.opacity === 0) return;
-    hoverInfoEl.style.display = 'block';
-    const date = tooltip.title && tooltip.title[0] ? tooltip.title[0] : '';
-    hoverDateEl.textContent = date;
-    
-    var dpMap = {};
-    if (tooltip.dataPoints) {
-      tooltip.dataPoints.forEach(function(dp) { if (dp && dp.dataset) dpMap[dp.dataset.label] = dp; });
-    }
-    
-    var items = (tooltip.body || []).map(function(b, i) {
-      var label = b.lines[0] || '';
-      var chartDs = context.chart && context.chart.data && context.chart.data.datasets ? context.chart.data.datasets[i] : null;
-      if (chartDs) label = chartDs.label || label;
-      var dp = dpMap[label];
-      var raw = dp ? dp.raw : undefined;
-      var color = chartDs ? (chartDs.borderColor || '#fff') : '#fff';
-      return { label: label, raw: raw, color: color };
-    }).filter(function(item) {
-      return item.raw !== null && item.raw !== undefined && typeof item.raw === 'number';
-    });
-    
-    items.sort(function(a, b) { return b.raw - a.raw; });
-    
-    var limitInput = document.getElementById('tooltipLimitInput');
-    var limit = limitInput ? parseInt(limitInput.value, 10) : 2;
-    if (isNaN(limit) || limit < 1) limit = 1;
-    
-    var displayItems = [];
-    if (items.length <= limit * 2) {
-        displayItems = items;
-    } else {
-        var topItems = items.slice(0, limit);
-        var bottomItems = items.slice(-limit);
-        displayItems = topItems.concat(bottomItems);
-    }
-    
-    const parts = displayItems.map(function(item) {
-      var valStr = item.raw.toFixed(1) + '%';
-      return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:10px;">' +
-             '<span style="width:8px;height:8px;border-radius:50%;background:' + item.color + ';flex-shrink:0;"></span>' +
-             '<span style="color:#8892aa;font-size:0.62rem;">' + item.label + '</span>' +
-             '<span style="color:#e8ecf4;font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;">' + valStr + '</span>' +
-             '</span>';
-    });
-    hoverValsEl.innerHTML = parts.join('');
+    if (!tooltip || tooltip.opacity === 0) return;
+    if (!tooltip.dataPoints || !tooltip.dataPoints.length) return;
+    var idx = tooltip.dataPoints[0].dataIndex;
+    updateMainHud(idx);
   }
 
   const opts = {
@@ -2020,6 +1988,7 @@ function renderMain() {
   drawTimeline();
   runSimulator();
   renderPriceChart(selKeys);
+  updateMainHud();
 }
 
 // ── Stats panel ───────────────────────────────────────────────────────────
@@ -3820,23 +3789,164 @@ function setupDnd(el, orderIdx) {
   });
 }
 
-// ── Tooltip toggle ────────────────────────────────────────────────────────
+// ── Synchronized Tooltip & Top/Bottom HUD Controller ────────────────────────
 var chartTooltipEnabled = true;
+var chartTooltipLimit = 2;
+
+var lastMainData = {
+  allDates: [],
+  selKeys: [],
+  cagrMaps: {},
+  portfolioMap: {},
+  dateIndex: null
+};
+
+var lastPriceData = {
+  allDates: [],
+  datasets: [],
+  portValsByDate: {},
+  portBaseVal: null,
+  initialPrices: {},
+  dateIndex: null
+};
+
+function syncTooltipLimit(val) {
+  var num = parseInt(val, 10);
+  if (isNaN(num) || num < 1) num = 1;
+  chartTooltipLimit = num;
+  var inp0 = document.getElementById('tooltipLimitInput');
+  var inp2 = document.getElementById('priceTooltipLimitInput');
+  if (inp0 && +inp0.value !== num) inp0.value = num;
+  if (inp2 && +inp2.value !== num) inp2.value = num;
+  updateMainHud();
+  updatePriceHud();
+}
+
 function toggleChartTooltip() {
   chartTooltipEnabled = !chartTooltipEnabled;
-  var btn = document.getElementById('tooltipToggleBtn');
-  if (chartTooltipEnabled) {
-    btn.textContent = '◎ Tip: ON';
-    btn.style.background = 'rgba(79,158,248,0.12)';
-    btn.style.borderColor = '#4f9ef8';
-    btn.style.color = '#4f9ef8';
-  } else {
-    document.getElementById('chartHoverInfo').style.display = 'none';
-    btn.textContent = '○ Tip: OFF';
-    btn.style.background = 'var(--bg)';
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--muted)';
+  updateTooltipToggleUI();
+  updateMainHud();
+  updatePriceHud();
+}
+
+function updateTooltipToggleUI() {
+  var btns = [document.getElementById('tooltipToggleBtn'), document.getElementById('priceTooltipToggleBtn')];
+  btns.forEach(function(btn) {
+    if (!btn) return;
+    if (chartTooltipEnabled) {
+      btn.textContent = '◎ Tip: ON';
+      btn.style.background = 'rgba(79,158,248,0.12)';
+      btn.style.borderColor = '#4f9ef8';
+      btn.style.color = '#4f9ef8';
+    } else {
+      btn.textContent = '○ Tip: OFF';
+      btn.style.background = 'var(--bg)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--muted)';
+    }
+  });
+  var h0 = document.getElementById('chartHoverInfo');
+  var h2 = document.getElementById('priceHoverHud');
+  if (h0) h0.style.display = chartTooltipEnabled ? (lastMainData.selKeys && lastMainData.selKeys.length ? 'flex' : 'none') : 'none';
+  if (h2) h2.style.display = chartTooltipEnabled ? 'flex' : 'none';
+}
+
+function updateMainHud(dateIndex) {
+  var hoverInfoEl = document.getElementById('chartHoverInfo');
+  var hoverValsEl = document.getElementById('chartHoverValues');
+  if (!hoverInfoEl || !hoverValsEl) return;
+  if (!chartTooltipEnabled) {
+    hoverInfoEl.style.display = 'none';
+    return;
   }
+  var selKeys = lastMainData.selKeys || [];
+  var allDates = lastMainData.allDates || [];
+  var cagrMaps = lastMainData.cagrMaps || {};
+  var portfolioMap = lastMainData.portfolioMap || {};
+
+  if (!selKeys.length || !allDates.length) {
+    hoverInfoEl.style.display = 'none';
+    return;
+  }
+  hoverInfoEl.style.display = 'flex';
+
+  var idx = (dateIndex !== undefined && dateIndex !== null) ? dateIndex : lastMainData.dateIndex;
+  if (idx === null || idx === undefined || idx < 0 || idx >= allDates.length) {
+    idx = allDates.length - 1;
+  }
+  lastMainData.dateIndex = idx;
+  var d = allDates[idx];
+  if (!d) return;
+
+  var items = [];
+  selKeys.forEach(function(k) {
+    var sObj = findSeries(k);
+    if (!sObj) return;
+    var map = cagrMaps[k];
+    var val = map ? map[d] : undefined;
+    if (val !== undefined && val !== null && !isNaN(val)) {
+      items.push({
+        key: k,
+        label: sObj.label,
+        color: sObj.color || '#4f9ef8',
+        val: val
+      });
+    }
+  });
+
+  var portItem = null;
+  if (selKeys.length > 1 && portfolioMap) {
+    var pv = portfolioMap[d];
+    if (pv !== undefined && pv !== null && !isNaN(pv)) {
+      portItem = {
+        label: 'Portfolio',
+        color: '#ff4d6a',
+        val: pv
+      };
+    }
+  }
+
+  items.sort(function(a, b) { return b.val - a.val; });
+
+  var limit = chartTooltipLimit || 2;
+  var html = '<span style="color:#8892aa;font-weight:600;font-size:0.68rem;margin-right:10px;white-space:nowrap;">📅 ' + d + '</span>';
+
+  if (portItem) {
+    var pValStr = (portItem.val >= 0 ? '+' : '') + portItem.val.toFixed(1) + '%';
+    var pValColor = portItem.val >= 0 ? '#22d3a0' : '#ff4d6a';
+    html += '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;padding:2px 8px;background:rgba(255,77,106,0.12);border:1px solid rgba(255,77,106,0.35);border-radius:5px;white-space:nowrap;">' +
+            '<span style="width:7px;height:7px;border-radius:50%;background:#ff4d6a;flex-shrink:0;"></span>' +
+            '<span style="color:#ff4d6a;font-weight:700;font-size:0.68rem;">Portfolio:</span>' +
+            '<span style="color:' + pValColor + ';font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + pValStr + '</span>' +
+            '</span>';
+  }
+
+  function renderMainBadge(item) {
+    var valStr = (item.val >= 0 ? '+' : '') + item.val.toFixed(1) + '%';
+    var valColor = item.val >= 0 ? '#22d3a0' : '#ff4d6a';
+    return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:2px 6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;white-space:nowrap;">' +
+           '<span style="width:7px;height:7px;border-radius:50%;background:' + item.color + ';flex-shrink:0;"></span>' +
+           '<span style="color:#8892aa;font-size:0.65rem;">' + item.label + ':</span>' +
+           '<span style="color:' + valColor + ';font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + valStr + '</span>' +
+           '</span>';
+  }
+
+  if (items.length === 0) {
+    html += '<span style="color:var(--muted);font-style:italic;font-size:0.68rem;">No index return data on this date</span>';
+  } else if (items.length <= limit * 2) {
+    items.forEach(function(item) { html += renderMainBadge(item); });
+  } else {
+    var topItems = items.slice(0, limit);
+    var bottomItems = items.slice(-limit);
+
+    html += '<span style="color:#22d3a0;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin-right:4px;white-space:nowrap;">TOP ' + limit + ':</span>';
+    topItems.forEach(function(item) { html += renderMainBadge(item); });
+
+    html += '<span style="color:#ff4d6a;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin:0 4px 0 8px;white-space:nowrap;">BOTTOM ' + limit + ':</span>';
+    bottomItems.forEach(function(item) { html += renderMainBadge(item); });
+  }
+
+  hoverValsEl.innerHTML = html;
 }
 
 // ── Select All / Deselect All ─────────────────────────────────────────────
@@ -3875,6 +3985,120 @@ setupTimeline(); renderTimeline();
 setTimeout(runSimulator, 0);
 
 // ── TradingView-Style Log Price Chart ──────────────────────────────────────
+
+function updatePriceHud(dateIndex) {
+  var hud = document.getElementById('priceHoverHud');
+  if (!hud) return;
+  if (!chartTooltipEnabled) {
+    hud.style.display = 'none';
+    return;
+  }
+  hud.style.display = 'flex';
+
+  var allDates = lastPriceData.allDates || [];
+  var datasets = lastPriceData.datasets || [];
+  var portValsByDate = lastPriceData.portValsByDate || {};
+  var portBaseVal = lastPriceData.portBaseVal;
+  var initialPrices = lastPriceData.initialPrices || {};
+
+  if (!allDates.length || !datasets.length) {
+    hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view price chart</span>';
+    return;
+  }
+
+  var idx = (dateIndex !== undefined && dateIndex !== null) ? dateIndex : lastPriceData.dateIndex;
+  if (idx === null || idx === undefined || idx < 0 || idx >= allDates.length) {
+    idx = allDates.length - 1;
+  }
+  lastPriceData.dateIndex = idx;
+  var d = allDates[idx];
+  if (!d) return;
+
+  var items = [];
+  var portItem = null;
+
+  datasets.forEach(function(ds) {
+    if (ds.isPortfolio) {
+      var val = portValsByDate[d];
+      var base = portBaseVal;
+      if (val !== undefined && val !== null && base && base > 0) {
+        var chg = ((val / base - 1) * 100);
+        var valStr = priceDisplayMode === 'norm' ? val.toFixed(1) : formatPriceVal(val);
+        portItem = {
+          label: 'Portfolio',
+          color: '#ff4d6a',
+          val: val,
+          chg: chg,
+          valStr: valStr
+        };
+      }
+      return;
+    }
+
+    var k = ds.seriesKey;
+    var raw = RAW[k] || {};
+    var val = getMonthlyValue(raw, d, 'close');
+    var base = initialPrices[k];
+
+    if (val !== undefined && val !== null && val > 0 && base && base > 0) {
+      var chg = ((val / base - 1) * 100);
+      var valStr = priceDisplayMode === 'norm' ? ((val / base) * 100).toFixed(1) : formatPriceVal(val);
+      items.push({
+        key: k,
+        label: ds.label,
+        color: ds.borderColor,
+        val: val,
+        base: base,
+        chg: chg,
+        valStr: valStr
+      });
+    }
+  });
+
+  items.sort(function(a, b) { return b.chg - a.chg; });
+
+  var limit = chartTooltipLimit || 2;
+  var html = '<span style="color:#8892aa;font-weight:600;font-size:0.68rem;margin-right:10px;white-space:nowrap;">📅 ' + d + '</span>';
+
+  if (portItem) {
+    var pChgStr = (portItem.chg >= 0 ? '+' : '') + portItem.chg.toFixed(1) + '%';
+    var pChgColor = portItem.chg >= 0 ? '#22d3a0' : '#ff4d6a';
+    html += '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;padding:2px 8px;background:rgba(255,77,106,0.12);border:1px solid rgba(255,77,106,0.35);border-radius:5px;white-space:nowrap;">' +
+            '<span style="width:7px;height:7px;border-radius:50%;background:#ff4d6a;flex-shrink:0;"></span>' +
+            '<span style="color:#ff4d6a;font-weight:700;font-size:0.68rem;">Portfolio:</span>' +
+            '<span style="color:#ff4d6a;font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + portItem.valStr + '</span>' +
+            '<span style="color:' + pChgColor + ';font-size:0.65rem;font-weight:600;">' + pChgStr + '</span>' +
+            '</span>';
+  }
+
+  function renderPriceBadge(item) {
+    var chgStr = (item.chg >= 0 ? '+' : '') + item.chg.toFixed(1) + '%';
+    var chgColor = item.chg >= 0 ? '#22d3a0' : '#ff4d6a';
+    return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:2px 6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;white-space:nowrap;">' +
+           '<span style="width:7px;height:7px;border-radius:50%;background:' + item.color + ';flex-shrink:0;"></span>' +
+           '<span style="color:#8892aa;font-size:0.65rem;">' + item.label + ':</span>' +
+           '<span style="color:#e8ecf4;font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + item.valStr + '</span>' +
+           '<span style="color:' + chgColor + ';font-size:0.65rem;font-weight:600;">' + chgStr + '</span>' +
+           '</span>';
+  }
+
+  if (items.length === 0) {
+    html += '<span style="color:var(--muted);font-style:italic;font-size:0.68rem;">No price data on this date</span>';
+  } else if (items.length <= limit * 2) {
+    items.forEach(function(item) { html += renderPriceBadge(item); });
+  } else {
+    var topItems = items.slice(0, limit);
+    var bottomItems = items.slice(-limit);
+
+    html += '<span style="color:#22d3a0;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin-right:4px;white-space:nowrap;">TOP ' + limit + ':</span>';
+    topItems.forEach(function(item) { html += renderPriceBadge(item); });
+
+    html += '<span style="color:#ff4d6a;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin:0 4px 0 8px;white-space:nowrap;">BOTTOM ' + limit + ':</span>';
+    bottomItems.forEach(function(item) { html += renderPriceBadge(item); });
+  }
+
+  hud.innerHTML = html;
+}
 
 function setPriceScale(type) {
   priceScaleType = type;
@@ -4120,50 +4344,25 @@ function renderPriceChart(selKeys) {
     }
   }
 
-  // HUD readout updater
-  function updateHud(dateIndex) {
-    if (!hud) return;
-    var d = allDates[dateIndex !== undefined ? dateIndex : allDates.length - 1];
-    var html = '<span style="color:#8892aa;font-weight:600;margin-right:8px;">📅 ' + d + '</span>';
-    datasets.forEach(function(ds) {
-      var val, base, valStr, chgStr = '';
-      if (ds.isPortfolio) {
-        val = portValsByDate[d];
-        base = portBaseVal;
-      } else {
-        var k = ds.seriesKey;
-        var raw = RAW[k] || {};
-        val = getMonthlyValue(raw, d, 'close');
-        base = initialPrices[k];
-      }
-
-      if (val && base && base > 0) {
-        var chg = ((val / base - 1) * 100);
-        chgStr = ' <span class="price-hud-chg ' + (chg >= 0 ? 'pos' : 'neg') + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>';
-      }
-      valStr = priceDisplayMode === 'norm'
-        ? (val && base ? ((val / base) * 100).toFixed(1) : '—')
-        : formatPriceVal(val);
-
-      var isPort = ds.isPortfolio;
-      html += '<span class="price-hud-item" style="margin-right:12px;' + (isPort ? 'font-weight:700;' : '') + '">' +
-        '<span class="price-hud-dot" style="background:' + ds.borderColor + '"></span>' +
-        '<span class="price-hud-name">' + ds.label + ':</span>' +
-        '<span class="price-hud-val" style="' + (isPort ? 'color:#ff4d6a;' : '') + '">' + valStr + '</span>' +
-        chgStr +
-        '</span>';
-    });
-    hud.innerHTML = html;
+  // Save snapshot for Tab 3 price chart HUD
+  lastPriceData.allDates = allDates;
+  lastPriceData.datasets = datasets;
+  lastPriceData.portValsByDate = portValsByDate;
+  lastPriceData.portBaseVal = portBaseVal;
+  lastPriceData.initialPrices = initialPrices;
+  if (lastPriceData.dateIndex === null || lastPriceData.dateIndex >= allDates.length) {
+    lastPriceData.dateIndex = allDates.length - 1;
   }
 
-  updateHud();
+  updatePriceHud();
 
   function externalPriceTooltip(ctx) {
+    if (!chartTooltipEnabled) return;
     if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) {
       return;
     }
     var idx = ctx.tooltip.dataPoints[0].dataIndex;
-    updateHud(idx);
+    updatePriceHud(idx);
   }
 
   var opts = {
