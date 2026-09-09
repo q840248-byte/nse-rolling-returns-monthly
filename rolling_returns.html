@@ -2030,26 +2030,83 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
   const filterBar = document.getElementById('statsFilterBar');
   grid.innerHTML = '';
   if (!selKeys || selKeys.length === 0) {
+    _lastStatArgs = null;
     if (sortBar) sortBar.style.display = 'none';
     if (filterBar) filterBar.style.display = 'none';
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:8px">Select indices above</div>';
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:16px">Select indices from the sidebar to view stats</div>';
     return;
   }
+  _lastStatArgs = Array.from(arguments);
   if (sortBar) sortBar.style.display = 'flex';
   if (filterBar) filterBar.style.display = 'flex';
 
+  // Helper for ordinal suffix: 1st, 2nd, 3rd, 4th, 11th, 21st, 42nd, 53rd...
+  function _ordinal(n) {
+    if (n == null || isNaN(n)) return '—';
+    var num = Math.round(n);
+    var s = ['th', 'st', 'nd', 'rd'], v = num % 100;
+    return num + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
   // Filter by timeline range
-  const _tlStart = TL_DATES[tlStartIdx], _tlEnd = TL_DATES[tlEndIdx];
+  const _tlStart = (TL_DATES && TL_DATES[tlStartIdx]) || '1900-01';
+  const _tlEnd   = (TL_DATES && TL_DATES[tlEndIdx])   || '2099-12';
   const all = [];
-  selKeys.forEach(k => {
-    const map = cagrMaps[k];
-    // Filter to timeline window
-    const filteredEntries = Object.entries(map)
-      .filter(function(e){ return e[0] >= _tlStart && e[0] <= _tlEnd; })
-      .sort(function(a, b){ return a[0] < b[0] ? -1 : 1; });
+
+  selKeys.forEach(function(k) {
+    const idx = findSeries(k);
+    if (!idx) return;
+
+    // Full raw data span
+    const rawDates = Object.keys(RAW[k] || {}).sort();
+    let rawFirst = '', rawLast = '', rawCovM = 0;
+    if (rawDates.length > 0) {
+      rawFirst = rawDates[0];
+      rawLast = rawDates[rawDates.length - 1];
+      const rf = rawFirst.split('-'), rl = rawLast.split('-');
+      rawCovM = (+rl[0] - +rf[0]) * 12 + (+rl[1] - +rf[1]);
+    }
+
+    const map = cagrMaps ? cagrMaps[k] : null;
+    const fullEntries = map ? Object.entries(map).sort(function(a, b){ return a[0] < b[0] ? -1 : 1; }) : [];
+
+    // Full unconstrained rolling CAGR span
+    let cagrCovM = 0, cagrFirst = '', cagrLast = '';
+    if (fullEntries.length > 0) {
+      cagrFirst = fullEntries[0][0];
+      cagrLast = fullEntries[fullEntries.length - 1][0];
+      const cf = cagrFirst.split('-'), cl = cagrLast.split('-');
+      cagrCovM = (+cl[0] - +cf[0]) * 12 + (+cl[1] - +cf[1]);
+    }
+
+    // Filter to timeline window for current visible stats
+    const filteredEntries = fullEntries.filter(function(e){ return e[0] >= _tlStart && e[0] <= _tlEnd; });
     const vals = filteredEntries.map(function(e){ return e[1]; });
     const dates_k = filteredEntries.map(function(e){ return e[0]; });
-    if (!vals.length) return;
+
+    // Handle index with insufficient history for this horizon
+    if (!vals.length) {
+      all.push({
+        name: idx.label,
+        color: idx.color,
+        insufficient: true,
+        coverageMonths: rawCovM,
+        cagrCoverageMonths: 0,
+        rawCoverageMonths: rawCovM,
+        firstDate: rawFirst,
+        lastDate: rawLast,
+        latest: null,
+        avg: null,
+        median: null,
+        midAvg: null,
+        stddev: null,
+        p5: null,
+        pct: null,
+        n: 0
+      });
+      return;
+    }
+
     const latest = vals[vals.length - 1];
     const avg = vals.reduce(function(a,b){return a+b;},0) / vals.length;
     const stddev = vals.length > 1 ? +Math.sqrt(vals.reduce(function(s,v){return s+(v-avg)*(v-avg);},0)/(vals.length-1)).toFixed(2) : 0;
@@ -2058,36 +2115,46 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     const midVals = vals.filter(function(v){ return v >= p25 && v <= p75; });
     const midAvg = midVals.length ? +(midVals.reduce(function(a,b){return a+b;},0)/midVals.length).toFixed(2) : avg;
     const p5 = nthPercentile(vals, 5);
-    const idx = findSeries(k);
-    if (!idx) return;
 
-    let covM = 0;
-    if (dates_k.length > 0) {
-      const f = dates_k[0].split('-'), l = dates_k[dates_k.length - 1].split('-');
-      covM = (+l[0] - +f[0]) * 12 + (+l[1] - +f[1]);
-    }
+    // Full unconstrained rolling CAGR coverage months
+    const covM = cagrCovM > 0 ? cagrCovM : rawCovM;
 
     all.push({
       name: idx.label,
       color: idx.color,
-      latest,
-      avg,
-      median,
-      midAvg,
-      stddev,
-      p5,
+      insufficient: false,
+      latest: latest,
+      avg: avg,
+      median: median,
+      midAvg: midAvg,
+      stddev: stddev,
+      p5: p5,
       max: Math.max.apply(null, vals),
       pct: +percentileOf(vals, latest),
       n: vals.length,
-      firstDate: dates_k[0],
-      lastDate: dates_k[dates_k.length - 1],
-      coverageMonths: covM
+      firstDate: cagrFirst || dates_k[0],
+      lastDate: cagrLast || dates_k[dates_k.length - 1],
+      coverageMonths: covM,
+      rawFirst: rawFirst,
+      rawLast: rawLast,
+      rawCoverageMonths: rawCovM
     });
   });
 
   if (selKeys.length > 1 && portfolioMap) {
-    const pdates = Object.keys(portfolioMap).sort();
-    const vals = pdates.map(d => portfolioMap[d]);
+    const fullPentries = Object.entries(portfolioMap).sort(function(a, b){ return a[0] < b[0] ? -1 : 1; });
+    let pCovM = 0, pFirst = '', pLast = '';
+    if (fullPentries.length > 0) {
+      pFirst = fullPentries[0][0];
+      pLast = fullPentries[fullPentries.length - 1][0];
+      const pf = pFirst.split('-'), pl = pLast.split('-');
+      pCovM = (+pl[0] - +pf[0]) * 12 + (+pl[1] - +pf[1]);
+    }
+
+    const filteredPEntries = fullPentries.filter(function(e){ return e[0] >= _tlStart && e[0] <= _tlEnd; });
+    const vals = filteredPEntries.map(function(e){ return e[1]; });
+    const pdates = filteredPEntries.map(function(e){ return e[0]; });
+
     if (vals.length) {
       const latest = vals[vals.length - 1];
       const p5 = nthPercentile(vals, 5);
@@ -2098,40 +2165,32 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       const pmidVals = vals.filter(function(v){ return v >= pp25 && v <= pp75; });
       const pmidAvg = pmidVals.length ? +(pmidVals.reduce(function(a,b){return a+b;},0)/pmidVals.length).toFixed(2) : pavg;
 
-      let pcovM = 0;
-      if (pdates.length > 0) {
-        const f = pdates[0].split('-'), l = pdates[pdates.length - 1].split('-');
-        pcovM = (+l[0] - +f[0]) * 12 + (+l[1] - +f[1]);
-      }
-
       all.push({
         name: 'Portfolio',
         color: '#ff4d6a',
-        latest,
+        insufficient: false,
+        latest: latest,
         avg: pavg,
         median: pmedian,
         midAvg: pmidAvg,
         stddev: pstddev,
-        p5,
+        p5: p5,
         max: Math.max.apply(null, vals),
         pct: +percentileOf(vals, latest),
         n: vals.length,
-        firstDate: pdates[0],
-        lastDate: pdates[pdates.length - 1],
-        coverageMonths: pcovM
+        firstDate: pFirst || pdates[0],
+        lastDate: pLast || pdates[pdates.length - 1],
+        coverageMonths: pCovM
       });
     }
   }
-
-  // Save args so we can re-render on hide/restore/filter/sort
-  _lastStatArgs = Array.from(arguments);
 
   // Coverage filter (X years Y months)
   const covYInp = document.getElementById('covFilterYears');
   const covMInp = document.getElementById('covFilterMonths');
   const covStatus = document.getElementById('covFilterStatus');
-  const filterYears = covYInp && covYInp.value !== '' ? parseInt(covYInp.value, 10) || 0 : 0;
-  const filterMonths = covMInp && covMInp.value !== '' ? parseInt(covMInp.value, 10) || 0 : 0;
+  const filterYears = covYInp && covYInp.value.trim() !== '' ? Math.max(0, parseInt(covYInp.value, 10) || 0) : 0;
+  const filterMonths = covMInp && covMInp.value.trim() !== '' ? Math.max(0, parseInt(covMInp.value, 10) || 0) : 0;
   const minCoverageMonths = filterYears * 12 + filterMonths;
 
   const totalCount = all.length;
@@ -2142,11 +2201,15 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     });
   }
 
+  var yStr = filterYears > 0 ? filterYears + 'y' : '';
+  var mStr = filterMonths > 0 ? filterMonths + 'm' : '';
+  var threshStr = (yStr + (yStr && mStr ? ' ' : '') + mStr) || '0m';
+
   if (covStatus) {
     if (minCoverageMonths > 0) {
-      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' (≥ ' + filterYears + 'y' + (filterMonths > 0 ? ' ' + filterMonths + 'm' : '') + ')';
+      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' (≥ ' + threshStr + ')';
     } else {
-      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' indices' : '';
+      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' series' : '';
     }
   }
 
@@ -2154,29 +2217,34 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
   if (statSort.col) {
     filtered.sort(function(a, b) {
       var av = a[statSort.col], bv = b[statSort.col];
+      // Keep null / undefined / insufficient at bottom
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
       if (typeof av === 'string') return statSort.dir * av.localeCompare(bv);
-      return statSort.dir * ((av||0) - (bv||0));
+      return statSort.dir * (av - bv);
     });
   }
+  updateSortBarUI();
 
   // Empty state if no indices match coverage filter
   if (filtered.length === 0 && totalCount > 0) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:16px">' +
-      'No indices match coverage filter (≥ ' + filterYears + 'y' + (filterMonths > 0 ? ' ' + filterMonths + 'm' : '') + '). ' +
+      'No series match coverage filter (≥ ' + threshStr + '). ' +
       '<button class="stat-sort-btn" style="display:inline-flex;margin-left:8px;padding:2px 8px;" onclick="resetCoverageFilter()">Reset Filter</button>' +
       '</div>';
     return;
   }
 
   // All columns definition
-  function _fmt(v) { return v != null && typeof v === 'number' ? v.toFixed(1) + '%' : '—'; }
+  function _fmt(v) { return v != null && typeof v === 'number' && !isNaN(v) ? v.toFixed(1) + '%' : '—'; }
   var ALL_COLS = [
-    { key: 'latest',  label: 'Latest',  html: function(s){ return '<div class="stat-item-label">Latest</div><div class="stat-item-val ' + ((s.latest||0)>=0?'pos':'neg') + '">' + _fmt(s.latest) + '</div>'; } },
-    { key: 'avg',     label: 'Avg',     html: function(s){ return '<div class="stat-item-label">Avg</div><div class="stat-item-val ' + ((s.avg||0)>=0?'pos':'neg') + '">' + _fmt(s.avg) + '</div>'; } },
-    { key: 'median',  label: 'Median',  html: function(s){ return '<div class="stat-item-label">Median</div><div class="stat-item-val ' + ((s.median||0)>=0?'pos':'neg') + '">' + _fmt(s.median) + '</div>'; } },
-    { key: 'midavg',  label: 'Mid Avg', html: function(s){ return '<div class="stat-item-label">Mid Avg</div><div class="stat-item-val" style="color:#a78bfa" title="Avg of P25-P75 returns">' + _fmt(s.midAvg) + '</div>'; } },
+    { key: 'latest',  label: 'Latest',  html: function(s){ return '<div class="stat-item-label">Latest</div><div class="stat-item-val ' + (s.latest != null ? (s.latest >= 0 ? 'pos' : 'neg') : '') + '">' + _fmt(s.latest) + '</div>'; } },
+    { key: 'avg',     label: 'Avg',     html: function(s){ return '<div class="stat-item-label">Avg</div><div class="stat-item-val ' + (s.avg != null ? (s.avg >= 0 ? 'pos' : 'neg') : '') + '">' + _fmt(s.avg) + '</div>'; } },
+    { key: 'median',  label: 'Median',  html: function(s){ return '<div class="stat-item-label">Median</div><div class="stat-item-val ' + (s.median != null ? (s.median >= 0 ? 'pos' : 'neg') : '') + '">' + _fmt(s.median) + '</div>'; } },
+    { key: 'midAvg',  label: 'Mid Avg', html: function(s){ return '<div class="stat-item-label">Mid Avg</div><div class="stat-item-val" style="color:#a78bfa" title="Avg of P25-P75 returns">' + _fmt(s.midAvg) + '</div>'; } },
     { key: 'stddev',  label: 'Std Dev', html: function(s){ return '<div class="stat-item-label">Std Dev</div><div class="stat-item-val" style="color:#f5c842">' + _fmt(s.stddev) + '</div>'; } },
-    { key: 'p5',      label: 'P5',      html: function(s){ return '<div class="stat-item-label">P5</div><div class="stat-item-val ' + ((s.p5||0)>=0?'pos':'neg') + '">' + _fmt(s.p5) + '</div>'; } },
+    { key: 'p5',      label: 'P5',      html: function(s){ return '<div class="stat-item-label">P5</div><div class="stat-item-val ' + (s.p5 != null ? (s.p5 >= 0 ? 'pos' : 'neg') : '') + '">' + _fmt(s.p5) + '</div>'; } },
   ];
 
   var visibleCols = ALL_COLS.filter(function(c){ return !hiddenStatCols.has(c.key); });
@@ -2187,6 +2255,27 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     div.className = 'stat-row';
     div.style.borderLeftColor = s.color;
 
+    if (s.insufficient) {
+      var rawMonths = s.rawCoverageMonths || 0;
+      var ry = Math.floor(rawMonths / 12), rm = rawMonths % 12;
+      var rawSpanStr = ry > 0 ? ry + 'y' + (rm > 0 ? ' ' + rm + 'm' : '') : rm + 'm';
+      var barW = Math.min(100, Math.round(rawMonths / 636 * 100));
+
+      div.innerHTML =
+        '<div class="stat-name">' + s.name + '</div>' +
+        '<div style="color:var(--muted);font-size:0.68rem;padding:6px 0;line-height:1.4;">' +
+          'Requires at least ' + horizon + 'Y history for rolling returns (Available history: <span style="color:#f5c842;font-weight:600">' + rawSpanStr + '</span> from ' + s.firstDate + ' to ' + s.lastDate + ')' +
+        '</div>' +
+        '<div class="stat-datapts" title="History available: ' + s.firstDate + ' → ' + s.lastDate + '">' +
+          '<span class="datapts-label">Coverage</span>' +
+          '<div class="datapts-bar-wrap"><div class="datapts-bar" style="width:' + barW + '%;background:#ff4d6a"></div></div>' +
+          '<span class="datapts-count" style="color:#ff4d6a">' + rawSpanStr + '</span>' +
+          '<span class="datapts-label" style="color:#ff4d6a;font-weight:600">&lt; ' + horizon + 'Y</span>' +
+        '</div>';
+      grid.appendChild(div);
+      return;
+    }
+
     // Build visible columns with ✕ button
     var colsHtml = visibleCols.map(function(c) {
       return '<div class="stat-item-wrap">' +
@@ -2195,35 +2284,35 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
              '</div>';
     }).join('');
 
+    var totalMonths = s.coverageMonths != null ? s.coverageMonths : 0;
+    var years = Math.floor(totalMonths / 12);
+    var months = totalMonths % 12;
+    var spanStr = years > 0 ? years + 'y' + (months > 0 ? ' ' + months + 'm' : '') : months + 'm';
+    var rangeStr = s.firstDate + ' → ' + s.lastDate;
+    var maxMonths = 636;
+    var barW = Math.min(100, Math.round(totalMonths / maxMonths * 100));
+    var conf, barColor;
+    if (totalMonths >= 120) { conf = 'High'; barColor = '#22d3a0'; }
+    else if (totalMonths >= 48) { conf = 'Moderate'; barColor = '#f5c842'; }
+    else if (totalMonths >= 12) { conf = 'Low'; barColor = '#f97f4f'; }
+    else { conf = 'Very Low'; barColor = '#ff4d6a'; }
+
+    var pctText = s.pct != null ? 'Latest at <span style="color:' + s.color + ';font-weight:600">' + _ordinal(s.pct) + ' percentile</span> of all ' + s.n + ' ' + horizon + 'Y periods' : '';
+
     div.innerHTML =
       '<div class="stat-name">' + s.name + '</div>' +
       '<div class="stat-cols" style="grid-template-columns:repeat(' + visibleCols.length + ',1fr)">' +
         colsHtml +
       '</div>' +
-      '<div class="stat-pct">Latest at <span style="color:' + s.color + ';font-weight:600">' + s.pct + 'th percentile</span> of all ' + horizon + 'Y periods</div>' +
-      (function(){
-        if (!s.firstDate || !s.lastDate) return '';
-        var totalMonths = s.coverageMonths != null ? s.coverageMonths : 0;
-        var years = Math.floor(totalMonths / 12);
-        var months = totalMonths % 12;
-        var spanStr = years > 0 ? years + 'y' + (months > 0 ? ' ' + months + 'm' : '') : months + 'm';
-        var rangeStr = s.firstDate + ' → ' + s.lastDate;
-        var maxMonths = 636;
-        var barW = Math.min(100, Math.round(totalMonths / maxMonths * 100));
-        var conf, barColor;
-        if (totalMonths >= 120) { conf = 'High'; barColor = '#22d3a0'; }
-        else if (totalMonths >= 48) { conf = 'Moderate'; barColor = '#f5c842'; }
-        else if (totalMonths >= 12) { conf = 'Low'; barColor = '#f97f4f'; }
-        else { conf = 'Very Low'; barColor = '#ff4d6a'; }
-        return '<div class="stat-datapts" title="' + rangeStr + '">' +
-          '<span class="datapts-label">Coverage</span>' +
-          '<div class="datapts-bar-wrap"><div class="datapts-bar" style="width:' + barW + '%;background:' + barColor + '"></div></div>' +
-          '<span class="datapts-count" style="color:' + barColor + '">' + spanStr + '</span>' +
-          '<span class="datapts-label" style="color:' + barColor + ';font-weight:600">' + conf + '</span>' +
-        '</div>';
-      })();
+      (pctText ? '<div class="stat-pct">' + pctText + '</div>' : '') +
+      '<div class="stat-datapts" title="' + rangeStr + (s.rawFirst ? ' (Inception: ' + s.rawFirst + ')' : '') + '">' +
+        '<span class="datapts-label">Coverage</span>' +
+        '<div class="datapts-bar-wrap"><div class="datapts-bar" style="width:' + barW + '%;background:' + barColor + '"></div></div>' +
+        '<span class="datapts-count" style="color:' + barColor + '">' + spanStr + '</span>' +
+        '<span class="datapts-label" style="color:' + barColor + ';font-weight:600">' + conf + '</span>' +
+      '</div>';
 
-    // Wire up hide buttons (can't use inline onclick with dynamic string keys)
+    // Wire up hide buttons
     div.querySelectorAll('.hide-col-btn').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -2231,7 +2320,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       });
     });
 
-    // Add restore-row for hidden columns (added after innerHTML so we can append)
+    // Add restore-row for hidden columns
     if (hiddenCols.length > 0) {
       var restoreRow = document.createElement('div');
       restoreRow.className = 'stat-restore-row';
@@ -2239,7 +2328,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
         hiddenCols.map(function(c) {
           return '<button class="restore-col-pill" data-colkey="' + c.key + '">' + c.label + '</button>';
         }).join('');
-      // Wire up restore buttons via addEventListener (no inline onclick)
       restoreRow.querySelectorAll('.restore-col-pill').forEach(function(btn) {
         btn.addEventListener('click', function() { restoreStatCol(this.dataset.colkey); });
       });
@@ -3361,18 +3449,37 @@ function dndMove(fromIdx, toIdx) {
 }
 
 // ── Sort bar for stats ────────────────────────────────────────────────────
+function updateSortBarUI() {
+  var bar = document.getElementById('statsSortBar');
+  if (!bar) return;
+  bar.querySelectorAll('.stat-sort-btn').forEach(function(btn) {
+    var col = btn.dataset.col;
+    if (statSort.col === col) {
+      btn.classList.add('sort-active');
+      var arrow = btn.querySelector('.sort-arrow');
+      if (arrow) arrow.textContent = statSort.dir === -1 ? '↓' : '↑';
+    } else {
+      btn.classList.remove('sort-active');
+      var arrow = btn.querySelector('.sort-arrow');
+      if (arrow) arrow.textContent = '↕';
+    }
+  });
+}
+
 (function initStatsSortBar() {
   var bar = document.getElementById('statsSortBar');
   if (!bar) return;
+  bar.innerHTML = '';
   var COLS = [
-    {col:'name',       label:'Name',       numeric:false},
-    {col:'latest',     label:'Latest',     numeric:true},
-    {col:'pct',        label:'Percentile', numeric:true},
-    {col:'avg',        label:'Avg',        numeric:true},
-    {col:'median',     label:'Median',     numeric:true},
-    {col:'midAvg',     label:'Mid Avg',    numeric:true},
-    {col:'p5',         label:'P5',         numeric:true},
-    {col:'stddev',     label:'Std Dev',    numeric:true},
+    {col:'name',           label:'Name',       numeric:false},
+    {col:'latest',         label:'Latest',     numeric:true},
+    {col:'pct',            label:'Percentile', numeric:true},
+    {col:'avg',            label:'Avg',        numeric:true},
+    {col:'median',         label:'Median',     numeric:true},
+    {col:'midAvg',         label:'Mid Avg',    numeric:true},
+    {col:'p5',             label:'P5',         numeric:true},
+    {col:'stddev',         label:'Std Dev',    numeric:true},
+    {col:'coverageMonths', label:'Coverage',   numeric:true},
   ];
   var label = document.createElement('span');
   label.className = 'stats-sort-label';
@@ -3390,9 +3497,7 @@ function dndMove(fromIdx, toIdx) {
         statSort.col = c.col;
         statSort.dir = c.numeric ? -1 : 1;
       }
-      bar.querySelectorAll('.stat-sort-btn').forEach(function(b){ b.classList.remove('sort-active'); b.querySelector('.sort-arrow').textContent='↕'; });
-      btn.classList.add('sort-active');
-      btn.querySelector('.sort-arrow').textContent = statSort.dir === -1 ? '↓' : '↑';
+      updateSortBarUI();
       renderMainStats();
     });
     bar.appendChild(btn);
@@ -4145,6 +4250,8 @@ function switchTab(idx) {
         if (c && typeof c.resize === 'function') c.resize();
       });
     }, 50);
+  } else if (idx === 1) {
+    renderMainStats();
   } else if (idx === 2) {
     setTimeout(function() {
       if (priceChart) {
