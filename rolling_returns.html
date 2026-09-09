@@ -67,7 +67,20 @@
   .zero-badge { font-size:0.6rem; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:3px 8px; white-space:nowrap; }
   .no-data-msg { display:none; text-align:center; padding:60px 20px; color:var(--muted); font-size:0.85rem; }
   .stats-wrap { display:flex; flex-direction:column; gap:8px; overflow-y:visible; }
-  .stat-row { background:var(--surface2); border:1px solid var(--border); border-left-width:3px; border-radius:7px; padding:10px 12px; }
+  .stat-row { background:var(--surface2); border:1px solid var(--border); border-left-width:3px; border-radius:7px; padding:10px 12px; transition:border-color 0.2s, background-color 0.2s, box-shadow 0.2s; }
+  .stat-row.ticked { border-color:#22d3a0 !important; background:rgba(34,211,160,0.03); box-shadow:0 0 0 1px rgba(34,211,160,0.25); }
+  .stat-card-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .stat-card-title-wrap { display:flex; align-items:center; gap:8px; min-width:0; }
+  .stat-card-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .stat-card-name { font-family:Syne,sans-serif; font-size:0.84rem; font-weight:700; color:var(--text); letter-spacing:-0.01em; line-height:1.2; }
+  .stat-card-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .stat-tick-btn { padding:3px 8px; background:var(--surface); border:1px solid var(--border); border-radius:5px; color:var(--muted); font-family:'DM Mono',monospace; font-size:0.65rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.15s ease; user-select:none; }
+  .stat-tick-btn:hover { border-color:#22d3a0; color:#22d3a0; }
+  .stat-tick-btn.ticked { background:rgba(34,211,160,0.15); border-color:#22d3a0; color:#22d3a0; font-weight:700; }
+  .stat-tick-box { width:12px; height:12px; border:1.5px solid currentColor; border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:9px; line-height:1; }
+  .stat-tick-btn.ticked .stat-tick-box { background:#22d3a0; color:#0a0c10; font-weight:900; }
+  .stat-remove-btn { padding:3px 8px; background:var(--surface); border:1px solid var(--border); border-radius:5px; color:var(--muted); font-family:'DM Mono',monospace; font-size:0.65rem; cursor:pointer; display:inline-flex; align-items:center; gap:3px; transition:all 0.15s ease; }
+  .stat-remove-btn:hover { background:rgba(255,77,106,0.12); border-color:#ff4d6a; color:#ff4d6a; }
   .stat-name { font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
   .stat-cols { display:grid; grid-template-columns:repeat(6,1fr); gap:3px; }
   .stat-item-label { font-size:0.50rem; color:var(--muted); }
@@ -842,10 +855,19 @@
     <!-- Tab 1: Latest Stats -->
     <div class="chart-area tab-content" id="tabContent1" style="display:none;">
       <div class="chart-card">
-        <div class="chart-title-row">
+        <div class="chart-title-row" style="flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
           <div>
             <div class="chart-title">Latest Stats</div>
             <div class="chart-subtitle">Most recent rolling CAGR stats for the selected indices and horizon</div>
+          </div>
+          <!-- Selection & Keep Action Toolbar -->
+          <div id="statsSelectionToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button id="keepTickedBtn" onclick="keepOnlyTickedStats()" title="Keep only the ticked indices and deselect all others" style="padding:6px 14px;background:rgba(34,211,160,0.14);border:1.5px solid #22d3a0;border-radius:6px;color:#22d3a0;font-family:Syne,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;opacity:0.6;">
+              <span>🎯 Keep Only Ticked</span>
+              <span id="tickedCountBadge" style="background:#22d3a0;color:#0a0c10;border-radius:10px;padding:1px 6px;font-size:0.68rem;font-weight:800;">0</span>
+            </button>
+            <button id="tickAllVisibleBtn" onclick="tickAllVisibleStats()" title="Tick all currently visible indices" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s;">✓ Tick All</button>
+            <button id="clearTicksBtn" onclick="clearAllTicks()" title="Clear all ticks" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s;">Clear Ticks</button>
           </div>
         </div>
         <div id="statsSortBar" class="stats-sort-bar" style="display:none"></div>
@@ -1993,6 +2015,96 @@ function renderMain() {
 
 // ── Stats panel ───────────────────────────────────────────────────────────
 
+// ── Stats Ticked & Remove Selection Controller ────────────────────────────
+var tickedStatKeys = new Set();
+var lastRenderedStatKeys = [];
+
+function toggleStatTick(key, btnEl, rowEl) {
+  if (tickedStatKeys.has(key)) {
+    tickedStatKeys.delete(key);
+    if (btnEl) {
+      btnEl.classList.remove('ticked');
+      btnEl.innerHTML = '<span class="stat-tick-box"></span> Tick';
+    }
+    if (rowEl) rowEl.classList.remove('ticked');
+  } else {
+    tickedStatKeys.add(key);
+    if (btnEl) {
+      btnEl.classList.add('ticked');
+      btnEl.innerHTML = '<span class="stat-tick-box">✓</span> Ticked';
+    }
+    if (rowEl) rowEl.classList.add('ticked');
+  }
+  updateTickedCountUI();
+}
+
+function removeStatSymbol(key) {
+  if (!selected.has(key)) return;
+  selected.delete(key);
+  tickedStatKeys.delete(key);
+  redistributeWeights();
+  snapTimelineToSelection();
+  buildCards();
+  buildCommodityCards();
+  renderMain();
+  updateTickedCountUI();
+}
+
+function keepOnlyTickedStats() {
+  if (!tickedStatKeys || tickedStatKeys.size === 0) {
+    alert('Please tick at least 1 index using the "Tick" button on the cards below.');
+    return;
+  }
+  selected.clear();
+  tickedStatKeys.forEach(function(k) {
+    selected.add(k);
+    if (!weights[k]) weights[k] = 1;
+  });
+  tickedStatKeys.clear();
+  redistributeWeights();
+  snapTimelineToSelection();
+  buildCards();
+  buildCommodityCards();
+  renderMain();
+  updateTickedCountUI();
+}
+
+function tickAllVisibleStats() {
+  var visibleKeys = lastRenderedStatKeys || [];
+  visibleKeys.forEach(function(k) {
+    if (k && k !== '__portfolio__') {
+      tickedStatKeys.add(k);
+    }
+  });
+  renderMainStats();
+  updateTickedCountUI();
+}
+
+function clearAllTicks() {
+  tickedStatKeys.clear();
+  renderMainStats();
+  updateTickedCountUI();
+}
+
+function updateTickedCountUI() {
+  var badge = document.getElementById('tickedCountBadge');
+  var keepBtn = document.getElementById('keepTickedBtn');
+  var count = tickedStatKeys ? tickedStatKeys.size : 0;
+  if (badge) badge.textContent = count;
+  if (keepBtn) {
+    if (count > 0) {
+      keepBtn.style.opacity = '1';
+      keepBtn.style.pointerEvents = 'auto';
+      keepBtn.style.background = 'rgba(34,211,160,0.22)';
+      keepBtn.style.boxShadow = '0 0 12px rgba(34,211,160,0.25)';
+    } else {
+      keepBtn.style.opacity = '0.6';
+      keepBtn.style.boxShadow = 'none';
+      keepBtn.style.background = 'rgba(34,211,160,0.1)';
+    }
+  }
+}
+
 function renderStats(selKeys, cagrMaps, portfolioMap) {
   const grid = document.getElementById('statsGrid');
   const sortBar = document.getElementById('statsSortBar');
@@ -2056,6 +2168,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     // Handle index with insufficient history for this horizon
     if (!vals.length) {
       all.push({
+        key: k,
         name: idx.label,
         color: idx.color,
         insufficient: true,
@@ -2089,6 +2202,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     const covM = cagrCovM > 0 ? cagrCovM : rawCovM;
 
     all.push({
+      key: k,
       name: idx.label,
       color: idx.color,
       insufficient: false,
@@ -2135,6 +2249,8 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       const pmidAvg = pmidVals.length ? +(pmidVals.reduce(function(a,b){return a+b;},0)/pmidVals.length).toFixed(2) : pavg;
 
       all.push({
+        key: '__portfolio__',
+        isPortfolio: true,
         name: 'Portfolio',
         color: '#ff4d6a',
         insufficient: false,
@@ -2219,10 +2335,60 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
   var visibleCols = ALL_COLS.filter(function(c){ return !hiddenStatCols.has(c.key); });
   var hiddenCols  = ALL_COLS.filter(function(c){ return  hiddenStatCols.has(c.key); });
 
+  lastRenderedStatKeys = filtered.map(function(s) { return s.key; }).filter(function(k) { return k && k !== '__portfolio__'; });
+  updateTickedCountUI();
+
   filtered.forEach(function(s) {
+    var isTicked = tickedStatKeys.has(s.key);
     var div = document.createElement('div');
-    div.className = 'stat-row';
+    div.className = 'stat-row' + (isTicked ? ' ticked' : '');
     div.style.borderLeftColor = s.color;
+    div.dataset.key = s.key || '';
+
+    // Card Header with Title, Tick button, and Remove button
+    var headerHtml = '';
+    if (s.isPortfolio) {
+      headerHtml =
+        '<div class="stat-card-header">' +
+          '<div class="stat-card-title-wrap">' +
+            '<span class="stat-card-dot" style="background:' + s.color + '"></span>' +
+            '<span class="stat-card-name">' + s.name + '</span>' +
+            '<span style="font-size:0.6rem;color:#ff4d6a;background:rgba(255,77,106,0.12);padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.04em;">PORTFOLIO</span>' +
+          '</div>' +
+        '</div>';
+    } else {
+      headerHtml =
+        '<div class="stat-card-header">' +
+          '<div class="stat-card-title-wrap">' +
+            '<span class="stat-card-dot" style="background:' + s.color + '"></span>' +
+            '<span class="stat-card-name">' + s.name + '</span>' +
+          '</div>' +
+          '<div class="stat-card-actions">' +
+            '<button class="stat-tick-btn' + (isTicked ? ' ticked' : '') + '" title="Mark with tick to keep">' +
+              '<span class="stat-tick-box">' + (isTicked ? '✓' : '') + '</span> ' + (isTicked ? 'Ticked' : 'Tick') +
+            '</button>' +
+            '<button class="stat-remove-btn" title="Remove ' + s.name + ' from selection instantly">&#x2715; Remove</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function wireCardActions(rowEl, k) {
+      if (!k || k === '__portfolio__') return;
+      var tickBtn = rowEl.querySelector('.stat-tick-btn');
+      if (tickBtn) {
+        tickBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleStatTick(k, this, rowEl);
+        });
+      }
+      var remBtn = rowEl.querySelector('.stat-remove-btn');
+      if (remBtn) {
+        remBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          removeStatSymbol(k);
+        });
+      }
+    }
 
     if (s.insufficient) {
       var rawMonths = s.rawCoverageMonths || 0;
@@ -2231,7 +2397,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       var barW = Math.min(100, Math.round(rawMonths / 636 * 100));
 
       div.innerHTML =
-        '<div class="stat-name">' + s.name + '</div>' +
+        headerHtml +
         '<div style="color:var(--muted);font-size:0.68rem;padding:6px 0;line-height:1.4;">' +
           'Requires at least ' + horizon + 'Y history for rolling returns (Available history: <span style="color:#f5c842;font-weight:600">' + rawSpanStr + '</span> from ' + s.firstDate + ' to ' + s.lastDate + ')' +
         '</div>' +
@@ -2241,6 +2407,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
           '<span class="datapts-count" style="color:#ff4d6a">' + rawSpanStr + '</span>' +
           '<span class="datapts-label" style="color:#ff4d6a;font-weight:600">&lt; ' + horizon + 'Y</span>' +
         '</div>';
+      wireCardActions(div, s.key);
       grid.appendChild(div);
       return;
     }
@@ -2269,7 +2436,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     var pctText = s.pct != null ? 'Latest at <span style="color:' + s.color + ';font-weight:600">' + _ordinal(s.pct) + ' percentile</span> of all ' + s.n + ' ' + horizon + 'Y periods' : '';
 
     div.innerHTML =
-      '<div class="stat-name">' + s.name + '</div>' +
+      headerHtml +
       '<div class="stat-cols" style="grid-template-columns:repeat(' + visibleCols.length + ',1fr)">' +
         colsHtml +
       '</div>' +
@@ -2288,6 +2455,8 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
         hideStatCol(this.dataset.colkey);
       });
     });
+
+    wireCardActions(div, s.key);
 
     // Add restore-row for hidden columns
     if (hiddenCols.length > 0) {
