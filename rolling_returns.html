@@ -365,12 +365,21 @@
   .index-card .card-header:hover { cursor: pointer; }
 
   /* ── Collapsible sections ─────────────────────────────────────────────── */
-  .collapsible-header { cursor:pointer; user-select:none; }
-  .collapsible-header:hover { opacity:0.85; }
+  .collapse-toggle-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:5px; color:var(--muted); cursor:pointer;
+    padding:0; flex-shrink:0; transition:all 0.15s ease;
+    margin-left:auto;
+  }
+  .collapse-toggle-btn:hover {
+    background:var(--surface); border-color:#4f9ef8; color:#4f9ef8;
+  }
   .collapse-chevron {
     display:inline-flex; align-items:center; justify-content:center;
-    width:14px; height:14px; flex-shrink:0;
-    transition:transform 0.22s ease; color:var(--muted);
+    width:13px; height:13px; flex-shrink:0;
+    transition:transform 0.22s ease; pointer-events:none;
   }
   .collapsed-section .collapse-chevron { transform:rotate(-90deg); }
   .collapsible-body {
@@ -4647,13 +4656,21 @@ function switchTab(idx) {
     }
     container.appendChild(body);
 
-    // Add chevron to header
-    headerEl.classList.add('collapsible-header');
-    headerEl.insertAdjacentHTML('beforeend', CHEVRON);
+    // Create dedicated chevron toggle button (ONLY clicking the arrow collapses, not the full top bar)
+    var btn = document.createElement('button');
+    btn.className = 'collapse-toggle-btn';
+    btn.type = 'button';
+    btn.title = 'Collapse / Expand';
+    btn.setAttribute('aria-label', 'Collapse or expand section');
+    btn.innerHTML = CHEVRON;
 
-    headerEl.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
       container.classList.toggle('collapsed-section');
     });
+
+    headerEl.appendChild(btn);
   }
 
   // Sidebar panels
