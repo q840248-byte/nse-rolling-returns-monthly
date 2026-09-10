@@ -121,39 +121,38 @@
 
   /* ── Horizon Toggle (Unboxed Segment Look) ─────────────────────────────── */
   .horizon-toggle {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 9999px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3px;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
     width: 100%;
   }
   .horizon-btn {
-    flex: 1;
-    min-width: 32px;
-    padding: 6px 10px;
+    padding: 5px 2px;
     background: transparent;
     border: none;
-    border-radius: 9999px;
+    border-radius: 6px;
     color: var(--muted);
-    font-family: 'Syne', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.15s ease;
     text-align: center;
     white-space: nowrap;
   }
   .horizon-btn:hover {
     color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
   }
   .horizon-btn.active {
     background: #5E9CFF;
     color: #0B0C10;
     font-weight: 700;
-    box-shadow: 0 2px 10px rgba(94, 156, 255, 0.35);
+    box-shadow: 0 2px 8px rgba(94, 156, 255, 0.35);
   }
 
   /* ── Sidebar Index Cards (Clean Unboxed rows) ─────────────────────────── */
@@ -562,28 +561,31 @@
   .tv-toolbar {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   }
+  .tv-toolbar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
   .tv-btn-group {
     display: inline-flex;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: none;
     border-radius: 9999px;
-    padding: 3px;
+    padding: 2px 3px;
     gap: 2px;
   }
   .tv-tool-btn {
-    padding: 4px 10px;
+    padding: 5px 11px;
     background: transparent;
     border: none;
     border-radius: 9999px;
     color: var(--muted);
     font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
     white-space: nowrap;
   }
-  .tv-tool-btn:hover { color: var(--text); }
+  .tv-tool-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
   .tv-tool-btn.active {
     background: #5E9CFF;
     color: #0B0C10;
@@ -992,25 +994,27 @@
           <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Custom Lines</span>
           <div id="customLineChips" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;"></div>
           <div style="display:flex;gap:6px;align-items:center;">
-            <input id="customLineInput" type="number" step="0.5" placeholder="e.g. 0 or -20" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
-            <button onclick="addCustomLine()" style="padding:5px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:Syne,sans-serif;font-size:0.7rem;font-weight:700;cursor:pointer;">+ Add</button>
-            <button onclick="clearCustomLines()" style="padding:5px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:Syne,sans-serif;font-size:0.7rem;cursor:pointer;">Clear All</button>
+            <input id="customLineInput" type="number" step="0.5" placeholder="e.g. 0 or -20" style="width:90px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;padding:4px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;" />
+            <button onclick="addCustomLine()" style="padding:4px 12px;background:#5E9CFF;border:none;border-radius:9999px;color:#0B0C10;font-family:Syne,sans-serif;font-size:0.68rem;font-weight:700;cursor:pointer;">+ Add</button>
+            <button onclick="clearCustomLines()" style="padding:4px 10px;background:transparent;border:none;border-radius:9999px;color:var(--muted);font-family:Syne,sans-serif;font-size:0.68rem;cursor:pointer;">Clear All</button>
           </div>
           <!-- Zoom Controls -->
-          <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
+          <div style="display:flex;gap:4px;align-items:center;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
             <span style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Zoom</span>
-            <button onclick="zoomMainChart('in')" title="Zoom In" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.75rem;cursor:pointer;">＋</button>
-            <button onclick="zoomMainChart('out')" title="Zoom Out" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.75rem;cursor:pointer;">－</button>
-            <button onclick="resetMainZoom()" title="Reset Zoom" style="padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:Syne,sans-serif;font-size:0.65rem;cursor:pointer;">Reset</button>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="zoomMainChart('in')" title="Zoom In" style="padding:3px 8px;">＋</button>
+              <button class="tv-tool-btn" onclick="zoomMainChart('out')" title="Zoom Out" style="padding:3px 8px;">－</button>
+              <button class="tv-tool-btn" onclick="resetMainZoom()" title="Reset Zoom" style="padding:3px 8px;">Reset</button>
+            </div>
           </div>
           <!-- Tooltip Toggle -->
-          <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
-            <button id="tooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">◎ Tip: ON</button>
-            <input id="tooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
+          <div style="display:flex;gap:6px;align-items:center;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
+            <button id="tooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(94,156,255,0.12);border:none;border-radius:9999px;color:#5E9CFF;font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:600;cursor:pointer;letter-spacing:0.03em;">◎ Tip: ON</button>
+            <input id="tooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:42px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;padding:3px 6px;text-align:center;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;" />
           </div>
           <!-- Export -->
-          <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
-            <button onclick="exportXLSX()" title="Export all data as Excel workbook" style="padding:4px 10px;background:rgba(34,211,160,0.1);border:1px solid #22d3a0;border-radius:6px;color:#22d3a0;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">⬇ Export</button>
+          <div style="display:flex;gap:6px;align-items:center;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
+            <button onclick="exportXLSX()" title="Export all data as Excel workbook" style="padding:4px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;letter-spacing:0.04em;">⬇ Export</button>
           </div>
         </div>
         <!-- Hover Info Panel -->
@@ -1210,11 +1214,11 @@
               <button class="tv-tool-btn tv-tf-btn active" onclick="setPriceTimeframe(0, this)" title="All available data">MAX</button>
             </div>
             <!-- Reset Zoom -->
-            <button class="tv-tool-btn" onclick="resetPriceZoom()" title="Reset zoom and pan" style="border:1px solid var(--border);">⟲ Reset Zoom</button>
+            <button class="tv-tool-btn" onclick="resetPriceZoom()" title="Reset zoom and pan">⟲ Reset Zoom</button>
             <!-- Tooltip Toggle & Top/Bottom Limit (Synced with Tab 0) -->
-            <div style="display:flex;gap:6px;align-items:center;border-left:1px solid var(--border);padding-left:8px;">
-              <button id="priceTooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(79,158,248,0.12);border:1px solid #4f9ef8;border-radius:6px;color:#4f9ef8;font-family:'DM Mono',monospace;font-size:0.62rem;cursor:pointer;letter-spacing:0.04em;">◎ Tip: ON</button>
-              <input id="priceTooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;" />
+            <div style="display:flex;gap:6px;align-items:center;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
+              <button id="priceTooltipToggleBtn" onclick="toggleChartTooltip()" title="Toggle hover info panel" style="padding:4px 10px;background:rgba(94,156,255,0.12);border:none;border-radius:9999px;color:#5E9CFF;font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:600;cursor:pointer;letter-spacing:0.03em;">◎ Tip: ON</button>
+              <input id="priceTooltipLimitInput" type="number" min="1" step="1" value="2" title="Show Top N and Bottom N" oninput="syncTooltipLimit(this.value)" style="width:42px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;padding:3px 6px;text-align:center;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;" />
             </div>
           </div>
         </div>
@@ -4387,6 +4391,15 @@ function updateTooltipToggleUI() {
   if (h2) h2.style.display = chartTooltipEnabled ? 'flex' : 'none';
 }
 
+function formatPct(val) {
+  if (val === null || val === undefined || isNaN(val)) return '—';
+  var sign = val > 0 ? '+' : (val < 0 ? '-' : '');
+  var absVal = Math.abs(val);
+  var parts = absVal.toFixed(1).split('.');
+  var intFormatted = Number(parts[0]).toLocaleString('en-US');
+  return sign + intFormatted + '.' + parts[1] + '%';
+}
+
 function updateMainHud(dateIndex) {
   var hoverInfoEl = document.getElementById('chartHoverInfo');
   var hoverValsEl = document.getElementById('chartHoverValues');
@@ -4448,7 +4461,7 @@ function updateMainHud(dateIndex) {
   var html = '<span style="color:#8892aa;font-weight:600;font-size:0.68rem;margin-right:10px;white-space:nowrap;">📅 ' + d + '</span>';
 
   if (portItem) {
-    var pValStr = (portItem.val >= 0 ? '+' : '') + portItem.val.toFixed(1) + '%';
+    var pValStr = formatPct(portItem.val);
     html += '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;padding:3px 10px;background:rgba(94,156,255,0.12);border-radius:9999px;white-space:nowrap;">' +
             '<span style="width:7px;height:7px;border-radius:50%;background:#5E9CFF;flex-shrink:0;box-shadow:0 0 6px rgba(94,156,255,0.7);"></span>' +
             '<span style="color:#5E9CFF;font-weight:700;font-size:0.7rem;">Portfolio:</span>' +
@@ -4457,8 +4470,8 @@ function updateMainHud(dateIndex) {
   }
 
   function renderMainBadge(item) {
-    var valStr = (item.val >= 0 ? '+' : '') + item.val.toFixed(1) + '%';
-    return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
+    var valStr = formatPct(item.val);
+    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
            '<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;"></span>' +
            '<span style="color:#8B8D98;font-size:0.68rem;">' + item.label + ':</span>' +
            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + valStr + '</span>' +
@@ -4473,11 +4486,17 @@ function updateMainHud(dateIndex) {
     var topItems = items.slice(0, limit);
     var bottomItems = items.slice(-limit);
 
-    html += '<span style="color:#5E9CFF;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin-right:4px;white-space:nowrap;">TOP ' + limit + ':</span>';
-    topItems.forEach(function(item) { html += renderMainBadge(item); });
+    var topHtml = '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;white-space:nowrap;">' +
+      '<span style="color:#5E9CFF;font-weight:700;font-size:0.64rem;letter-spacing:0.06em;">TOP ' + limit + ':</span>' +
+      topItems.map(renderMainBadge).join('') +
+      '</span>';
 
-    html += '<span style="color:#8B8D98;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin:0 4px 0 8px;white-space:nowrap;">BOTTOM ' + limit + ':</span>';
-    bottomItems.forEach(function(item) { html += renderMainBadge(item); });
+    var bottomHtml = '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;white-space:nowrap;">' +
+      '<span style="color:#8B8D98;font-weight:700;font-size:0.64rem;letter-spacing:0.06em;">BOTTOM ' + limit + ':</span>' +
+      bottomItems.map(renderMainBadge).join('') +
+      '</span>';
+
+    html += topHtml + bottomHtml;
   }
 
   hoverValsEl.innerHTML = html;
@@ -4699,7 +4718,7 @@ function updatePriceHud(dateIndex) {
       if (pInfo) {
         var chg = pInfo.retPct;
         var valStr = priceDisplayMode === 'percent'
-          ? (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%'
+          ? formatPct(chg)
           : formatPriceVal(pInfo.rawPrice);
         portItem = {
           label: 'Portfolio',
@@ -4719,7 +4738,7 @@ function updatePriceHud(dateIndex) {
     if (val !== undefined && val !== null && val > 0 && base && base > 0) {
       var chg = ((val / base - 1) * 100);
       var valStr = priceDisplayMode === 'percent'
-        ? (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%'
+        ? formatPct(chg)
         : formatPriceVal(val);
       items.push({
         key: k,
@@ -4739,7 +4758,7 @@ function updatePriceHud(dateIndex) {
   var html = '<span style="color:#8892aa;font-weight:600;font-size:0.68rem;margin-right:10px;white-space:nowrap;">📅 ' + d + '</span>';
 
   if (portItem) {
-    var pChgStr = (portItem.chg >= 0 ? '+' : '') + portItem.chg.toFixed(1) + '%';
+    var pChgStr = formatPct(portItem.chg);
     html += '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;padding:3px 10px;background:rgba(94,156,255,0.12);border-radius:9999px;white-space:nowrap;">' +
             '<span style="width:7px;height:7px;border-radius:50%;background:#5E9CFF;flex-shrink:0;box-shadow:0 0 6px rgba(94,156,255,0.7);"></span>' +
             '<span style="color:#5E9CFF;font-weight:700;font-size:0.7rem;">Portfolio:</span>' +
@@ -4749,8 +4768,8 @@ function updatePriceHud(dateIndex) {
   }
 
   function renderPriceBadge(item) {
-    var chgStr = (item.chg >= 0 ? '+' : '') + item.chg.toFixed(1) + '%';
-    return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
+    var chgStr = formatPct(item.chg);
+    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
            '<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;"></span>' +
            '<span style="color:#8B8D98;font-size:0.68rem;">' + item.label + ':</span>' +
            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + item.valStr + '</span>' +
@@ -4766,11 +4785,17 @@ function updatePriceHud(dateIndex) {
     var topItems = items.slice(0, limit);
     var bottomItems = items.slice(-limit);
 
-    html += '<span style="color:#5E9CFF;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin-right:4px;white-space:nowrap;">TOP ' + limit + ':</span>';
-    topItems.forEach(function(item) { html += renderPriceBadge(item); });
+    var topHtml = '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;white-space:nowrap;">' +
+      '<span style="color:#5E9CFF;font-weight:700;font-size:0.64rem;letter-spacing:0.06em;">TOP ' + limit + ':</span>' +
+      topItems.map(renderPriceBadge).join('') +
+      '</span>';
 
-    html += '<span style="color:#8B8D98;font-weight:700;font-size:0.62rem;letter-spacing:0.06em;margin:0 4px 0 8px;white-space:nowrap;">BOTTOM ' + limit + ':</span>';
-    bottomItems.forEach(function(item) { html += renderPriceBadge(item); });
+    var bottomHtml = '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;white-space:nowrap;">' +
+      '<span style="color:#8B8D98;font-weight:700;font-size:0.64rem;letter-spacing:0.06em;">BOTTOM ' + limit + ':</span>' +
+      bottomItems.map(renderPriceBadge).join('') +
+      '</span>';
+
+    html += topHtml + bottomHtml;
   }
 
   hud.innerHTML = html;
