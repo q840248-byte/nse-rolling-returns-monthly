@@ -1570,7 +1570,7 @@
 
     border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'DM Mono', monospace;
 
-    font-size: 0.82rem; outline: none; transition: border-color 0.15s; width: 160px;
+    font-size: 0.82rem; outline: none; transition: border-color 0.15s; width: 160px; color-scheme: dark;
 
   }
 
@@ -1606,7 +1606,195 @@
 
 
 
-  /* ── Sections in Index List ─────────────────────────────────────────────── */
+  
+
+  /* ── Tab 3: Cashflow Sim Modern Sleek Styling ────────────────────────── */
+  .cf-params-bar {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 13px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 14px;
+    align-items: flex-end;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    margin-bottom: 14px;
+  }
+  .cf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+  }
+  .cf-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  .cf-label {
+    font-size: 0.60rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+  }
+  .cf-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: #5E9CFF;
+    background: rgba(94, 156, 255, 0.1);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cf-input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 7px 11px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.80rem;
+    outline: none;
+    transition: all 0.15s ease;
+    color-scheme: dark;
+  }
+  .cf-input:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.045);
+  }
+  .cf-input:focus {
+    border-color: #5E9CFF;
+    box-shadow: 0 0 0 3px rgba(94, 156, 255, 0.18);
+    background: rgba(94, 156, 255, 0.04);
+  }
+  .cf-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .cf-kpi-card {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px 15px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cf-kpi-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
+  }
+  .cf-kpi-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+  }
+  .cf-kpi-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #F5F5F7;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .cf-kpi-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.35;
+  }
+  .cf-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    width: fit-content;
+  }
+  .cf-status-pill.survived {
+    background: rgba(34, 211, 160, 0.12);
+    color: #22d3a0;
+    border: 1px solid rgba(34, 211, 160, 0.28);
+  }
+  .cf-status-pill.depleted {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.28);
+  }
+  .cf-hud {
+    font-family: 'DM Mono', monospace;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9999px;
+    min-height: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .cf-hud-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+  .cf-hud-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cf-insights-box {
+    margin-top: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-size: 0.72rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .cf-insights-box:empty { display: none; }
+  .cf-insights-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.80rem;
+    font-weight: 700;
+    color: #5E9CFF;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+/* ── Sections in Index List ─────────────────────────────────────────────── */
 
   .idx-section-header {
 
@@ -2388,114 +2576,139 @@
             <!-- Tab 3: Cashflow Sim (SIP / SWP / Lumpsum) -->
       <div class="chart-area tab-content" id="tabContent3" style="display:none;">
         <div class="chart-card">
-          <!-- Title & Top Toolbar -->
-          <div class="chart-title-row" style="margin-bottom:14px;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+          <!-- Title & Consolidated Sleek Toolbar -->
+          <div class="chart-title-row" style="margin-bottom:16px;gap:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
             <div>
               <div class="chart-title" id="cfTabTitle">Cashflow &amp; Wealth Simulator</div>
-              <div class="chart-subtitle" id="cfTabSubtitle">Model real-world monthly cashflows, SIP wealth compounding, retirement SWP corpus longevity, or lumpsum deployments on your selected portfolio</div>
+              <div class="chart-subtitle" id="cfTabSubtitle">Model real-world monthly cashflows, SIP wealth compounding, retirement SWP longevity, or lumpsum deployments</div>
             </div>
             <!-- Top Controls Toolbar -->
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <!-- Analysis View Toggle: Single Journey vs Rolling Stress-Test -->
+            <div class="tv-toolbar">
+              <!-- Mode Selector -->
+              <div class="tv-btn-group" title="Select Cashflow Mode">
+                <button class="tv-tool-btn active" id="cfModeSipBtn" onclick="setCashflowMode('sip')">🔄 SIP</button>
+                <button class="tv-tool-btn" id="cfModeSwpBtn" onclick="setCashflowMode('swp')">🏖️ SWP</button>
+                <button class="tv-tool-btn" id="cfModeLumpBtn" onclick="setCashflowMode('lumpsum')">💰 Lumpsum</button>
+              </div>
+
+              <!-- View Toggle: Single Journey vs Rolling Stress-Test -->
               <div class="tv-btn-group" title="Switch between a single timeline journey or a multi-decade rolling stress test across every historical period">
-                <button class="tv-tool-btn active" id="cfViewSingleBtn" onclick="setCashflowView('single')">📈 Single Journey</button>
-                <button class="tv-tool-btn" id="cfViewRollingBtn" onclick="setCashflowView('rolling')">🔄 Rolling Stress-Test</button>
+                <button class="tv-tool-btn active" id="cfViewSingleBtn" onclick="setCashflowView('single')">📈 Single</button>
+                <button class="tv-tool-btn" id="cfViewRollingBtn" onclick="setCashflowView('rolling')">🔄 Rolling</button>
               </div>
 
               <!-- Scale Toggle: LOG vs LIN -->
-              <div class="tv-btn-group" title="Toggle between Logarithmic (compounding trajectory) and Linear (absolute rupee) scale">
-                <button class="tv-tool-btn active" id="cfScaleLogBtn" onclick="setCashflowScale('log')">📐 LOG</button>
-                <button class="tv-tool-btn" id="cfScaleLinBtn" onclick="setCashflowScale('linear')">📏 LIN</button>
-              </div>
-
-              <!-- Mode Selector Segmented Controls -->
-              <div class="tv-btn-group">
-                <button class="tv-tool-btn active" id="cfModeSipBtn" onclick="setCashflowMode('sip')">🔄 SIP</button>
-                <button class="tv-tool-btn" id="cfModeSwpBtn" onclick="setCashflowMode('swp')">🏖️ SWP (Retirement)</button>
-                <button class="tv-tool-btn" id="cfModeLumpBtn" onclick="setCashflowMode('lumpsum')">💰 Lumpsum</button>
+              <div class="tv-btn-group" title="Toggle between Logarithmic (compounding trajectory) and Linear scale">
+                <button class="tv-tool-btn active" id="cfScaleLogBtn" onclick="setCashflowScale('log')">LOG</button>
+                <button class="tv-tool-btn" id="cfScaleLinBtn" onclick="setCashflowScale('linear')">LIN</button>
               </div>
             </div>
           </div>
 
-          <!-- Controls Panel -->
-          <div class="sim-controls" id="cfControls" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+          <!-- Modern Parameters Ribbon (Auto-reactive, no clunky submit button) -->
+          <div class="cf-params-bar" id="cfControls">
             <!-- SIP Fields -->
-            <div class="sim-field cf-field-sip">
-              <span class="sim-label">Monthly SIP (₹)</span>
-              <input class="sim-input" id="cfSipAmount" type="number" value="10000" min="500" step="500" style="width:125px;">
+            <div class="cf-field cf-field-sip">
+              <div class="cf-label-row">
+                <span class="cf-label">Monthly SIP</span>
+                <span class="cf-badge" id="cfSipAmountBadge">₹ 10,000 / mo</span>
+              </div>
+              <input class="cf-input" id="cfSipAmount" type="number" value="10000" min="500" step="500" style="width:130px;" oninput="debounceCfSim()">
             </div>
-            <div class="sim-field cf-field-sip">
-              <span class="sim-label">Annual Step-Up (%)</span>
-              <input class="sim-input" id="cfSipStepUp" type="number" value="10.0" min="0" max="100" step="0.5" style="width:105px;" placeholder="e.g. 10.0">
+            <div class="cf-field cf-field-sip">
+              <div class="cf-label-row">
+                <span class="cf-label">Annual Step-Up</span>
+                <span class="cf-badge" id="cfSipStepUpBadge">+10.0% / yr</span>
+              </div>
+              <input class="cf-input" id="cfSipStepUp" type="number" value="10.0" min="0" max="100" step="0.5" style="width:105px;" placeholder="10.0" oninput="debounceCfSim()">
             </div>
 
             <!-- SWP Fields -->
-            <div class="sim-field cf-field-swp" style="display:none;">
-              <span class="sim-label">Initial Corpus (₹)</span>
-              <input class="sim-input" id="cfSwpCorpus" type="number" value="10000000" min="100000" step="500000" style="width:140px;">
+            <div class="cf-field cf-field-swp" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Initial Corpus</span>
+                <span class="cf-badge" id="cfSwpCorpusBadge">₹ 1.00 Cr</span>
+              </div>
+              <input class="cf-input" id="cfSwpCorpus" type="number" value="10000000" min="100000" step="500000" style="width:145px;" oninput="debounceCfSim()">
             </div>
             <!-- SWP Strategy Selector (Fixed vs % of Fund) -->
-            <div class="sim-field cf-field-swp" style="display:none;">
-              <span class="sim-label">Withdrawal Rule</span>
-              <div class="tv-btn-group" style="height:32px;">
+            <div class="cf-field cf-field-swp" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Withdrawal Rule</span>
+              </div>
+              <div class="tv-btn-group" style="height:31px;">
                 <button class="tv-tool-btn active" id="cfSwpTypeFixedBtn" style="padding:4px 10px;font-size:0.68rem;" onclick="setSwpType('fixed')">₹ Fixed (+ Inflation)</button>
                 <button class="tv-tool-btn" id="cfSwpTypePctBtn" style="padding:4px 10px;font-size:0.68rem;" onclick="setSwpType('pct')">% of Fund (Variable)</button>
               </div>
             </div>
             <!-- SWP Fixed Fields -->
-            <div class="sim-field cf-field-swp cf-swp-fixed" style="display:none;">
-              <span class="sim-label">Monthly Withdrawal (₹)</span>
-              <input class="sim-input" id="cfSwpAmount" type="number" value="50000" min="1000" step="5000" style="width:125px;">
+            <div class="cf-field cf-field-swp cf-swp-fixed" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Monthly Withdrawal</span>
+                <span class="cf-badge" id="cfSwpAmountBadge">₹ 50,000 / mo</span>
+              </div>
+              <input class="cf-input" id="cfSwpAmount" type="number" value="50000" min="1000" step="5000" style="width:130px;" oninput="debounceCfSim()">
             </div>
-            <div class="sim-field cf-field-swp cf-swp-fixed" style="display:none;">
-              <span class="sim-label">Annual Inflation Step-Up (%)</span>
-              <input class="sim-input" id="cfSwpInflation" type="number" value="6.0" min="0" max="50" step="0.5" style="width:105px;" placeholder="e.g. 6.0">
+            <div class="cf-field cf-field-swp cf-swp-fixed" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Annual Inflation</span>
+                <span class="cf-badge" id="cfSwpInflationBadge">+6.0% / yr</span>
+              </div>
+              <input class="cf-input" id="cfSwpInflation" type="number" value="6.0" min="0" max="50" step="0.5" style="width:105px;" placeholder="6.0" oninput="debounceCfSim()">
             </div>
             <!-- SWP % of Fund Field -->
-            <div class="sim-field cf-field-swp cf-swp-pct" style="display:none;">
-              <span class="sim-label">Annual Withdrawal Rate (%)</span>
-              <input class="sim-input" id="cfSwpPct" type="number" value="5.0" min="0.1" max="50" step="0.25" style="width:105px;" placeholder="e.g. 5.0">
+            <div class="cf-field cf-field-swp cf-swp-pct" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Annual Withdrawal Rate</span>
+                <span class="cf-badge" id="cfSwpPctBadge">5.0% / yr</span>
+              </div>
+              <input class="cf-input" id="cfSwpPct" type="number" value="5.0" min="0.1" max="50" step="0.25" style="width:115px;" placeholder="5.0" oninput="debounceCfSim()">
             </div>
 
             <!-- Lumpsum Fields -->
-            <div class="sim-field cf-field-lump" style="display:none;">
-              <span class="sim-label">Lumpsum Amount (₹)</span>
-              <input class="sim-input" id="cfLumpAmount" type="number" value="500000" min="10000" step="50000" style="width:135px;">
+            <div class="cf-field cf-field-lump" style="display:none;">
+              <div class="cf-label-row">
+                <span class="cf-label">Lumpsum Capital</span>
+                <span class="cf-badge" id="cfLumpAmountBadge">₹ 5.00 L</span>
+              </div>
+              <input class="cf-input" id="cfLumpAmount" type="number" value="500000" min="10000" step="50000" style="width:135px;" oninput="debounceCfSim()">
             </div>
-            <div class="sim-field cf-field-lump" style="display:none;align-self:center;margin-bottom:2px;">
-              <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--muted);cursor:pointer;">
-                <input type="checkbox" id="cfLumpStpCheck" checked style="cursor:pointer;accent-color:#5E9CFF;"> vs 12M STP (6.5% Liquid)
+            <div class="cf-field cf-field-lump" style="display:none;align-self:center;margin-bottom:4px;">
+              <label style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:0.70rem;color:var(--muted);cursor:pointer;">
+                <input type="checkbox" id="cfLumpStpCheck" checked style="cursor:pointer;accent-color:#5E9CFF;" onchange="debounceCfSim()"> vs 12M STP (6.5% Liquid)
               </label>
             </div>
 
             <!-- Single Journey Dates (Start Month, End Month) -->
-            <div class="sim-field cf-field-single">
-              <span class="sim-label">Start Month</span>
-              <input class="sim-input" id="cfStartDate" type="month" value="2010-01" min="1973-01" max="2026-03" style="width:125px;" oninput="syncCfEndFromStart()">
+            <div class="cf-field cf-field-single">
+              <div class="cf-label-row">
+                <span class="cf-label">Start Month</span>
+              </div>
+              <input class="cf-input" id="cfStartDate" type="month" value="2010-01" min="1973-01" max="2026-03" style="width:142px;" oninput="syncCfEndFromStart(); debounceCfSim();">
             </div>
-            <div class="sim-field cf-field-single">
-              <span class="sim-label">End Month <span style="color:var(--muted);font-size:0.55rem;">(optional)</span></span>
-              <input class="sim-input" id="cfEndDate" type="month" min="1973-01" max="2026-03" placeholder="Latest" style="width:125px;" oninput="syncCfYearsFromEnd()">
+            <div class="cf-field cf-field-single">
+              <div class="cf-label-row">
+                <span class="cf-label">End Month <span style="opacity:0.6;">(opt)</span></span>
+              </div>
+              <input class="cf-input" id="cfEndDate" type="month" min="1973-01" max="2026-03" placeholder="Latest" style="width:142px;" oninput="syncCfYearsFromEnd(); debounceCfSim();">
             </div>
 
             <!-- Horizon (Years): Visible in BOTH Single Journey and Rolling Stress-Test -->
-            <div class="sim-field">
-              <span class="sim-label" id="cfYearsLabel">Horizon (Years)</span>
-              <input class="sim-input" id="cfYears" type="number" min="1" max="50" step="1" value="10" placeholder="e.g. 10" style="width:95px;" oninput="onCfYearsChanged()">
+            <div class="cf-field">
+              <div class="cf-label-row">
+                <span class="cf-label" id="cfYearsLabel">Horizon</span>
+                <span class="cf-badge" id="cfYearsBadge">10 Yrs</span>
+              </div>
+              <input class="cf-input" id="cfYears" type="number" min="1" max="50" step="1" value="10" placeholder="10" style="width:95px;" oninput="onCfYearsChanged(); debounceCfSim();">
             </div>
-
-            <!-- Action Button -->
-            <button class="sim-btn" id="cfRunBtn" onclick="runCashflowSim()" style="background:#5E9CFF;color:#0B0C10;font-weight:700;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;box-shadow:0 2px 10px rgba(94,156,255,0.3);transition:all 0.15s;">
-              ▶ Simulate
-            </button>
           </div>
 
-          <!-- KPI Summary Cards -->
-          <div id="cfSummaryGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:14px;margin-bottom:14px;"></div>
+          <!-- Refined Translucent KPI Cards Grid -->
+          <div id="cfSummaryGrid" class="cf-kpi-grid"></div>
 
-          <!-- Hover HUD -->
-          <div id="cfHoverHud" class="price-hover-hud" style="min-height:28px;margin-bottom:10px;font-size:0.68rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-            <span style="color:var(--muted);font-style:italic;">Hover over chart to view details</span>
+          <!-- Interactive TradingView-Style Hover HUD -->
+          <div id="cfHoverHud" class="cf-hud">
+            <span style="color:var(--muted);opacity:0.7;">Hover over chart to view details</span>
           </div>
 
           <!-- Chart Area -->
@@ -2505,7 +2718,7 @@
           </div>
 
           <!-- Rolling Cashflow Insights Box -->
-          <div id="cfInsightsBox" style="margin-top:16px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;"></div>
+          <div id="cfInsightsBox" class="cf-insights-box"></div>
         </div>
       </div>
       </div>
@@ -2516,6 +2729,7 @@
   </div>
 
 </div>
+
 
 <script>
 
@@ -10584,50 +10798,97 @@ function switchTab(idx) {
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 💸 CASHFLOW SIMULATION & ROLLING STRESS-TEST ENGINE (SIP, SWP, LUMPSUM) - TAB 3
-// ═════════════════════════════════════════════════════════════════════════════
 var currentCashflowMode = 'sip';   // 'sip' | 'swp' | 'lumpsum'
 var currentCashflowView = 'single'; // 'single' | 'rolling'
 var currentCashflowScale = 'log';   // 'log' | 'linear'
 var currentSwpType = 'fixed';       // 'fixed' | 'pct'
 var cashflowChart = null;
+var cfSimTimer = null;
+
+function debounceCfSim() {
+  updateCfBadges();
+  if (cfSimTimer) clearTimeout(cfSimTimer);
+  cfSimTimer = setTimeout(function() {
+    runCashflowSim();
+  }, 120);
+}
+
+function updateCfBadges() {
+  var sipAmt = parseFloat(document.getElementById('cfSipAmount') ? document.getElementById('cfSipAmount').value : 0);
+  var sipStep = parseFloat(document.getElementById('cfSipStepUp') ? document.getElementById('cfSipStepUp').value : 0);
+  var swpCorpus = parseFloat(document.getElementById('cfSwpCorpus') ? document.getElementById('cfSwpCorpus').value : 0);
+  var swpAmt = parseFloat(document.getElementById('cfSwpAmount') ? document.getElementById('cfSwpAmount').value : 0);
+  var swpInf = parseFloat(document.getElementById('cfSwpInflation') ? document.getElementById('cfSwpInflation').value : 0);
+  var swpPct = parseFloat(document.getElementById('cfSwpPct') ? document.getElementById('cfSwpPct').value : 0);
+  var lumpAmt = parseFloat(document.getElementById('cfLumpAmount') ? document.getElementById('cfLumpAmount').value : 0);
+  var years = parseFloat(document.getElementById('cfYears') ? document.getElementById('cfYears').value : 0);
+
+  var el;
+  if ((el = document.getElementById('cfSipAmountBadge'))) el.textContent = formatBadgeINR(sipAmt) + ' / mo';
+  if ((el = document.getElementById('cfSipStepUpBadge'))) el.textContent = (sipStep >= 0 ? '+' : '') + sipStep.toFixed(1) + '% / yr';
+  if ((el = document.getElementById('cfSwpCorpusBadge'))) el.textContent = formatBadgeINR(swpCorpus);
+  if ((el = document.getElementById('cfSwpAmountBadge'))) el.textContent = formatBadgeINR(swpAmt) + ' / mo';
+  if ((el = document.getElementById('cfSwpInflationBadge'))) el.textContent = (swpInf >= 0 ? '+' : '') + swpInf.toFixed(1) + '% / yr';
+  if ((el = document.getElementById('cfSwpPctBadge'))) el.textContent = swpPct.toFixed(1) + '% / yr';
+  if ((el = document.getElementById('cfLumpAmountBadge'))) el.textContent = formatBadgeINR(lumpAmt);
+  if ((el = document.getElementById('cfYearsBadge'))) el.textContent = years + ' Yrs';
+}
+
+function formatBadgeINR(val) {
+  if (!val || isNaN(val)) return '₹ 0';
+  var abs = Math.abs(val);
+  var sign = val < 0 ? '-' : '';
+  if (abs >= 10000000) return sign + '₹ ' + (abs / 10000000).toFixed(2) + ' Cr';
+  if (abs >= 100000) return sign + '₹ ' + (abs / 100000).toFixed(2) + ' L';
+  return sign + '₹ ' + Math.round(abs).toLocaleString('en-IN');
+}
+
+function renderKpiCard(label, val, subHtml, valColor) {
+  var colorAttr = valColor ? ' style="color:' + valColor + ';"' : '';
+  return '<div class="cf-kpi-card">' +
+    '<div class="cf-kpi-label">' + label + '</div>' +
+    '<div class="cf-kpi-val"' + colorAttr + '>' + val + '</div>' +
+    '<div class="cf-kpi-sub">' + (subHtml || '') + '</div>' +
+  '</div>';
+}
 
 function setCashflowView(view) {
   currentCashflowView = view;
-  var bSingle = document.getElementById('cfViewSingleBtn');
-  var bRolling = document.getElementById('cfViewRollingBtn');
-  if (bSingle) bSingle.classList.toggle('active', view === 'single');
-  if (bRolling) bRolling.classList.toggle('active', view === 'rolling');
+  var singleBtn = document.getElementById('cfViewSingleBtn');
+  var rollingBtn = document.getElementById('cfViewRollingBtn');
+  if (singleBtn) singleBtn.classList.toggle('active', view === 'single');
+  if (rollingBtn) rollingBtn.classList.toggle('active', view === 'rolling');
 
   document.querySelectorAll('.cf-field-single').forEach(function(el) {
     el.style.display = view === 'single' ? '' : 'none';
   });
 
-  var yrLabel = document.getElementById('cfYearsLabel');
-  if (yrLabel) {
-    yrLabel.textContent = view === 'rolling' ? 'Rolling Window (Yrs)' : 'Horizon (Years)';
+  var yearsLabel = document.getElementById('cfYearsLabel');
+  if (yearsLabel) {
+    yearsLabel.textContent = view === 'rolling' ? 'Rolling Window' : 'Horizon';
   }
 
   updateCashflowTitles();
-  runCashflowSim();
+  debounceCfSim();
 }
 
 function setCashflowScale(scale) {
   currentCashflowScale = scale;
-  var bLog = document.getElementById('cfScaleLogBtn');
-  var bLin = document.getElementById('cfScaleLinBtn');
-  if (bLog) bLog.classList.toggle('active', scale === 'log');
-  if (bLin) bLin.classList.toggle('active', scale === 'linear');
-  runCashflowSim();
+  var logBtn = document.getElementById('cfScaleLogBtn');
+  var linBtn = document.getElementById('cfScaleLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', scale === 'log');
+  if (linBtn) linBtn.classList.toggle('active', scale === 'linear');
+  debounceCfSim();
 }
 
 function setCashflowMode(mode) {
   currentCashflowMode = mode;
-  var bSip = document.getElementById('cfModeSipBtn');
-  var bSwp = document.getElementById('cfModeSwpBtn');
-  var bLump = document.getElementById('cfModeLumpBtn');
-  if (bSip) bSip.classList.toggle('active', mode === 'sip');
-  if (bSwp) bSwp.classList.toggle('active', mode === 'swp');
-  if (bLump) bLump.classList.toggle('active', mode === 'lumpsum');
+  var sipBtn = document.getElementById('cfModeSipBtn');
+  var swpBtn = document.getElementById('cfModeSwpBtn');
+  var lumpBtn = document.getElementById('cfModeLumpBtn');
+  if (sipBtn) sipBtn.classList.toggle('active', mode === 'sip');
+  if (swpBtn) swpBtn.classList.toggle('active', mode === 'swp');
+  if (lumpBtn) lumpBtn.classList.toggle('active', mode === 'lumpsum');
 
   document.querySelectorAll('.cf-field-sip').forEach(function(el) { el.style.display = mode === 'sip' ? '' : 'none'; });
   document.querySelectorAll('.cf-field-swp').forEach(function(el) { el.style.display = mode === 'swp' ? '' : 'none'; });
@@ -10635,23 +10896,22 @@ function setCashflowMode(mode) {
 
   if (mode === 'swp') {
     setSwpType(currentSwpType);
-    var yrInput = document.getElementById('cfYears');
-    if (yrInput && parseFloat(yrInput.value) < 15) yrInput.value = '15';
-  } else if (mode === 'sip') {
-    var yrInput = document.getElementById('cfYears');
-    if (yrInput && (!yrInput.value || parseFloat(yrInput.value) > 20)) yrInput.value = '10';
+  }
+
+  if (currentCashflowView === 'single') {
+    document.querySelectorAll('.cf-field-single').forEach(function(el) { el.style.display = ''; });
   }
 
   updateCashflowTitles();
-  runCashflowSim();
+  debounceCfSim();
 }
 
 function setSwpType(type) {
   currentSwpType = type;
-  var bFixed = document.getElementById('cfSwpTypeFixedBtn');
-  var bPct = document.getElementById('cfSwpTypePctBtn');
-  if (bFixed) bFixed.classList.toggle('active', type === 'fixed');
-  if (bPct) bPct.classList.toggle('active', type === 'pct');
+  var fixedBtn = document.getElementById('cfSwpTypeFixedBtn');
+  var pctBtn = document.getElementById('cfSwpTypePctBtn');
+  if (fixedBtn) fixedBtn.classList.toggle('active', type === 'fixed');
+  if (pctBtn) pctBtn.classList.toggle('active', type === 'pct');
 
   document.querySelectorAll('.cf-swp-fixed').forEach(function(el) {
     el.style.display = (currentCashflowMode === 'swp' && type === 'fixed') ? '' : 'none';
@@ -10659,36 +10919,36 @@ function setSwpType(type) {
   document.querySelectorAll('.cf-swp-pct').forEach(function(el) {
     el.style.display = (currentCashflowMode === 'swp' && type === 'pct') ? '' : 'none';
   });
-
-  runCashflowSim();
+  debounceCfSim();
 }
 
 function updateCashflowTitles() {
-  var titleEl = document.getElementById('cfTabTitle');
-  var subEl = document.getElementById('cfTabSubtitle');
-  if (!titleEl || !subEl) return;
+  var t = document.getElementById('cfTabTitle');
+  var sub = document.getElementById('cfTabSubtitle');
+  if (!t || !sub) return;
 
   if (currentCashflowView === 'rolling') {
     if (currentCashflowMode === 'sip') {
-      titleEl.textContent = 'Rolling SIP Multi-Decade Stress-Test';
-      subEl.textContent = 'Simulate your SIP across every rolling historical window to verify annualized XIRR, drawdown risk, and wealth compounding consistency';
+      t.textContent = 'Rolling SIP Compounding & XIRR Multi-Decade Stress Test';
+      sub.textContent = 'Rolling N-year SIP outcomes across every historical starting month — see distribution of returns & final wealth across all market cycles';
     } else if (currentCashflowMode === 'swp') {
-      titleEl.textContent = 'Rolling SWP Survival Stress-Test (Did It Survive Everything?)';
-      subEl.textContent = 'Test your retirement withdrawal strategy across every historical start date to verify whether your corpus survived the worst market crashes';
+      t.textContent = 'Rolling SWP Retirement Longevity & Survival Stress Test';
+      sub.textContent = 'Tests your retirement withdrawal rule across every possible starting date in history to confirm whether it survived every major crash & crisis';
     } else {
-      titleEl.textContent = 'Rolling Lumpsum Multi-Decade Stress-Test';
-      subEl.textContent = 'Evaluate lumpsum compounding across every historical entry point and market peak';
+      t.textContent = 'Rolling Lumpsum Multi-Decade Timing & Resilience Lab';
+      sub.textContent = 'Rolling N-year lumpsum CAGR performance across every entry date in modern history';
     }
   } else {
     if (currentCashflowMode === 'sip') {
-      titleEl.textContent = 'SIP Wealth Accumulator (Single Journey)';
-      subEl.textContent = 'Simulate monthly investments with custom annual step-up, exact XIRR return, and log wealth trajectory';
+      t.textContent = 'Systematic Investment Plan (SIP) Compounding Journey';
+      sub.textContent = 'Model monthly rupee cost averaging with annual step-up on your asset allocation with exact money-weighted XIRR';
     } else if (currentCashflowMode === 'swp') {
-      titleEl.textContent = 'SWP Retirement & Longevity Lab (Single Journey)';
-      subEl.textContent = 'Model inflation-adjusted withdrawals or variable % of fund payouts against historical sequence-of-returns risk';
+      var ruleText = currentSwpType === 'fixed' ? 'inflation-adjusted withdrawals' : 'variable % of fund withdrawals';
+      t.textContent = 'SWP Retirement & Longevity Lab (Single Journey)';
+      sub.textContent = 'Model ' + ruleText + ' against historical sequence of returns risk';
     } else {
-      titleEl.textContent = 'Lumpsum & Market-Peak Analyzer (Single Journey)';
-      subEl.textContent = 'Analyze one-time deployment returns, worst-case drawdown duration, and benchmark against a 12-month STP';
+      t.textContent = 'Lumpsum & Systematic Transfer (STP) Deployment';
+      sub.textContent = 'Compare one-shot lumpsum deployment vs 12-month STP from liquid fund on your custom allocation';
     }
   }
 }
@@ -10701,31 +10961,36 @@ function onCfYearsChanged() {
 
 function syncCfEndFromStart() {
   var s = document.getElementById('cfStartDate').value;
-  var y = parseFloat(document.getElementById('cfYears').value);
-  if (s && y && !isNaN(y)) {
-    document.getElementById('cfEndDate').value = addMonths(s, Math.round(y * 12));
-  }
+  var y = parseFloat(document.getElementById('cfYears').value) || 10;
+  if (!s) return;
+  var parts = s.split('-');
+  var yr = parseInt(parts[0], 10) + Math.round(y);
+  var mo = parts[1];
+  document.getElementById('cfEndDate').value = yr + '-' + mo;
 }
 
 function syncCfYearsFromEnd() {
   var s = document.getElementById('cfStartDate').value;
   var e = document.getElementById('cfEndDate').value;
-  if (s && e && e >= s) {
-    var sy = parseInt(s.slice(0, 4)), sm = parseInt(s.slice(5, 7));
-    var ey = parseInt(e.slice(0, 4)), em = parseInt(e.slice(5, 7));
-    var months = (ey - sy) * 12 + (em - sm);
-    document.getElementById('cfYears').value = Math.max(1, Math.round(months / 12));
+  if (!s || !e) return;
+  var sParts = s.split('-');
+  var eParts = e.split('-');
+  var sMonths = parseInt(sParts[0], 10) * 12 + parseInt(sParts[1], 10);
+  var eMonths = parseInt(eParts[0], 10) * 12 + parseInt(eParts[1], 10);
+  var diffYears = (eMonths - sMonths) / 12.0;
+  if (diffYears > 0) {
+    document.getElementById('cfYears').value = Math.round(diffYears);
   }
 }
 
 function syncCfEndFromYears() {
   var s = document.getElementById('cfStartDate').value;
-  var y = parseFloat(document.getElementById('cfYears').value);
-  if (s && y && !isNaN(y)) {
-    document.getElementById('cfEndDate').value = addMonths(s, Math.round(y * 12));
-  } else if (!y) {
-    document.getElementById('cfEndDate').value = '';
-  }
+  var y = parseFloat(document.getElementById('cfYears').value) || 10;
+  if (!s) return;
+  var parts = s.split('-');
+  var yr = parseInt(parts[0], 10) + Math.round(y);
+  var mo = parts[1];
+  document.getElementById('cfEndDate').value = yr + '-' + mo;
 }
 
 function calculateXIRR(cashflows) {
@@ -10737,58 +11002,74 @@ function calculateXIRR(cashflows) {
   }
   if (!hasPos || !hasNeg) return 0.0;
 
-  var rate = 0.10;
-  for (var iter = 0; iter < 60; iter++) {
-    var fVal = 0.0, fPrime = 0.0;
-    for (var j = 0; j < cashflows.length; j++) {
-      var cf = cashflows[j];
-      var denom = Math.pow(1.0 + rate, cf.t);
-      if (denom === 0 || isNaN(denom)) continue;
-      fVal += cf.amount / denom;
-      fPrime += -cf.t * cf.amount / (denom * (1.0 + rate));
+  var low = -0.999;
+  var high = 10.0;
+  var npvLow = 0, npvHigh = 0;
+
+  for (var j = 0; j < cashflows.length; j++) {
+    var cf = cashflows[j];
+    npvLow += cf.amount / Math.pow(1.0 + low, cf.t);
+    npvHigh += cf.amount / Math.pow(1.0 + high, cf.t);
+  }
+  if (npvLow * npvHigh > 0) {
+    var totalIn = 0, totalOut = 0;
+    var maxT = 0;
+    cashflows.forEach(function(c) {
+      if (c.amount < 0) totalIn += -c.amount;
+      else totalOut += c.amount;
+      if (c.t > maxT) maxT = c.t;
+    });
+    if (totalIn > 0 && maxT > 0) {
+      return (Math.pow(totalOut / totalIn, 1 / maxT) - 1) * 100;
     }
-    if (Math.abs(fPrime) < 1e-10) break;
-    var newRate = rate - fVal / fPrime;
-    if (Math.abs(newRate - rate) < 1e-5) {
-      return +(newRate * 100).toFixed(2);
-    }
-    rate = newRate;
-    if (rate <= -0.99) rate = -0.95;
-    if (rate > 10.0) rate = 2.0;
+    return 0.0;
   }
 
-  var low = -0.90, high = 5.0;
-  for (var b = 0; b < 60; b++) {
+  for (var iter = 0; iter < 100; iter++) {
     var mid = (low + high) / 2.0;
-    var npv = 0.0;
+    var npv = 0;
     for (var k = 0; k < cashflows.length; k++) {
       npv += cashflows[k].amount / Math.pow(1.0 + mid, cashflows[k].t);
     }
-    if (Math.abs(npv) < 1e-3) return +(mid * 100).toFixed(2);
+    if (Math.abs(npv) < 1e-4) return mid * 100;
     if (npv > 0) low = mid;
     else high = mid;
   }
-  return +(((low + high) / 2.0) * 100).toFixed(2);
+  return ((low + high) / 2.0) * 100;
 }
 
 function formatINR(num) {
-  if (num === null || num === undefined || isNaN(num)) return '₹0';
+  if (num === undefined || num === null || isNaN(num)) return '—';
+  var sign = num < 0 ? '-' : '';
   var abs = Math.abs(num);
-  if (abs >= 1e7) return (num < 0 ? '-' : '') + '₹' + (abs / 1e7).toFixed(2) + ' Cr';
-  if (abs >= 1e5) return (num < 0 ? '-' : '') + '₹' + (abs / 1e5).toFixed(2) + ' L';
-  if (abs >= 1e3) return (num < 0 ? '-' : '') + '₹' + (abs / 1e3).toFixed(1) + ' k';
-  return (num < 0 ? '-' : '') + '₹' + Math.round(abs).toLocaleString('en-IN');
+  if (abs >= 10000000) return sign + '₹' + (abs / 10000000).toFixed(2) + ' Cr';
+  if (abs >= 100000) return sign + '₹' + (abs / 100000).toFixed(2) + ' L';
+  if (abs >= 1000) return sign + '₹' + (abs / 1000).toFixed(1) + ' k';
+  return sign + '₹' + Math.round(abs).toLocaleString('en-IN');
 }
 
 function runCashflowSim() {
-  var selKeys = [...selected];
-  var noData = document.getElementById('cfNoData');
-  var summaryGrid = document.getElementById('cfSummaryGrid');
-  var insightsBox = document.getElementById('cfInsightsBox');
-  var canvas = document.getElementById('cashflowChartCanvas');
+  updateCfBadges();
+  var selKeys = [];
+  var weightsMap = {};
+  var totalWt = 0;
+  if (typeof selected !== 'undefined' && selected && selected.size > 0) {
+    selected.forEach(function(k) {
+      if (RAW[k]) {
+        selKeys.push(k);
+        var wt = (typeof weights !== 'undefined' && weights && weights[k] !== undefined) ? weights[k] : 100;
+        weightsMap[k] = wt;
+        totalWt += wt;
+      }
+    });
+  }
 
   if (selKeys.length === 0) {
-    if (noData) { noData.style.display = 'block'; noData.textContent = 'Select at least one index or commodity in the sidebar to run the simulation.'; }
+    var noData = document.getElementById('cfNoData');
+    var summaryGrid = document.getElementById('cfSummaryGrid');
+    var insightsBox = document.getElementById('cfInsightsBox');
+    var canvas = document.getElementById('cashflowChartCanvas');
+    if (noData) noData.style.display = 'block';
     if (summaryGrid) summaryGrid.innerHTML = '';
     if (insightsBox) insightsBox.innerHTML = '';
     if (canvas) canvas.style.display = 'none';
@@ -10796,27 +11077,37 @@ function runCashflowSim() {
     return;
   }
 
+  // Normalize weights
+  var normWeights = {};
+  if (totalWt > 0) {
+    selKeys.forEach(function(k) { normWeights[k] = weightsMap[k] / totalWt; });
+  } else {
+    selKeys.forEach(function(k) { normWeights[k] = 1.0 / selKeys.length; });
+  }
+
   if (currentCashflowView === 'rolling') {
     // Collect all historical dates with data for selected keys
     var allDateSet = new Set();
     selKeys.forEach(function(k) {
-      var raw = RAW[k] || {};
+      var raw = RAW[k];
       Object.keys(raw).forEach(function(d) { allDateSet.add(d); });
     });
-    var dates = [...allDateSet].sort();
+    var dates = Array.from(allDateSet).sort();
 
     var monthlyReturns = [];
     for (var m = 1; m < dates.length; m++) {
-      var dPrev = dates[m - 1], dCurr = dates[m];
-      var retSum = 0, validWt = 0;
+      var dPrev = dates[m - 1];
+      var dCurr = dates[m];
+      var retSum = 0;
+      var validWt = 0;
       selKeys.forEach(function(k) {
         var raw = RAW[k];
         var p0 = getMonthlyValue(raw, dPrev, 'close');
         var p1 = getMonthlyValue(raw, dCurr, 'close');
         if (p0 && p1 && p0 > 0 && p1 > 0) {
-          var w = weights[k] || 0;
-          retSum += (w * (p1 / p0 - 1));
-          validWt += w;
+          var wt = normWeights[k] || 0;
+          retSum += (wt * (p1 / p0 - 1));
+          validWt += wt;
         }
       });
       var r = validWt > 0.01 ? (retSum / validWt) : 0;
@@ -10830,82 +11121,87 @@ function runCashflowSim() {
     } else {
       executeRollingLumpsumSim(selKeys, dates, monthlyReturns);
     }
-  } else {
-    // Single Journey Mode
-    var rawStart = document.getElementById('cfStartDate').value || '2010-01';
-    var startDate = rawStart.length === 7 ? rawStart : rawStart.slice(0, 7);
-    var rawEnd = document.getElementById('cfEndDate').value;
-    var endDate = rawEnd && rawEnd.length >= 7 ? rawEnd.slice(0, 7) : null;
+    return;
+  }
 
-    var allDateSet = new Set();
-    selKeys.forEach(function(k) {
-      var raw = RAW[k] || {};
-      Object.keys(raw).forEach(function(d) {
-        if (d >= startDate && (!endDate || d <= endDate)) allDateSet.add(d);
-      });
+  // Single Journey View
+  var startMonth = document.getElementById('cfStartDate').value || '2010-01';
+  var endMonth = document.getElementById('cfEndDate').value;
+
+  var allDateSet = new Set();
+  selKeys.forEach(function(k) {
+    var raw = RAW[k];
+    Object.keys(raw).forEach(function(d) {
+      if (d >= startMonth && (!endMonth || d <= endMonth)) {
+        allDateSet.add(d);
+      }
     });
-    var dates = [...allDateSet].sort();
+  });
 
-    if (dates.length < 2) {
-      if (noData) { noData.style.display = 'block'; noData.textContent = 'Not enough historical data available from ' + startDate + ' for selected assets.'; }
-      if (summaryGrid) summaryGrid.innerHTML = '';
-      if (insightsBox) insightsBox.innerHTML = '';
-      if (canvas) canvas.style.display = 'none';
-      if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
-      return;
-    }
+  var dates = Array.from(allDateSet).sort();
+  var noData = document.getElementById('cfNoData');
+  var summaryGrid = document.getElementById('cfSummaryGrid');
+  var insightsBox = document.getElementById('cfInsightsBox');
+  var canvas = document.getElementById('cashflowChartCanvas');
 
-    if (noData) noData.style.display = 'none';
-    if (canvas) canvas.style.display = 'block';
+  if (dates.length < 3) {
+    if (noData) noData.style.display = 'block';
+    if (summaryGrid) summaryGrid.innerHTML = '';
+    if (insightsBox) insightsBox.innerHTML = '';
+    if (canvas) canvas.style.display = 'none';
+    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+    return;
+  }
 
-    var monthlyReturns = [];
-    for (var m = 1; m < dates.length; m++) {
-      var dPrev = dates[m - 1], dCurr = dates[m];
-      var retSum = 0, validWt = 0;
-      selKeys.forEach(function(k) {
-        var raw = RAW[k];
-        var p0 = getMonthlyValue(raw, dPrev, 'close');
-        var p1 = getMonthlyValue(raw, dCurr, 'close');
-        if (p0 && p1 && p0 > 0 && p1 > 0) {
-          var w = weights[k] || 0;
-          retSum += (w * (p1 / p0 - 1));
-          validWt += w;
-        }
-      });
-      var r = validWt > 0.01 ? (retSum / validWt) : 0;
-      monthlyReturns.push({ date: dCurr, r: r });
-    }
+  if (noData) noData.style.display = 'none';
+  if (canvas) canvas.style.display = 'block';
 
-    if (currentCashflowMode === 'sip') {
-      executeSipSim(selKeys, dates, monthlyReturns);
-    } else if (currentCashflowMode === 'swp') {
-      executeSwpSim(selKeys, dates, monthlyReturns);
-    } else {
-      executeLumpsumSim(selKeys, dates, monthlyReturns);
-    }
+  var monthlyReturns = [];
+  for (var m = 1; m < dates.length; m++) {
+    var dPrev = dates[m - 1];
+    var dCurr = dates[m];
+    var retSum = 0;
+    var validWt = 0;
+    selKeys.forEach(function(k) {
+      var raw = RAW[k];
+      var p0 = getMonthlyValue(raw, dPrev, 'close');
+      var p1 = getMonthlyValue(raw, dCurr, 'close');
+      if (p0 && p1 && p0 > 0 && p1 > 0) {
+        var wt = normWeights[k] || 0;
+        retSum += (wt * (p1 / p0 - 1));
+        validWt += wt;
+      }
+    });
+    var r = validWt > 0.01 ? (retSum / validWt) : 0;
+    monthlyReturns.push({ date: dCurr, r: r });
+  }
+
+  if (currentCashflowMode === 'sip') {
+    executeSipSim(selKeys, dates, monthlyReturns);
+  } else if (currentCashflowMode === 'swp') {
+    executeSwpSim(selKeys, dates, monthlyReturns);
+  } else {
+    executeLumpsumSim(selKeys, dates, monthlyReturns);
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SINGLE JOURNEY SIMULATIONS
-// ─────────────────────────────────────────────────────────────────────────────
 function executeSipSim(selKeys, dates, monthlyReturns) {
   var initMonthly = parseFloat(document.getElementById('cfSipAmount').value) || 10000;
   var stepUpPct = parseFloat(document.getElementById('cfSipStepUp').value) || 0;
 
   var currentAmt = initMonthly;
-  var totalInvested = 0;
-  var portfolioVal = 0;
-  var cashflows = [];
-  var chartLabels = [dates[0]];
+  var totalInvested = initMonthly;
+  var portfolioVal = initMonthly;
   var isLog = currentCashflowScale === 'log';
-  var investedSeries = [isLog ? Math.max(1, initMonthly) : initMonthly];
-  var valueSeries = [isLog ? Math.max(1, initMonthly) : initMonthly];
-  var peakVal = initMonthly;
+
+  var chartLabels = [dates[0]];
+  var valueSeries = [isLog ? Math.max(1, Math.round(portfolioVal)) : Math.round(portfolioVal)];
+  var investedSeries = [isLog ? Math.max(1, Math.round(totalInvested)) : Math.round(totalInvested)];
+
+  var peakVal = portfolioVal;
   var maxDd = 0;
 
-  totalInvested += initMonthly;
-  portfolioVal = initMonthly;
+  var cashflows = [];
   cashflows.push({ amount: -initMonthly, t: 0 });
 
   for (var i = 0; i < monthlyReturns.length; i++) {
@@ -10923,12 +11219,12 @@ function executeSipSim(selKeys, dates, monthlyReturns) {
     cashflows.push({ amount: -currentAmt, t: tYears });
 
     if (portfolioVal > peakVal) peakVal = portfolioVal;
-    var dd = peakVal > 0 ? ((portfolioVal - peakVal) / peakVal) * 100 : 0;
-    if (dd < maxDd) maxDd = dd;
+    var dd = peakVal > 0 ? ((peakVal - portfolioVal) / peakVal) * 100 : 0;
+    if (dd > maxDd) maxDd = dd;
 
     chartLabels.push(d);
-    investedSeries.push(isLog ? Math.max(1, Math.round(totalInvested)) : Math.round(totalInvested));
     valueSeries.push(isLog ? Math.max(1, Math.round(portfolioVal)) : Math.round(portfolioVal));
+    investedSeries.push(isLog ? Math.max(1, Math.round(totalInvested)) : Math.round(totalInvested));
   }
 
   var tenureYears = monthlyReturns.length / 12.0;
@@ -10941,11 +11237,12 @@ function executeSipSim(selKeys, dates, monthlyReturns) {
 
   var summaryGrid = document.getElementById('cfSummaryGrid');
   if (summaryGrid) {
-    summaryGrid.innerHTML = '<div class="sim-stat-box"><div class="sim-stat-label">Total Invested</div><div class="sim-stat-val">' + formatINR(totalInvested) + '</div><div class="stat-pct">' + (monthlyReturns.length + 1) + ' instalments (' + stepUpPct + '% step-up)</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Final Portfolio Value</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(portfolioVal) + '</div><div class="stat-pct">' + multiple + 'x wealth multiple</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Net Wealth Created</div><div class="sim-stat-val" style="color:' + (netGain >= 0 ? '#22d3a0' : '#f87171') + ';">' + (netGain >= 0 ? '+' : '') + formatINR(netGain) + '</div><div class="stat-pct">' + (absReturn >= 0 ? '+' : '') + absReturn.toFixed(1) + '% absolute gain</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Exact SIP XIRR</div><div class="sim-stat-val" style="color:#22d3a0;">' + (xirr > 0 ? '+' : '') + xirr.toFixed(2) + '%</div><div class="stat-pct">Annualised money-weighted return</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Max Drawdown During SIP</div><div class="sim-stat-val" style="color:#f87171;">' + maxDd.toFixed(1) + '%</div><div class="stat-pct">Deepest portfolio dip from peak</div></div>';
+    summaryGrid.innerHTML = 
+      renderKpiCard('Total Invested', formatINR(totalInvested), (monthlyReturns.length + 1) + ' instalments (' + stepUpPct + '% step-up)') +
+      renderKpiCard('Final Portfolio Value', formatINR(portfolioVal), multiple + 'x wealth multiple', '#5E9CFF') +
+      renderKpiCard('Net Wealth Created', (netGain >= 0 ? '+' : '') + formatINR(netGain), (absReturn >= 0 ? '+' : '') + absReturn.toFixed(1) + '% absolute gain', netGain >= 0 ? '#22d3a0' : '#f87171') +
+      renderKpiCard('Exact SIP XIRR', (xirr > 0 ? '+' : '') + xirr.toFixed(2) + '%', 'Annualised money-weighted return', '#22d3a0') +
+      renderKpiCard('Max Drawdown During SIP', maxDd.toFixed(1) + '%', 'Deepest dip from peak', '#f87171');
   }
 
   renderCashflowChart(chartLabels, [
@@ -11029,11 +11326,19 @@ function executeSwpSim(selKeys, dates, monthlyReturns) {
   var summaryGrid = document.getElementById('cfSummaryGrid');
   if (summaryGrid) {
     var strategyDesc = isFixed ? (inflationPct + '% annual inflation step-up') : (swpPct + '% p.a. variable rate');
-    summaryGrid.innerHTML = '<div class="sim-stat-box"><div class="sim-stat-label">Initial Corpus</div><div class="sim-stat-val">' + formatINR(initCorpus) + '</div><div class="stat-pct">Starting retirement capital</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Total Withdrawn</div><div class="sim-stat-val" style="color:#22d3a0;">' + formatINR(totalWithdrawn) + '</div><div class="stat-pct">' + ((totalWithdrawn/initCorpus)*100).toFixed(0) + '% of initial (' + strategyDesc + ')</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid ' + (survived ? '#5E9CFF' : '#f87171') + ';"><div class="sim-stat-label">Terminal Remaining Wealth</div><div class="sim-stat-val" style="color:' + (survived ? '#5E9CFF' : '#f87171') + ';">' + formatINR(corpus) + '</div><div class="stat-pct">' + (survived ? 'Leftover for legacy' : 'Corpus exhausted') + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid ' + (survived ? '#22d3a0' : '#f59e0b') + ';"><div class="sim-stat-label">Corpus Longevity Status</div><div class="sim-stat-val" style="color:' + (survived ? '#22d3a0' : '#f87171') + ';font-size:0.95rem;">' + (survived ? '✅ SURVIVED' : '⚠️ DEPLETED') + '</div><div class="stat-pct">' + (survived ? 'All ' + Math.round(monthlyReturns.length/12) + ' years funded' : 'Ran out at month ' + depletedMonth + ' (' + depletedDate + ')') + '</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Net Wealth Created</div><div class="sim-stat-val" style="color:' + (netSurplus >= 0 ? '#22d3a0' : '#f87171') + ';">' + (netSurplus >= 0 ? '+' : '') + formatINR(netSurplus) + '</div><div class="stat-pct">Total Withdrawn + Terminal − Start</div></div>';
+    var statusBadge = survived 
+      ? '<span class="cf-status-pill survived">✓ SURVIVED</span>' 
+      : '<span class="cf-status-pill depleted">DEPLETED</span>';
+    var fundedText = survived 
+      ? 'All ' + Math.round(monthlyReturns.length / 12) + ' years funded' 
+      : 'Corpus ran out at month ' + depletedMonth + ' (' + depletedDate + ')';
+
+    summaryGrid.innerHTML = 
+      renderKpiCard('Initial Corpus', formatINR(initCorpus), 'Starting retirement capital') +
+      renderKpiCard('Total Withdrawn', formatINR(totalWithdrawn), ((totalWithdrawn/initCorpus)*100).toFixed(0) + '% of initial (' + strategyDesc + ')', '#22d3a0') +
+      renderKpiCard('Terminal Wealth', formatINR(corpus), survived ? 'Leftover for legacy' : 'Corpus exhausted', survived ? '#5E9CFF' : '#f87171') +
+      renderKpiCard('Longevity Status', statusBadge, fundedText) +
+      renderKpiCard('Net Wealth Created', (netSurplus >= 0 ? '+' : '') + formatINR(netSurplus), 'Withdrawn + Terminal − Start', netSurplus >= 0 ? '#22d3a0' : '#f87171');
   }
 
   renderCashflowChart(chartLabels, [
@@ -11054,69 +11359,70 @@ function executeSwpSim(selKeys, dates, monthlyReturns) {
       borderDash: [5, 4],
       backgroundColor: 'transparent',
       fill: false,
-      borderWidth: 1.8,
+      borderWidth: 1.6,
       pointRadius: 0,
-      tension: 0
+      tension: 0.25
     }
-  ], 'Corpus Balance (₹)');
+  ], 'Value (₹)');
 
-  renderRollingSwpInsights(selKeys, isFixed ? initWithdrawal : (initCorpus * swpPct / 1200), initCorpus, isFixed ? inflationPct : 0);
+  renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflationPct);
 }
 
 function executeLumpsumSim(selKeys, dates, monthlyReturns) {
   var lumpAmount = parseFloat(document.getElementById('cfLumpAmount').value) || 500000;
-  var compareStp = document.getElementById('cfLumpStpCheck').checked;
+  var testStp = document.getElementById('cfLumpStpCheck') ? document.getElementById('cfLumpStpCheck').checked : true;
   var isLog = currentCashflowScale === 'log';
 
-  var portVal = lumpAmount;
   var chartLabels = [dates[0]];
   var lumpSeries = [isLog ? Math.max(1, Math.round(lumpAmount)) : Math.round(lumpAmount)];
   var stpSeries = [isLog ? Math.max(1, Math.round(lumpAmount)) : Math.round(lumpAmount)];
-  var peakVal = lumpAmount;
-  var maxDd = 0;
 
-  var liquidBalance = lumpAmount;
-  var equityUnitsVal = 0;
-  var monthlyTransfer = lumpAmount / 12.0;
+  var lumpVal = lumpAmount;
+  var liquidVal = lumpAmount;
+  var stpEquityVal = 0;
+  var monthlyStpInstalment = lumpAmount / 12.0;
+  var liquidMonthlyRate = Math.pow(1.0 + 0.065, 1.0 / 12.0) - 1.0;
 
   for (var i = 0; i < monthlyReturns.length; i++) {
     var d = monthlyReturns[i].date;
     var r = monthlyReturns[i].r;
 
-    portVal = portVal * (1 + r);
-    if (portVal > peakVal) peakVal = portVal;
-    var dd = peakVal > 0 ? ((portVal - peakVal) / peakVal) * 100 : 0;
-    if (dd < maxDd) maxDd = dd;
+    lumpVal = lumpVal * (1 + r);
+
+    if (i < 12) {
+      liquidVal = liquidVal * (1 + liquidMonthlyRate);
+      var transfer = Math.min(liquidVal, monthlyStpInstalment);
+      liquidVal = Math.max(0, liquidVal - transfer);
+      stpEquityVal = (stpEquityVal * (1 + r)) + transfer;
+    } else {
+      stpEquityVal = stpEquityVal * (1 + r);
+    }
+
+    var totalStpVal = liquidVal + stpEquityVal;
 
     chartLabels.push(d);
-    lumpSeries.push(isLog ? Math.max(1, Math.round(portVal)) : Math.round(portVal));
-
-    if (compareStp) {
-      liquidBalance = liquidBalance * (1 + 0.065 / 12);
-      var transfer = Math.min(liquidBalance, monthlyTransfer);
-      liquidBalance -= transfer;
-      equityUnitsVal = (equityUnitsVal * (1 + r)) + transfer;
-      stpSeries.push(isLog ? Math.max(1, Math.round(liquidBalance + equityUnitsVal)) : Math.round(liquidBalance + equityUnitsVal));
-    }
+    lumpSeries.push(isLog ? Math.max(1, Math.round(lumpVal)) : Math.round(lumpVal));
+    stpSeries.push(isLog ? Math.max(1, Math.round(totalStpVal)) : Math.round(totalStpVal));
   }
 
   var years = monthlyReturns.length / 12.0;
-  var cagr = years > 0 ? (Math.pow(portVal / lumpAmount, 1 / years) - 1) * 100 : 0;
-  var netGain = portVal - lumpAmount;
-  var multiple = (portVal / lumpAmount).toFixed(2);
+  var lumpCagr = (Math.pow(lumpVal / lumpAmount, 1 / years) - 1) * 100;
+  var stpFinal = liquidVal + stpEquityVal;
+  var stpCagr = (Math.pow(stpFinal / lumpAmount, 1 / years) - 1) * 100;
 
   var summaryGrid = document.getElementById('cfSummaryGrid');
   if (summaryGrid) {
-    summaryGrid.innerHTML = '<div class="sim-stat-box"><div class="sim-stat-label">Initial Lumpsum</div><div class="sim-stat-val">' + formatINR(lumpAmount) + '</div><div class="stat-pct">Deployed at ' + dates[0] + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Final Portfolio Value</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(portVal) + '</div><div class="stat-pct">' + multiple + 'x wealth multiple</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Annualised CAGR</div><div class="sim-stat-val" style="color:#22d3a0;">' + (cagr > 0 ? '+' : '') + cagr.toFixed(2) + '%</div><div class="stat-pct">' + years.toFixed(1) + ' years compounding</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Net Capital Gain</div><div class="sim-stat-val" style="color:' + (netGain >= 0 ? '#22d3a0' : '#f87171') + ';">' + (netGain >= 0 ? '+' : '') + formatINR(netGain) + '</div><div class="stat-pct">' + ((netGain/lumpAmount)*100).toFixed(1) + '% total gain</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Maximum Drawdown</div><div class="sim-stat-val" style="color:#f87171;">' + maxDd.toFixed(1) + '%</div><div class="stat-pct">Deepest crash experienced</div></div>';
+    summaryGrid.innerHTML = 
+      renderKpiCard('Initial Lumpsum', formatINR(lumpAmount), 'Deployed at ' + dates[0]) +
+      renderKpiCard('Final Portfolio Value', formatINR(lumpVal), (lumpVal / lumpAmount).toFixed(2) + 'x capital multiple', '#5E9CFF') +
+      renderKpiCard('Annualized CAGR', (lumpCagr >= 0 ? '+' : '') + lumpCagr.toFixed(2) + '%', 'Compound growth rate', '#22d3a0') +
+      (testStp ? renderKpiCard('12M STP Portfolio Value', formatINR(stpFinal), (stpFinal / lumpAmount).toFixed(2) + 'x multiple', '#a78bfa') : '') +
+      (testStp ? renderKpiCard('12M STP CAGR', (stpCagr >= 0 ? '+' : '') + stpCagr.toFixed(2) + '%', (stpFinal >= lumpVal ? 'STP beat Lumpsum' : 'Lumpsum beat STP'), stpFinal >= lumpVal ? '#22d3a0' : '#f59e0b') : '');
   }
 
   var ds = [
     {
-      label: 'Lumpsum Portfolio Value',
+      label: 'Direct Lumpsum Allocation',
       data: lumpSeries,
       borderColor: '#5E9CFF',
       backgroundColor: 'rgba(94, 156, 255, 0.08)',
@@ -11127,34 +11433,25 @@ function executeLumpsumSim(selKeys, dates, monthlyReturns) {
     }
   ];
 
-  if (compareStp) {
+  if (testStp) {
     ds.push({
-      label: '12-Month STP (Liquid to Equity)',
+      label: '12M STP (Liquid + Portfolio)',
       data: stpSeries,
-      borderColor: '#22d3a0',
-      borderDash: [4, 4],
+      borderColor: '#a78bfa',
+      borderDash: [5, 4],
       backgroundColor: 'transparent',
       fill: false,
-      borderWidth: 1.8,
+      borderWidth: 2.0,
       pointRadius: 0,
-      tension: 0.2
+      tension: 0.25
     });
   }
 
   renderCashflowChart(chartLabels, ds, 'Portfolio Value (₹)');
-
   var insightsBox = document.getElementById('cfInsightsBox');
-  if (insightsBox) {
-    insightsBox.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">💡 Lumpsum Timing &amp; Recovery Analysis</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">• Deployed across <strong>' + (Math.round(years * 10)/10) + ' years</strong>, your one-time capital compounded into <strong>' + formatINR(portVal) + '</strong> (' + multiple + 'x).<br>' +
-      '• During severe bear markets, the portfolio absorbed a maximum drawdown of <strong>' + maxDd.toFixed(1) + '%</strong>.<br>' +
-      (compareStp ? '• <strong>12-Month STP Comparison</strong>: Spreading capital across the first year finished at <strong>' + formatINR(stpSeries[stpSeries.length - 1]) + '</strong>.' : '') + '</div>';
-  }
+  if (insightsBox) insightsBox.innerHTML = '';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ROLLING STRESS-TEST ENGINE (SURVIVAL & ALL COHORTS)
-// ─────────────────────────────────────────────────────────────────────────────
 function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
   var initCorpus = parseFloat(document.getElementById('cfSwpCorpus').value) || 10000000;
   var isFixed = currentSwpType === 'fixed';
@@ -11172,7 +11469,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
   if (monthlyReturns.length < horizonMonths + 1) {
     if (noData) {
       noData.style.display = 'block';
-      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the required ' + horizonYears + '-year retirement horizon.';
+      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year retirement horizon.';
     }
     if (summaryGrid) summaryGrid.innerHTML = '';
     if (insightsBox) insightsBox.innerHTML = '';
@@ -11188,41 +11485,39 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
   var survivedCount = 0;
   var worstCohort = null;
   var bestCohort = null;
-  var maxTerminalWealth = -1;
+  var minTerminal = Infinity;
+  var maxTerminal = -1;
 
   for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
     var startMonth = dates[i];
     var endMonth = dates[i + horizonMonths];
     var corpus = initCorpus;
-    var currentWithdrawal = initWithdrawal;
-    var totalWithdrawn = 0;
+    var currentW = initWithdrawal;
+    var totalW = 0;
     var survived = true;
     var depletedMonth = null;
-    var minCorpus = initCorpus;
 
     for (var m = 0; m < horizonMonths; m++) {
       var r = monthlyReturns[i + m].r;
-
       if (isFixed) {
         if (m > 0 && m % 12 === 0 && inflationPct > 0) {
-          currentWithdrawal = Math.round(currentWithdrawal * (1 + inflationPct / 100));
+          currentW = Math.round(currentW * (1 + inflationPct / 100));
         }
         corpus = corpus * (1 + r);
-        var actW = Math.min(corpus, currentWithdrawal);
+        var actW = Math.min(corpus, currentW);
         corpus = Math.max(0, corpus - actW);
-        totalWithdrawn += actW;
-        if (corpus < minCorpus) minCorpus = corpus;
-        if (corpus <= 0) {
-          survived = false;
-          depletedMonth = m + 1;
-          break;
-        }
+        totalW += actW;
       } else {
         corpus = corpus * (1 + r);
         var actW = corpus * (swpPct / 1200.0);
         corpus = Math.max(0, corpus - actW);
-        totalWithdrawn += actW;
-        if (corpus < minCorpus) minCorpus = corpus;
+        totalW += actW;
+      }
+
+      if (corpus <= 0 && survived) {
+        survived = false;
+        depletedMonth = m + 1;
+        break;
       }
     }
 
@@ -11235,334 +11530,44 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
       survived: survived,
       depletedMonth: depletedMonth,
       terminalWealth: termWealth,
-      minCorpus: Math.round(minCorpus),
-      totalWithdrawn: Math.round(totalWithdrawn)
+      totalWithdrawn: Math.round(totalW)
     };
-
     cohorts.push(cohortObj);
 
-    if (termWealth > maxTerminalWealth) {
-      maxTerminalWealth = termWealth;
-      bestCohort = cohortObj;
-    }
-    if (!worstCohort) {
+    if (termWealth < minTerminal) {
+      minTerminal = termWealth;
       worstCohort = cohortObj;
-    } else {
-      if (!cohortObj.survived && worstCohort.survived) {
-        worstCohort = cohortObj;
-      } else if (!cohortObj.survived && !worstCohort.survived) {
-        if (cohortObj.depletedMonth < worstCohort.depletedMonth) worstCohort = cohortObj;
-      } else if (cohortObj.survived && worstCohort.survived) {
-        if (cohortObj.terminalWealth < worstCohort.terminalWealth) worstCohort = cohortObj;
-      }
+    }
+    if (termWealth > maxTerminal) {
+      maxTerminal = termWealth;
+      bestCohort = cohortObj;
     }
   }
 
   var totalCohorts = cohorts.length;
-  var survivalRate = totalCohorts > 0 ? ((survivedCount / totalCohorts) * 100).toFixed(1) : 0;
-  var survivingWealths = cohorts.filter(function(c){ return c.survived; }).map(function(c){ return c.terminalWealth; }).sort(function(a,b){ return a - b; });
-  var medianTerminal = survivingWealths.length > 0 ? survivingWealths[Math.floor(survivingWealths.length / 2)] : 0;
-  var medianWithdrawn = cohorts.map(function(c){ return c.totalWithdrawn; }).sort(function(a,b){ return a - b; })[Math.floor(totalCohorts / 2)];
-
+  var survivalRate = ((survivedCount / totalCohorts) * 100).toFixed(1);
+  var sortedTerminals = cohorts.map(function(c){ return c.terminalWealth; }).sort(function(a,b){ return a - b; });
+  var medianTerminal = sortedTerminals[Math.floor(totalCohorts * 0.5)];
   var survColor = survivalRate >= 90 ? '#22d3a0' : (survivalRate >= 75 ? '#f59e0b' : '#f87171');
+
   if (summaryGrid) {
-    var worstDesc = worstCohort ? (worstCohort.survived ? 'Survived with min corpus ' + formatINR(worstCohort.minCorpus) : 'Depleted at Month ' + worstCohort.depletedMonth + ' (' + +(worstCohort.depletedMonth / 12).toFixed(1) + ' yrs)') : 'N/A';
+    var worstDesc = worstCohort 
+      ? (worstCohort.survived 
+          ? 'Started ' + worstCohort.startDate + ' (' + formatINR(worstCohort.terminalWealth) + ' left)' 
+          : 'Depleted in ' + +(worstCohort.depletedMonth/12).toFixed(1) + ' yrs (Started ' + worstCohort.startDate + ')')
+      : 'N/A';
+    var bestDesc = bestCohort ? 'Started ' + bestCohort.startDate + ' (' + formatINR(bestCohort.terminalWealth) + ')' : 'N/A';
+
     summaryGrid.innerHTML = 
-      '<div class="sim-stat-box" style="border-left:3px solid ' + survColor + ';"><div class="sim-stat-label">Empirical Survival Rate</div><div class="sim-stat-val" style="color:' + survColor + ';">' + survivalRate + '%</div><div class="stat-pct">' + survivedCount + ' of ' + totalCohorts + ' historical cohorts survived</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst Retirement Cohort</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? worstCohort.startDate : 'N/A') + '</div><div class="stat-pct">' + worstDesc + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best Retirement Cohort</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">' + (bestCohort ? bestCohort.startDate : 'N/A') + '</div><div class="stat-pct">Grew to ' + (bestCohort ? formatINR(bestCohort.terminalWealth) : 'N/A') + ' terminal legacy</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Surplus Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianTerminal) + '</div><div class="stat-pct">Remaining capital after ' + horizonYears + ' years</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Median Total Extracted</div><div class="sim-stat-val" style="color:#f59e0b;">' + formatINR(medianWithdrawn) + '</div><div class="stat-pct">' + (isFixed ? 'Fixed +' + inflationPct + '% inflation' : swpPct + '% p.a. variable') + '</div></div>';
+      renderKpiCard('Empirical Survival Rate', survivalRate + '%', survivedCount + ' of ' + totalCohorts + ' historical cohorts survived', survColor) +
+      renderKpiCard('Median Remaining Wealth', formatINR(medianTerminal), (medianTerminal >= initCorpus ? 'Capital expanded above inflation' : 'Principal partially consumed'), '#5E9CFF') +
+      renderKpiCard('Worst Historical Timing', worstCohort && !worstCohort.survived ? '<span class="cf-status-pill depleted">DEPLETED</span>' : formatINR(minTerminal), worstDesc, '#f87171') +
+      renderKpiCard('Best Historical Timing', formatINR(maxTerminal), bestDesc, '#22d3a0') +
+      renderKpiCard('Tested Horizon', horizonYears + ' Years', totalCohorts + ' rolling cohorts (' + dates[0] + ' → ' + dates[dates.length - 1] + ')');
   }
 
   var labels = cohorts.map(function(c){ return c.startDate; });
   var isLog = currentCashflowScale === 'log';
-  var terminalData = cohorts.map(function(c){ return isLog ? Math.max(1, c.terminalWealth) : c.terminalWealth; });
-  var baselineData = cohorts.map(function(){ return isLog ? Math.max(1, initCorpus) : initCorpus; });
-  var pointColors = cohorts.map(function(c){ return c.survived ? '#22d3a0' : '#f87171'; });
-
-  var ds = [
-    {
-      label: 'Terminal Wealth (Remaining Corpus)',
-      data: terminalData,
-      borderColor: '#5E9CFF',
-      backgroundColor: 'rgba(94, 156, 255, 0.06)',
-      fill: true,
-      borderWidth: 2,
-      pointRadius: totalCohorts > 120 ? 2 : 3,
-      pointHoverRadius: 6,
-      pointBackgroundColor: pointColors,
-      pointBorderColor: pointColors,
-      tension: 0.2
-    },
-    {
-      label: 'Initial Starting Capital (Break-Even)',
-      data: baselineData,
-      borderColor: 'rgba(255, 255, 255, 0.4)',
-      borderDash: [6, 4],
-      backgroundColor: 'transparent',
-      fill: false,
-      borderWidth: 1.5,
-      pointRadius: 0,
-      tension: 0
-    }
-  ];
-
-  renderCashflowChart(labels, ds, 'Terminal Remaining Wealth (₹)', function(ctx) {
-    updateRollingSwpHud(ctx, cohorts, horizonYears);
-  });
-
-  if (insightsBox) {
-    var strategyText = isFixed 
-      ? 'a flat monthly withdrawal of <strong>' + formatINR(initWithdrawal) + '</strong> stepped up by <strong>' + inflationPct + '%</strong> inflation p.a. (initial rate: ' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '% p.a.)'
-      : 'a variable <strong>' + swpPct + '% p.a.</strong> withdrawal rate of current portfolio value';
-
-    var crashMsg = '';
-    if (survivedCount < totalCohorts) {
-      var depletedCohorts = cohorts.filter(function(c){ return !c.survived; });
-      var depDates = depletedCohorts.map(function(c){ return c.startDate; });
-      var minStart = depDates[0], maxStart = depDates[depDates.length - 1];
-      crashMsg = '⚠️ <strong>Sequence of Returns Vulnerability:</strong> ' + (totalCohorts - survivedCount) + ' cohorts starting between <strong>' + minStart + '</strong> and <strong>' + maxStart + '</strong> depleted early due to major early bear markets during the first 2-3 years of retirement.<br>💡 <strong>Survival Remedy:</strong> Lowering the initial withdrawal rate by 0.5% - 1.0% or maintaining a 2-year cash buffer historically converts nearly 100% of these failed cohorts into lifelong survivors.';
-    } else {
-      crashMsg = '✅ <strong>Bulletproof Historical Survival:</strong> Every single retirement cohort tested survived all <strong>' + horizonYears + ' years</strong> without once running out of money!';
-    }
-
-    insightsBox.innerHTML = 
-      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">🛡️ Multi-Decade Retirement Longevity Analysis (' + totalCohorts + ' Historical Cohorts Tested)</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
-      '• Testing <strong>' + horizonYears + '-year</strong> retirements across all start dates from <strong>' + dates[0] + '</strong> to <strong>' + dates[dates.length - horizonMonths] + '</strong> with ' + strategyText + ' produced an empirical survival rate of <strong style="color:' + survColor + ';">' + survivalRate + '%</strong>.<br>' +
-      '• <strong>Surviving Legacy:</strong> Retirees who survived finished with a median terminal wealth of <strong>' + formatINR(medianTerminal) + '</strong> (' + (medianTerminal >= initCorpus ? 'greater than their starting capital' : 'after consuming some principal') + ').<br>' +
-      crashMsg +
-      '</div>';
-  }
-}
-
-function executeRollingSipSim(selKeys, dates, monthlyReturns) {
-  var initMonthly = parseFloat(document.getElementById('cfSipAmount').value) || 10000;
-  var stepUpPct = parseFloat(document.getElementById('cfSipStepUp').value) || 0;
-  var horizonYears = parseFloat(document.getElementById('cfYears').value) || 10;
-  var horizonMonths = Math.round(horizonYears * 12);
-
-  var summaryGrid = document.getElementById('cfSummaryGrid');
-  var insightsBox = document.getElementById('cfInsightsBox');
-  var noData = document.getElementById('cfNoData');
-  var canvas = document.getElementById('cashflowChartCanvas');
-
-  if (monthlyReturns.length < horizonMonths + 1) {
-    if (noData) {
-      noData.style.display = 'block';
-      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year SIP horizon.';
-    }
-    if (summaryGrid) summaryGrid.innerHTML = '';
-    if (insightsBox) insightsBox.innerHTML = '';
-    if (canvas) canvas.style.display = 'none';
-    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
-    return;
-  }
-
-  if (noData) noData.style.display = 'none';
-  if (canvas) canvas.style.display = 'block';
-
-  var cohorts = [];
-  var bestCohort = null;
-  var worstCohort = null;
-  var maxWealth = -1;
-  var minWealth = Infinity;
-
-  var totalInvestedStandard = 0;
-  var mAmount = initMonthly;
-  for (var m = 0; m <= horizonMonths; m++) {
-    if (m > 0 && m % 12 === 0 && stepUpPct > 0) {
-      mAmount = Math.round(mAmount * (1 + stepUpPct / 100));
-    }
-    totalInvestedStandard += mAmount;
-  }
-
-  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
-    var startMonth = dates[i];
-    var endMonth = dates[i + horizonMonths];
-    var portVal = initMonthly;
-    var curMonthly = initMonthly;
-    var cfs = [{ amount: -initMonthly, t: 0 }];
-
-    for (var m = 0; m < horizonMonths; m++) {
-      var r = monthlyReturns[i + m].r;
-      if ((m + 1) % 12 === 0 && stepUpPct > 0) {
-        curMonthly = Math.round(curMonthly * (1 + stepUpPct / 100));
-      }
-      portVal = (portVal * (1 + r)) + curMonthly;
-      cfs.push({ amount: -curMonthly, t: (m + 1) / 12.0 });
-    }
-
-    cfs.push({ amount: portVal, t: horizonYears });
-    var xirr = calculateXIRR(cfs);
-    var finalWealth = Math.round(portVal);
-
-    var cohortObj = {
-      startDate: startMonth,
-      endDate: endMonth,
-      finalWealth: finalWealth,
-      totalInvested: totalInvestedStandard,
-      xirr: xirr,
-      gain: finalWealth - totalInvestedStandard,
-      multiple: (finalWealth / totalInvestedStandard).toFixed(2)
-    };
-    cohorts.push(cohortObj);
-
-    if (finalWealth > maxWealth) {
-      maxWealth = finalWealth;
-      bestCohort = cohortObj;
-    }
-    if (finalWealth < minWealth) {
-      minWealth = finalWealth;
-      worstCohort = cohortObj;
-    }
-  }
-
-  var totalCohorts = cohorts.length;
-  var sortedXirrs = cohorts.map(function(c){ return c.xirr; }).sort(function(a,b){ return a - b; });
-  var medianXirr = sortedXirrs[Math.floor(totalCohorts * 0.5)];
-  var sortedWealths = cohorts.map(function(c){ return c.finalWealth; }).sort(function(a,b){ return a - b; });
-  var medianWealth = sortedWealths[Math.floor(totalCohorts * 0.5)];
-  var positiveCount = cohorts.filter(function(c){ return c.gain > 0; }).length;
-  var posPct = ((positiveCount / totalCohorts) * 100).toFixed(1);
-
-  if (summaryGrid) {
-    summaryGrid.innerHTML = 
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median SIP XIRR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianXirr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x of ' + formatINR(totalInvestedStandard) + ' invested</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst-Ever SIP Window</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best-Ever SIP Window</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Profitable Periods Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + posPct + '%</div><div class="stat-pct">' + positiveCount + ' of ' + totalCohorts + ' windows beat capital</div></div>';
-  }
-
-  var labels = cohorts.map(function(c){ return c.endDate; });
-  var isLog = currentCashflowScale === 'log';
-  var wealthData = cohorts.map(function(c){ return isLog ? Math.max(1, c.finalWealth) : c.finalWealth; });
-  var investedData = cohorts.map(function(){ return isLog ? Math.max(1, totalInvestedStandard) : totalInvestedStandard; });
-
-  var ds = [
-    {
-      label: 'Terminal SIP Wealth (₹)',
-      data: wealthData,
-      borderColor: '#5E9CFF',
-      backgroundColor: 'rgba(94, 156, 255, 0.08)',
-      fill: true,
-      borderWidth: 2.2,
-      pointRadius: totalCohorts > 120 ? 1.5 : 2.5,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#5E9CFF',
-      tension: 0.2
-    },
-    {
-      label: 'Total Capital Invested (₹)',
-      data: investedData,
-      borderColor: 'rgba(255, 255, 255, 0.45)',
-      borderDash: [5, 4],
-      backgroundColor: 'transparent',
-      fill: false,
-      borderWidth: 1.6,
-      pointRadius: 0,
-      tension: 0
-    }
-  ];
-
-  renderCashflowChart(labels, ds, 'Portfolio Value (₹)', function(ctx) {
-    updateRollingSipHud(ctx, cohorts, horizonYears);
-  });
-
-  if (insightsBox) {
-    insightsBox.innerHTML = 
-      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">📊 Rolling ' + horizonYears + '-Year SIP Compounding Performance (' + totalCohorts + ' Windows Tested)</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
-      '• In <strong>' + posPct + '%</strong> of all rolling ' + horizonYears + '-year periods across history, starting an SIP in this allocation grew above total invested capital.<br>' +
-      '• <strong>Wealth Multiple:</strong> An investor investing ' + formatINR(initMonthly) + '/month with ' + stepUpPct + '% annual step-up invested a total of <strong>' + formatINR(totalInvestedStandard) + '</strong>, maturing into a median wealth of <strong>' + formatINR(medianWealth) + '</strong> (<strong>' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x</strong> wealth multiplier).<br>' +
-      '• <strong>Return Range:</strong> Annualized XIRR ranged from <strong>' + (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%</strong> in the worst historical window (' + worstCohort.startDate + ' to ' + worstCohort.endDate + ') up to <strong>+' + bestCohort.xirr.toFixed(1) + '%</strong> in the best historical run (' + bestCohort.startDate + ' to ' + bestCohort.endDate + ').' +
-      '</div>';
-  }
-}
-
-function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
-  var lumpAmount = parseFloat(document.getElementById('cfLumpAmount').value) || 500000;
-  var horizonYears = parseFloat(document.getElementById('cfYears').value) || 10;
-  var horizonMonths = Math.round(horizonYears * 12);
-
-  var summaryGrid = document.getElementById('cfSummaryGrid');
-  var insightsBox = document.getElementById('cfInsightsBox');
-  var noData = document.getElementById('cfNoData');
-  var canvas = document.getElementById('cashflowChartCanvas');
-
-  if (monthlyReturns.length < horizonMonths + 1) {
-    if (noData) {
-      noData.style.display = 'block';
-      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year horizon.';
-    }
-    if (summaryGrid) summaryGrid.innerHTML = '';
-    if (insightsBox) insightsBox.innerHTML = '';
-    if (canvas) canvas.style.display = 'none';
-    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
-    return;
-  }
-
-  if (noData) noData.style.display = 'none';
-  if (canvas) canvas.style.display = 'block';
-
-  var cohorts = [];
-  var bestCohort = null;
-  var worstCohort = null;
-  var maxWealth = -1;
-  var minWealth = Infinity;
-
-  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
-    var startMonth = dates[i];
-    var endMonth = dates[i + horizonMonths];
-    var portVal = lumpAmount;
-
-    for (var m = 0; m < horizonMonths; m++) {
-      portVal = portVal * (1 + monthlyReturns[i + m].r);
-    }
-
-    var cagr = (Math.pow(portVal / lumpAmount, 1 / horizonYears) - 1) * 100;
-    var finalWealth = Math.round(portVal);
-
-    var cohortObj = {
-      startDate: startMonth,
-      endDate: endMonth,
-      finalWealth: finalWealth,
-      cagr: cagr,
-      multiple: (finalWealth / lumpAmount).toFixed(2)
-    };
-    cohorts.push(cohortObj);
-
-    if (finalWealth > maxWealth) {
-      maxWealth = finalWealth;
-      bestCohort = cohortObj;
-    }
-    if (finalWealth < minWealth) {
-      minWealth = finalWealth;
-      worstCohort = cohortObj;
-    }
-  }
-
-  var totalCohorts = cohorts.length;
-  var sortedCagrs = cohorts.map(function(c){ return c.cagr; }).sort(function(a,b){ return a - b; });
-  var medianCagr = sortedCagrs[Math.floor(totalCohorts * 0.5)];
-  var sortedWealths = cohorts.map(function(c){ return c.finalWealth; }).sort(function(a,b){ return a - b; });
-  var medianWealth = sortedWealths[Math.floor(totalCohorts * 0.5)];
-  var posCount = cohorts.filter(function(c){ return c.cagr > 0; }).length;
-
-  if (summaryGrid) {
-    summaryGrid.innerHTML = 
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median Lumpsum CAGR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianCagr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth / lumpAmount).toFixed(2) + 'x capital multiple</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst Historical Entry</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.cagr >= 0 ? '+' : '') + worstCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best Historical Entry</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Positive Return Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + ((posCount/totalCohorts)*100).toFixed(1) + '%</div><div class="stat-pct">' + posCount + ' of ' + totalCohorts + ' periods profitable</div></div>';
-  }
-
-  var labels = cohorts.map(function(c){ return c.endDate; });
-  var isLog = currentCashflowScale === 'log';
-  var wealthData = cohorts.map(function(c){ return isLog ? Math.max(1, c.finalWealth) : c.finalWealth; });
   var baselineData = cohorts.map(function(){ return initCorpus; });
 
   var tempDs = [
@@ -11612,23 +11617,14 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
   });
 
   if (insightsBox) {
-    var strategyText = isFixed 
-      ? 'a flat monthly withdrawal of <strong>' + formatINR(initWithdrawal) + '</strong> stepped up by <strong>' + inflationPct + '%</strong> inflation p.a. (initial rate: ' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '% p.a.)'
-      : 'a variable <strong>' + swpPct + '% p.a.</strong> withdrawal rate of current portfolio value';
-
-    var crashMsg = '';
-    if (survivedCount < totalCohorts) {
-      var depletedCohorts = cohorts.filter(function(c){ return !c.survived; });
-      var depDates = depletedCohorts.map(function(c){ return c.startDate; });
-      var minStart = depDates[0], maxStart = depDates[depDates.length - 1];
-      crashMsg = '⚠️ <strong>Sequence of Returns Vulnerability:</strong> ' + (totalCohorts - survivedCount) + ' cohorts starting between <strong>' + minStart + '</strong> and <strong>' + maxStart + '</strong> depleted early due to major early bear markets during the first 2-3 years of retirement.<br>💡 <strong>Survival Remedy:</strong> Lowering the initial withdrawal rate by 0.5% - 1.0% or maintaining a 2-year cash buffer historically converts nearly 100% of these failed cohorts into lifelong survivors.';
-    } else {
-      crashMsg = '✅ <strong>Bulletproof Historical Survival:</strong> Every single retirement cohort tested survived all <strong>' + horizonYears + ' years</strong> without once running out of money!';
-    }
+    var strategyText = isFixed ? (formatINR(initWithdrawal) + '/mo with ' + inflationPct + '% annual inflation') : (swpPct + '% p.a. of portfolio value');
+    var crashMsg = worstCohort && !worstCohort.survived
+      ? '• <strong>Severe Crash Risk:</strong> The most vulnerable cohort retired in <strong>' + worstCohort.startDate + '</strong>, depleting after <strong>' + +(worstCohort.depletedMonth/12).toFixed(1) + ' years</strong> due to early negative sequence of returns.<br>'
+      : '• <strong>Zero Depletion:</strong> Not a single historical cohort experienced capital exhaustion over ' + horizonYears + ' years!<br>';
 
     insightsBox.innerHTML = 
-      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">🛡️ Multi-Decade Retirement Longevity Analysis (' + totalCohorts + ' Historical Cohorts Tested)</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
+      '<div class="cf-insights-title">🛡️ Multi-Decade Retirement Longevity Analysis (' + totalCohorts + ' Historical Cohorts Tested)</div>' +
+      '<div>' +
       '• Testing <strong>' + horizonYears + '-year</strong> retirements across all start dates from <strong>' + dates[0] + '</strong> to <strong>' + dates[dates.length - horizonMonths] + '</strong> with ' + strategyText + ' produced an empirical survival rate of <strong style="color:' + survColor + ';">' + survivalRate + '%</strong>.<br>' +
       '• <strong>Surviving Legacy:</strong> Retirees who survived finished with a median terminal wealth of <strong>' + formatINR(medianTerminal) + '</strong> (' + (medianTerminal >= initCorpus ? 'greater than their starting capital' : 'after consuming some principal') + ').<br>' +
       crashMsg +
@@ -11728,11 +11724,11 @@ function executeRollingSipSim(selKeys, dates, monthlyReturns) {
 
   if (summaryGrid) {
     summaryGrid.innerHTML = 
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median SIP XIRR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianXirr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x of ' + formatINR(totalInvestedStandard) + ' invested</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst-Ever SIP Window</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best-Ever SIP Window</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Profitable Periods Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + posPct + '%</div><div class="stat-pct">' + positiveCount + ' of ' + totalCohorts + ' windows beat capital</div></div>';
+      renderKpiCard('Median SIP XIRR', '+' + medianXirr.toFixed(1) + '%', 'Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows', '#22d3a0') +
+      renderKpiCard('Median Final Wealth', formatINR(medianWealth), (medianWealth/totalInvestedStandard).toFixed(2) + 'x of ' + formatINR(totalInvestedStandard) + ' invested', '#5E9CFF') +
+      renderKpiCard('Worst-Ever SIP Window', worstCohort ? (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%' : 'N/A', worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A', '#f87171') +
+      renderKpiCard('Best-Ever SIP Window', bestCohort ? '+' + bestCohort.xirr.toFixed(1) + '%' : 'N/A', bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A', '#22d3a0') +
+      renderKpiCard('Profitable Periods Chance', posPct + '%', positiveCount + ' of ' + totalCohorts + ' windows beat capital', '#22d3a0');
   }
 
   var labels = cohorts.map(function(c){ return c.endDate; });
@@ -11772,8 +11768,8 @@ function executeRollingSipSim(selKeys, dates, monthlyReturns) {
 
   if (insightsBox) {
     insightsBox.innerHTML = 
-      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">📊 Rolling ' + horizonYears + '-Year SIP Compounding Performance (' + totalCohorts + ' Windows Tested)</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
+      '<div class="cf-insights-title">📊 Rolling ' + horizonYears + '-Year SIP Compounding Performance (' + totalCohorts + ' Windows Tested)</div>' +
+      '<div>' +
       '• In <strong>' + posPct + '%</strong> of all rolling ' + horizonYears + '-year periods across history, starting an SIP in this allocation grew above total invested capital.<br>' +
       '• <strong>Wealth Multiple:</strong> An investor investing ' + formatINR(initMonthly) + '/month with ' + stepUpPct + '% annual step-up invested a total of <strong>' + formatINR(totalInvestedStandard) + '</strong>, maturing into a median wealth of <strong>' + formatINR(medianWealth) + '</strong> (<strong>' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x</strong> wealth multiplier).<br>' +
       '• <strong>Return Range:</strong> Annualized XIRR ranged from <strong>' + (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%</strong> in the worst historical window (' + worstCohort.startDate + ' to ' + worstCohort.endDate + ') up to <strong>+' + bestCohort.xirr.toFixed(1) + '%</strong> in the best historical run (' + bestCohort.startDate + ' to ' + bestCohort.endDate + ').' +
@@ -11852,11 +11848,11 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
 
   if (summaryGrid) {
     summaryGrid.innerHTML = 
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median Lumpsum CAGR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianCagr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth / lumpAmount).toFixed(2) + 'x capital multiple</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst Historical Entry</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.cagr >= 0 ? '+' : '') + worstCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best Historical Entry</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
-      '<div class="sim-stat-box"><div class="sim-stat-label">Positive Return Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + ((posCount/totalCohorts)*100).toFixed(1) + '%</div><div class="stat-pct">' + posCount + ' of ' + totalCohorts + ' periods profitable</div></div>';
+      renderKpiCard('Median Lumpsum CAGR', '+' + medianCagr.toFixed(1) + '%', 'Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows', '#22d3a0') +
+      renderKpiCard('Median Final Wealth', formatINR(medianWealth), (medianWealth / lumpAmount).toFixed(2) + 'x capital multiple', '#5E9CFF') +
+      renderKpiCard('Worst Historical Entry', worstCohort ? (worstCohort.cagr >= 0 ? '+' : '') + worstCohort.cagr.toFixed(1) + '%' : 'N/A', worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A', '#f87171') +
+      renderKpiCard('Best Historical Entry', bestCohort ? '+' + bestCohort.cagr.toFixed(1) + '%' : 'N/A', bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A', '#22d3a0') +
+      renderKpiCard('Positive Return Chance', ((posCount/totalCohorts)*100).toFixed(1) + '%', posCount + ' of ' + totalCohorts + ' periods profitable', '#22d3a0');
   }
 
   var labels = cohorts.map(function(c){ return c.endDate; });
@@ -11896,17 +11892,14 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
 
   if (insightsBox) {
     insightsBox.innerHTML = 
-      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">💡 Rolling ' + horizonYears + '-Year Lumpsum Timing &amp; Resilience</div>' +
-      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
+      '<div class="cf-insights-title">💡 Rolling ' + horizonYears + '-Year Lumpsum Timing &amp; Resilience</div>' +
+      '<div>' +
       '• Deploying <strong>' + formatINR(lumpAmount) + '</strong> for ' + horizonYears + ' years yielded a median terminal wealth of <strong>' + formatINR(medianWealth) + '</strong> (<strong>' + (medianWealth/lumpAmount).toFixed(2) + 'x</strong> multiple, <strong>+' + medianCagr.toFixed(1) + '% p.a.</strong>).<br>' +
       '• <strong>Historical Consistency:</strong> In ' + ((posCount/totalCohorts)*100).toFixed(1) + '% of all rolling ' + horizonYears + '-year periods, lumpsum capital appreciated above initial deployment.' +
       '</div>';
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CHART RENDERING & HOVER HUD UPGRADE
-// ─────────────────────────────────────────────────────────────────────────────
 function getSmartLogBounds(datasets) {
   var allVals = [];
   datasets.forEach(function(ds) {
@@ -11923,7 +11916,6 @@ function getSmartLogBounds(datasets) {
   var minV = Math.min.apply(null, allVals);
   var maxV = Math.max.apply(null, allVals);
 
-  // Dynamic min: ~10% below minV, rounded cleanly
   var expMin = Math.floor(Math.log10(minV));
   var baseMin = Math.pow(10, expMin);
   var fracMin = minV / baseMin;
@@ -11932,7 +11924,6 @@ function getSmartLogBounds(datasets) {
   var yMin = Math.floor(targetFracMin / stepMin) * stepMin * baseMin;
   if (yMin <= 0 || isNaN(yMin)) yMin = minV * 0.85;
 
-  // Dynamic max: ~10% above maxV, rounded cleanly
   var expMax = Math.floor(Math.log10(maxV));
   var baseMax = Math.pow(10, expMax);
   var fracMax = maxV / baseMax;
@@ -11965,7 +11956,7 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 350 },
+      animation: { duration: 300 },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
@@ -12022,12 +12013,20 @@ function updateCashflowHud(context) {
   if (!tooltip || !tooltip.dataPoints || tooltip.dataPoints.length === 0) return;
 
   var dateStr = tooltip.dataPoints[0].label;
-  var items = [];
+  var items = [
+    '<span style="color:var(--text);font-weight:700;font-size:0.72rem;">📅 ' + dateStr + '</span>'
+  ];
   tooltip.dataPoints.forEach(function(dp) {
-    items.push('<span style="color:' + dp.dataset.borderColor + ';font-weight:700;">' + dp.dataset.label + ': ' + formatINR(dp.raw) + '</span>');
+    items.push(
+      '<span class="cf-hud-pill">' +
+        '<span class="cf-hud-dot" style="background:' + dp.dataset.borderColor + ';box-shadow:0 0 6px ' + dp.dataset.borderColor + ';"></span>' +
+        '<span style="color:var(--muted);font-size:0.64rem;">' + dp.dataset.label + ':</span>' +
+        '<strong style="color:#F5F5F7;font-size:0.72rem;">' + formatINR(dp.raw) + '</strong>' +
+      '</span>'
+    );
   });
 
-  hud.innerHTML = '<span style="color:var(--text);font-weight:700;margin-right:8px;">📅 ' + dateStr + '</span>' + items.join('<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>');
+  hud.innerHTML = items.join('');
 }
 
 function updateRollingSwpHud(context, cohorts, horizonYears) {
@@ -12040,18 +12039,23 @@ function updateRollingSwpHud(context, cohorts, horizonYears) {
   var c = cohorts[idx];
   if (!c) return;
 
-  var statusHtml = c.survived 
-    ? '<span style="color:#22d3a0;font-weight:700;">✅ SURVIVED ' + horizonYears + ' Yrs</span>'
-    : '<span style="color:#f87171;font-weight:700;">⚠️ DEPLETED at Month ' + c.depletedMonth + ' (' + +(c.depletedMonth/12).toFixed(1) + ' yrs)</span>';
+  var statusBadge = c.survived 
+    ? '<span class="cf-status-pill survived" style="padding:1px 7px;">✓ SURVIVED ' + horizonYears + 'Y</span>'
+    : '<span class="cf-status-pill depleted" style="padding:1px 7px;">DEPLETED M' + c.depletedMonth + ' (' + +(c.depletedMonth/12).toFixed(1) + 'y)</span>';
 
   hud.innerHTML = 
-    '<span style="color:var(--text);font-weight:700;">📅 Retired: ' + c.startDate + ' → ' + c.endDate + '</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    statusHtml +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:#5E9CFF;font-weight:700;">Terminal Wealth: ' + formatINR(c.terminalWealth) + '</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:#f59e0b;">Total Withdrawn: ' + formatINR(c.totalWithdrawn) + '</span>';
+    '<span style="color:var(--text);font-weight:700;font-size:0.72rem;">📅 Retired: ' + c.startDate + ' → ' + c.endDate + '</span>' +
+    statusBadge +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#5E9CFF;box-shadow:0 0 6px #5E9CFF;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Terminal:</span>' +
+      '<strong style="color:#5E9CFF;font-size:0.72rem;">' + formatINR(c.terminalWealth) + '</strong>' +
+    '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Withdrawn:</span>' +
+      '<strong style="color:#f59e0b;font-size:0.72rem;">' + formatINR(c.totalWithdrawn) + '</strong>' +
+    '</span>';
 }
 
 function updateRollingSipHud(context, cohorts, horizonYears) {
@@ -12065,13 +12069,21 @@ function updateRollingSipHud(context, cohorts, horizonYears) {
   if (!c) return;
 
   hud.innerHTML = 
-    '<span style="color:var(--text);font-weight:700;">📅 SIP Window: ' + c.startDate + ' → ' + c.endDate + ' (' + horizonYears + ' Yrs)</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:#5E9CFF;font-weight:700;">Matured Wealth: ' + formatINR(c.finalWealth) + ' (' + c.multiple + 'x)</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:rgba(255,255,255,0.6);">Invested: ' + formatINR(c.totalInvested) + '</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:' + (c.xirr >= 0 ? '#22d3a0' : '#f87171') + ';font-weight:700;">XIRR: ' + (c.xirr >= 0 ? '+' : '') + c.xirr.toFixed(2) + '% p.a.</span>';
+    '<span style="color:var(--text);font-weight:700;font-size:0.72rem;">📅 Window: ' + c.startDate + ' → ' + c.endDate + ' (' + horizonYears + 'Y)</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#5E9CFF;box-shadow:0 0 6px #5E9CFF;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Matured:</span>' +
+      '<strong style="color:#5E9CFF;font-size:0.72rem;">' + formatINR(c.finalWealth) + ' (' + c.multiple + 'x)</strong>' +
+    '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Invested:</span>' +
+      '<strong style="color:rgba(255,255,255,0.7);font-size:0.72rem;">' + formatINR(c.totalInvested) + '</strong>' +
+    '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:' + (c.xirr >= 0 ? '#22d3a0' : '#f87171') + ';box-shadow:0 0 6px ' + (c.xirr >= 0 ? '#22d3a0' : '#f87171') + ';"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">XIRR:</span>' +
+      '<strong style="color:' + (c.xirr >= 0 ? '#22d3a0' : '#f87171') + ';font-size:0.72rem;">' + (c.xirr >= 0 ? '+' : '') + c.xirr.toFixed(2) + '%</strong>' +
+    '</span>';
 }
 
 function updateRollingLumpHud(context, cohorts, horizonYears, lumpAmount) {
@@ -12085,11 +12097,17 @@ function updateRollingLumpHud(context, cohorts, horizonYears, lumpAmount) {
   if (!c) return;
 
   hud.innerHTML = 
-    '<span style="color:var(--text);font-weight:700;">📅 Period: ' + c.startDate + ' → ' + c.endDate + ' (' + horizonYears + ' Yrs)</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:#5E9CFF;font-weight:700;">Matured Value: ' + formatINR(c.finalWealth) + ' (' + c.multiple + 'x)</span>' +
-    '<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>' +
-    '<span style="color:' + (c.cagr >= 0 ? '#22d3a0' : '#f87171') + ';font-weight:700;">CAGR: ' + (c.cagr >= 0 ? '+' : '') + c.cagr.toFixed(2) + '% p.a.</span>';
+    '<span style="color:var(--text);font-weight:700;font-size:0.72rem;">📅 Period: ' + c.startDate + ' → ' + c.endDate + ' (' + horizonYears + 'Y)</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#5E9CFF;box-shadow:0 0 6px #5E9CFF;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Matured:</span>' +
+      '<strong style="color:#5E9CFF;font-size:0.72rem;">' + formatINR(c.finalWealth) + ' (' + c.multiple + 'x)</strong>' +
+    '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:' + (c.cagr >= 0 ? '#22d3a0' : '#f87171') + ';box-shadow:0 0 6px ' + (c.cagr >= 0 ? '#22d3a0' : '#f87171') + ';"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">CAGR:</span>' +
+      '<strong style="color:' + (c.cagr >= 0 ? '#22d3a0' : '#f87171') + ';font-size:0.72rem;">' + (c.cagr >= 0 ? '+' : '') + c.cagr.toFixed(2) + '%</strong>' +
+    '</span>';
 }
 
 function renderRollingSipInsights(selKeys) {
@@ -12099,80 +12117,108 @@ function renderRollingSipInsights(selKeys) {
   var commonStart = '2005-01';
   var allDateSet = new Set();
   selKeys.forEach(function(k) {
-    Object.keys(RAW[k] || {}).forEach(function(d) {
+    var raw = RAW[k];
+    Object.keys(raw).forEach(function(d) {
       if (d >= commonStart) allDateSet.add(d);
     });
   });
-  var dates = [...allDateSet].sort();
-  var windowMonths = 60;
-
-  if (dates.length <= windowMonths + 12) {
-    insightsBox.innerHTML = '<div style="font-size:0.7rem;color:var(--muted);">Rolling SIP historical analysis requires at least 6 years of historical data.</div>';
+  var dates = Array.from(allDateSet).sort();
+  if (dates.length < 120) {
+    insightsBox.innerHTML = '';
     return;
   }
 
-  var xirrs = [];
-  var step = 3;
-  for (var i = 0; i <= dates.length - windowMonths; i += step) {
-    var cfs = [];
-    var pVal = 10000;
-    cfs.push({ amount: -10000, t: 0 });
-    for (var m = 1; m < windowMonths; m++) {
-      var dPrev = dates[i + m - 1], dCurr = dates[i + m];
-      var retSum = 0, validWt = 0;
-      selKeys.forEach(function(k) {
-        var raw = RAW[k];
-        var p0 = getMonthlyValue(raw, dPrev, 'close');
-        var p1 = getMonthlyValue(raw, dCurr, 'close');
-        if (p0 && p1 && p0 > 0 && p1 > 0) {
-          var w = weights[k] || 0;
-          retSum += (w * (p1 / p0 - 1));
-          validWt += w;
-        }
-      });
-      var r = validWt > 0.01 ? (retSum / validWt) : 0;
-      pVal = (pVal * (1 + r)) + 10000;
-      cfs.push({ amount: -10000, t: m / 12.0 });
-    }
-    cfs.push({ amount: pVal, t: windowMonths / 12.0 });
-    var retX = calculateXIRR(cfs);
-    if (retX > -50 && retX < 100) xirrs.push(retX);
+  var weights = {};
+  var totalWt = 0;
+  selKeys.forEach(function(k) {
+    var s = document.querySelector('.idx-weight-slider[data-key="' + k + '"]');
+    var w = s ? parseFloat(s.value) : 100;
+    weights[k] = w;
+    totalWt += w;
+  });
+  selKeys.forEach(function(k) { weights[k] = totalWt > 0 ? (weights[k] / totalWt) : (1.0 / selKeys.length); });
+
+  var monthlyReturns = [];
+  for (var m = 1; m < dates.length; m++) {
+    var dPrev = dates[m - 1], dCurr = dates[m];
+    var retSum = 0, validWt = 0;
+    selKeys.forEach(function(k) {
+      var raw = RAW[k];
+      var p0 = getMonthlyValue(raw, dPrev, 'close');
+      var p1 = getMonthlyValue(raw, dCurr, 'close');
+      if (p0 && p1 && p0 > 0 && p1 > 0) {
+        var wt = weights[k] || 0;
+        retSum += (wt * (p1 / p0 - 1));
+        validWt += wt;
+      }
+    });
+    var r = validWt > 0.01 ? (retSum / validWt) : 0;
+    monthlyReturns.push({ date: dCurr, r: r });
   }
 
-  if (xirrs.length === 0) return;
-  xirrs.sort(function(a,b){ return a - b; });
-  var median = xirrs[Math.floor(xirrs.length * 0.5)];
-  var p10 = xirrs[Math.floor(xirrs.length * 0.1)];
-  var p90 = xirrs[Math.floor(xirrs.length * 0.9)];
-  var posPct = ((xirrs.filter(function(x){ return x > 0; }).length / xirrs.length) * 100).toFixed(0);
+  var cohorts = 0, positiveCount = 0;
+  var xirrs = [];
+  var horizonMonths = 120;
+  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i += 3) {
+    cohorts++;
+    var cfs = [{ amount: -10000, t: 0 }];
+    var pVal = 10000;
+    for (var j = 0; j < horizonMonths; j++) {
+      pVal = (pVal * (1 + monthlyReturns[i + j].r)) + 10000;
+      cfs.push({ amount: -10000, t: (j + 1) / 12.0 });
+    }
+    cfs.push({ amount: pVal, t: 10 });
+    var x = calculateXIRR(cfs);
+    xirrs.push(x);
+    if (x > 0) positiveCount++;
+  }
 
-  insightsBox.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">📊 Historical 5-Year Rolling SIP Distribution (' + xirrs.length + ' Historical Windows Analyzed)</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px;">' +
-    '<div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:0.58rem;color:var(--muted);text-transform:uppercase;">Median 5Y SIP Return</div><div style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:700;color:#22d3a0;margin-top:2px;">+' + median.toFixed(1) + '%</div></div>' +
-    '<div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:0.58rem;color:var(--muted);text-transform:uppercase;">Worst 10% (Tough Markets)</div><div style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:700;color:#f59e0b;margin-top:2px;">+' + p10.toFixed(1) + '%</div></div>' +
-    '<div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:0.58rem;color:var(--muted);text-transform:uppercase;">Best 10% (Bull Runs)</div><div style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:700;color:#5E9CFF;margin-top:2px;">+' + p90.toFixed(1) + '%</div></div>' +
-    '<div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;text-align:center;"><div style="font-size:0.58rem;color:var(--muted);text-transform:uppercase;">Positive Return Chance</div><div style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:700;color:#22d3a0;margin-top:2px;">' + posPct + '%</div></div>' +
-    '</div><div style="font-size:0.7rem;color:var(--muted);line-height:1.5;">💡 In ' + posPct + '% of historical 5-year starting periods since 2005, a monthly SIP in this asset allocation made a positive return, with a median annualized XIRR of <strong>' + median.toFixed(1) + '%</strong>.</div>';
+  xirrs.sort(function(a,b){ return a - b; });
+  var medXirr = xirrs[Math.floor(xirrs.length * 0.5)];
+  var minXirr = xirrs[0];
+  var maxXirr = xirrs[xirrs.length - 1];
+  var posRate = ((positiveCount / cohorts) * 100).toFixed(0);
+
+  insightsBox.innerHTML = 
+    '<div class="cf-insights-title">💡 Historical 10-Year SIP Stress-Test (' + cohorts + ' Historical Windows Analyzed)</div>' +
+    '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">' +
+      '<div style="font-family:Syne,sans-serif;font-size:1.35rem;font-weight:800;color:#22d3a0;">' + posRate + '% Profitable</div>' +
+      '<div style="font-size:0.72rem;color:var(--text);line-height:1.5;">' +
+        '• <strong>' + positiveCount + ' out of ' + cohorts + '</strong> rolling 10-year SIP cohorts starting since 2005 ended with positive capital returns.<br>' +
+        '• Median 10Y SIP return: <strong style="color:#22d3a0;">+' + medXirr.toFixed(1) + '% XIRR</strong> | Worst: <strong style="color:' + (minXirr >= 0 ? '#22d3a0' : '#f87171') + ';">' + (minXirr >= 0 ? '+' : '') + minXirr.toFixed(1) + '%</strong> | Best: <strong style="color:#22d3a0;">+' + maxXirr.toFixed(1) + '%</strong>' +
+      '</div>' +
+    '</div>';
 }
 
 function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflationPct) {
   var insightsBox = document.getElementById('cfInsightsBox');
   if (!insightsBox) return;
 
+  var commonStart = '2000-01';
   var allDateSet = new Set();
   selKeys.forEach(function(k) {
-    Object.keys(RAW[k] || {}).forEach(function(d) {
-      if (d >= '2000-01') allDateSet.add(d);
+    var raw = RAW[k];
+    Object.keys(raw).forEach(function(d) {
+      if (d >= commonStart) allDateSet.add(d);
     });
   });
-  var dates = [...allDateSet].sort();
-  var horizonMonths = 180;
-
-  if (dates.length < horizonMonths + 12) {
-    insightsBox.innerHTML = '<div style="font-size:0.7rem;color:var(--muted);">Rolling SWP retirement survival analysis requires at least 16 years of continuous data.</div>';
+  var dates = Array.from(allDateSet).sort();
+  if (dates.length < 180) {
+    insightsBox.innerHTML = '';
     return;
   }
 
+  var weights = {};
+  var totalWt = 0;
+  selKeys.forEach(function(k) {
+    var s = document.querySelector('.idx-weight-slider[data-key="' + k + '"]');
+    var w = s ? parseFloat(s.value) : 100;
+    weights[k] = w;
+    totalWt += w;
+  });
+  selKeys.forEach(function(k) { weights[k] = totalWt > 0 ? (weights[k] / totalWt) : (1.0 / selKeys.length); });
+
+  var horizonMonths = 180;
   var cohorts = 0, survivedCount = 0;
   for (var i = 0; i <= dates.length - horizonMonths; i += 6) {
     cohorts++;
@@ -12204,13 +12250,17 @@ function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflation
 
   var survivalRate = ((survivedCount / cohorts) * 100).toFixed(0);
 
-  insightsBox.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">🛡️ Historical 15-Year Retirement Longevity Stress-Test (' + cohorts + ' Retirement Starting Cohorts Analyzed)</div>' +
-    '<div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">' +
-    '<div style="font-family:Syne,sans-serif;font-size:1.4rem;font-weight:800;color:' + (survivalRate >= 85 ? '#22d3a0' : (survivalRate >= 70 ? '#f59e0b' : '#f87171')) + ';">' + survivalRate + '% Survival Rate</div>' +
-    '<div style="font-size:0.72rem;color:var(--text);line-height:1.5;">• <strong>' + survivedCount + ' out of ' + cohorts + '</strong> retirement cohorts starting at different points in history (2000–2011) successfully survived 15 years without depleting capital.<br>' +
-    '• Initial withdrawal rate: <strong>' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '%</strong> p.a. stepped up annually with <strong>' + inflationPct + '%</strong> inflation.</div>' +
+  insightsBox.innerHTML = 
+    '<div class="cf-insights-title">🛡️ Historical 15-Year Retirement Longevity Stress-Test (' + cohorts + ' Retirement Starting Cohorts Analyzed)</div>' +
+    '<div style="display:flex;gap:14px;align-items:center;margin-bottom:4px;flex-wrap:wrap;">' +
+      '<div style="font-family:Syne,sans-serif;font-size:1.35rem;font-weight:800;color:' + (survivalRate >= 85 ? '#22d3a0' : (survivalRate >= 70 ? '#f59e0b' : '#f87171')) + ';">' + survivalRate + '% Survival Rate</div>' +
+      '<div style="font-size:0.72rem;color:var(--text);line-height:1.5;">' +
+        '• <strong>' + survivedCount + ' out of ' + cohorts + '</strong> retirement cohorts starting at different points in history (2000–2011) successfully survived 15 years without depleting capital.<br>' +
+        '• Initial withdrawal rate: <strong>' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '%</strong> p.a. stepped up annually with <strong>' + inflationPct + '%</strong> inflation.' +
+      '</div>' +
     '</div>';
 }
+
 
 </script>
 
