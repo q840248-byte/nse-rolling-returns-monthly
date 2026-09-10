@@ -176,12 +176,18 @@
   .card-header { display: flex; align-items: center; gap: 10px; }
   .card-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3); flex-shrink: 0;
+    background: var(--card-color, rgba(255, 255, 255, 0.4)); flex-shrink: 0;
     transition: all 0.18s ease;
+    opacity: 0.6;
   }
   .index-card.selected .card-dot {
-    background: #5E9CFF;
-    box-shadow: 0 0 8px rgba(94, 156, 255, 0.8);
+    background: var(--card-color, #5E9CFF);
+    box-shadow: 0 0 8px var(--card-color, #5E9CFF);
+    opacity: 1;
+  }
+  .index-card.selected {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--card-color, rgba(94, 156, 255, 0.4));
   }
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -328,16 +334,21 @@
     background: rgba(94, 156, 255, 0.12);
   }
   .custom-legend-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.4);
     flex-shrink: 0;
     transition: all 0.15s ease;
   }
   .custom-legend-item.hero .custom-legend-dot {
-    background: #5E9CFF;
-    box-shadow: 0 0 8px rgba(94, 156, 255, 0.8);
+    box-shadow: 0 0 8px currentColor;
+  }
+  .custom-legend-item.hero {
+    color: #F5F5F7;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
   /* ── Tab 1: Stat Cards (Glassy Metric Cards) ───────────────────────────── */
@@ -2143,15 +2154,29 @@ function setFocusedHero(k) {
   if (priceChart) renderPriceChart([...selected]);
 }
 
-function getHeroGradient(chart) {
-  if (!chart || !chart.ctx) return 'rgba(94, 156, 255, 0.15)';
+function hexToRgba(hex, alpha) {
+  if (!hex) return 'rgba(94, 156, 255, ' + alpha + ')';
+  if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
+  var c = hex.replace('#', '');
+  if (c.length === 3) c = c[0]+c[0] + c[1]+c[1] + c[2]+c[2];
+  var num = parseInt(c, 16);
+  if (isNaN(num)) return 'rgba(94, 156, 255, ' + alpha + ')';
+  var r = (num >> 16) & 255;
+  var g = (num >> 8) & 255;
+  var b = num & 255;
+  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+}
+
+function getHeroGradient(chart, color) {
+  var baseColor = color || '#5E9CFF';
+  if (!chart || !chart.ctx) return hexToRgba(baseColor, 0.15);
   var ctx = chart.ctx;
   var chartArea = chart.chartArea;
-  if (!chartArea) return 'rgba(94, 156, 255, 0.15)';
+  if (!chartArea) return hexToRgba(baseColor, 0.15);
   var gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  gradient.addColorStop(0, 'rgba(94, 156, 255, 0.22)');
-  gradient.addColorStop(0.65, 'rgba(94, 156, 255, 0.05)');
-  gradient.addColorStop(1, 'rgba(94, 156, 255, 0.0)');
+  gradient.addColorStop(0, hexToRgba(baseColor, 0.22));
+  gradient.addColorStop(0.65, hexToRgba(baseColor, 0.05));
+  gradient.addColorStop(1, hexToRgba(baseColor, 0.0));
   return gradient;
 }
 
@@ -2166,9 +2191,10 @@ function renderCustomChartLegend(containerId, items, activeHeroKey, onSelectFunc
   el.style.display = 'flex';
   var html = items.map(function(it) {
     var isHero = (it.key === activeHeroKey);
+    var color = it.color || '#5E9CFF';
     return '<div class="custom-legend-item' + (isHero ? ' hero' : '') + '" onclick="' + onSelectFunc + '(&apos;' + it.key + '&apos;)" title="Click to spotlight this series">' +
-             '<span class="custom-legend-dot"></span>' +
-             '<span>' + it.label + '</span>' +
+             '<span class="custom-legend-dot" style="background:' + color + ';' + (isHero ? 'box-shadow:0 0 8px ' + color + ';' : '') + '"></span>' +
+             '<span style="' + (isHero ? 'color:#F5F5F7;font-weight:700;' : 'color:var(--text);opacity:0.85;') + '">' + it.label + '</span>' +
            '</div>';
   }).join('');
   el.innerHTML = html;
@@ -2222,17 +2248,18 @@ function renderMain() {
     if (!idx) return;
     const map = computeRollingCAGR(k, horizon, 'close');
     const isHero = (k === currentHero);
-    legendItems.push({ key: k, label: idx.label });
+    const sColor = idx.color || '#4f9ef8';
+    legendItems.push({ key: k, label: idx.label, color: sColor });
     datasets.push({
       label: idx.label,
       seriesKey: k,
       data: allDates.map(d => map[d] !== undefined ? map[d] : null),
-      borderColor: isHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.25)',
-      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart); } : 'transparent',
-      borderWidth: isHero ? 2.5 : 1.2,
+      borderColor: sColor,
+      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart, sColor); } : 'transparent',
+      borderWidth: isHero ? 2.5 : 1.5,
       pointRadius: 0,
-      pointHoverRadius: isHero ? 5 : 3,
-      pointHoverBackgroundColor: isHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.8)',
+      pointHoverRadius: isHero ? 6 : 4,
+      pointHoverBackgroundColor: sColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.2,
@@ -2244,17 +2271,18 @@ function renderMain() {
 
   if (selKeys.length > 1) {
     const isPortHero = (currentHero === '__portfolio__');
-    legendItems.unshift({ key: '__portfolio__', label: 'Portfolio' });
+    const portColor = '#5E9CFF';
+    legendItems.unshift({ key: '__portfolio__', label: 'Portfolio', color: portColor });
     datasets.push({
       label: 'Portfolio',
       seriesKey: '__portfolio__',
       data: allDates.map(d => portfolioMap[d] !== undefined ? portfolioMap[d] : null),
-      borderColor: isPortHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.25)',
-      backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart); } : 'transparent',
-      borderWidth: isPortHero ? 2.5 : 1.2,
+      borderColor: portColor,
+      backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart, portColor); } : 'transparent',
+      borderWidth: isPortHero ? 2.5 : 1.5,
       pointRadius: 0,
-      pointHoverRadius: isPortHero ? 5 : 3,
-      pointHoverBackgroundColor: isPortHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.8)',
+      pointHoverRadius: isPortHero ? 6 : 4,
+      pointHoverBackgroundColor: portColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.2,
@@ -2731,7 +2759,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       headerHtml =
         '<div class="stat-card-header">' +
           '<div class="stat-card-title-wrap">' +
-            '<span class="stat-card-dot"></span>' +
+            '<span class="stat-card-dot" style="background:' + (s.color || '#5E9CFF') + ';box-shadow:0 0 6px ' + (s.color || '#5E9CFF') + '80;"></span>' +
             '<span class="stat-card-name">' + s.name + '</span>' +
           '</div>' +
           '<div class="stat-card-actions">' +
@@ -4471,8 +4499,9 @@ function updateMainHud(dateIndex) {
 
   function renderMainBadge(item) {
     var valStr = formatPct(item.val);
-    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
-           '<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;"></span>' +
+    var itemColor = item.color || '#5E9CFF';
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:9999px;white-space:nowrap;">' +
+           '<span style="width:7px;height:7px;border-radius:50%;background:' + itemColor + ';flex-shrink:0;box-shadow:0 0 5px ' + itemColor + '80;"></span>' +
            '<span style="color:#8B8D98;font-size:0.68rem;">' + item.label + ':</span>' +
            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + valStr + '</span>' +
            '</span>';
@@ -4769,8 +4798,9 @@ function updatePriceHud(dateIndex) {
 
   function renderPriceBadge(item) {
     var chgStr = formatPct(item.chg);
-    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:9999px;white-space:nowrap;">' +
-           '<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;"></span>' +
+    var itemColor = item.color || '#5E9CFF';
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:9999px;white-space:nowrap;">' +
+           '<span style="width:7px;height:7px;border-radius:50%;background:' + itemColor + ';flex-shrink:0;box-shadow:0 0 5px ' + itemColor + '80;"></span>' +
            '<span style="color:#8B8D98;font-size:0.68rem;">' + item.label + ':</span>' +
            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + item.valStr + '</span>' +
            (priceDisplayMode === 'raw' ? '<span style="color:#8B8D98;font-size:0.65rem;margin-left:2px;">(' + chgStr + ')</span>' : '') +
@@ -4941,7 +4971,8 @@ function renderPriceChart(selKeys) {
   selKeys.forEach(function(k) {
     var idx = findSeries(k);
     if (!idx) return;
-    legendItems.push({ key: k, label: idx.label });
+    var sColor = idx.color || '#4f9ef8';
+    legendItems.push({ key: k, label: idx.label, color: sColor });
     var raw = RAW[k] || {};
 
     // Find base price at the start of visible range (or first available price in range)
@@ -4978,12 +5009,12 @@ function renderPriceChart(selKeys) {
     datasets.push({
       label: idx.label,
       seriesKey: k,
-      borderColor: isHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.25)',
-      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart); } : 'transparent',
-      borderWidth: isHero ? 2.5 : 1.2,
+      borderColor: sColor,
+      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart, sColor); } : 'transparent',
+      borderWidth: isHero ? 2.5 : 1.5,
       pointRadius: 0,
-      pointHoverRadius: isHero ? 5 : 3,
-      pointHoverBackgroundColor: isHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.8)',
+      pointHoverRadius: isHero ? 6 : 4,
+      pointHoverBackgroundColor: sColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.15,
@@ -5062,17 +5093,18 @@ function renderPriceChart(selKeys) {
         });
 
         var isPortHero = (currentHero === '__portfolio__');
-        legendItems.unshift({ key: '__portfolio__', label: 'Portfolio' });
+        var portColor = '#5E9CFF';
+        legendItems.unshift({ key: '__portfolio__', label: 'Portfolio', color: portColor });
         datasets.push({
           label: 'Portfolio',
           seriesKey: '__portfolio__',
           isPortfolio: true,
-          borderColor: isPortHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.25)',
-          backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart); } : 'transparent',
-          borderWidth: isPortHero ? 2.5 : 1.2,
+          borderColor: portColor,
+          backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart, portColor); } : 'transparent',
+          borderWidth: isPortHero ? 2.5 : 1.5,
           pointRadius: 0,
-          pointHoverRadius: isPortHero ? 5 : 3,
-          pointHoverBackgroundColor: isPortHero ? '#5E9CFF' : 'rgba(255, 255, 255, 0.8)',
+          pointHoverRadius: isPortHero ? 6 : 4,
+          pointHoverBackgroundColor: portColor,
           pointHoverBorderColor: '#0B0C10',
           pointHoverBorderWidth: 2,
           tension: 0.15,
