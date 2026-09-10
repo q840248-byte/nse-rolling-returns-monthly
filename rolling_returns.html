@@ -901,7 +901,7 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title">Growth Chart (% Return)</div>
-            <div class="chart-subtitle">Cumulative percentage return from start of visible range (0% baseline) on logarithmic / linear scale for selected indices</div>
+            <div class="chart-subtitle">Cumulative percentage return from start of visible range (0% baseline) • Click &amp; drag chart to pan across time • Wheel to zoom</div>
           </div>
           <!-- TradingView-style Toolbar -->
           <div class="tv-toolbar">
@@ -938,7 +938,7 @@
         </div>
         <div id="priceNoData" class="no-data-msg" style="display:none;">Select at least one index in the sidebar to view price chart</div>
         <div style="position:relative;height:520px;width:100%;">
-          <canvas id="priceChartCanvas"></canvas>
+          <canvas id="priceChartCanvas" style="cursor:grab;touch-action:none;"></canvas>
         </div>
       </div>
     </div>
@@ -4164,33 +4164,147 @@ setTimeout(runSimulator, 0);
 
 // ── TradingView-Style Log Price & Growth Chart ──────────────────────────────
 
-var _isSyncingZoom = false;
-function syncChartPanZoom(chart) {
-  if (_isSyncingZoom || !chart || !chart.scales || !chart.scales.x) return;
-  _isSyncingZoom = true;
-  try {
-    var allD = lastPriceData.allDates || [];
-    if (!allD.length) return;
-    var minVal = chart.scales.x.min;
-    var maxVal = chart.scales.x.max;
-    var minIdx = Math.max(0, Math.min(allD.length - 1, Math.round(minVal)));
-    var maxIdx = Math.max(minIdx, Math.min(allD.length - 1, Math.round(maxVal)));
-    var sDate = allD[minIdx];
-    var eDate = allD[maxIdx];
-    if (sDate && eDate && (minIdx > 0 || maxIdx < allD.length - 1)) {
-      var sIdx = TL_DATES.indexOf(sDate);
-      var eIdx = TL_DATES.indexOf(eDate);
-      if (sIdx !== -1 && eIdx !== -1 && (sIdx !== tlStartIdx || eIdx !== tlEndIdx)) {
-        tlStartIdx = sIdx;
-        tlEndIdx = eIdx;
+var _priceChartInteractionsBound = false;
+function initPriceChartInteractions() {
+  if (_priceChartInteractionsBound) return;
+  var canvas = document.getElementById('priceChartCanvas');
+  if (!canvas) return;
+  _priceChartInteractionsBound = true;
+
+  // 1. Mouse Drag (Free Pan across time)
+  canvas.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return; // only left click
+    if (!priceChart || !selected || selected.size === 0) return;
+
+    var startX = e.clientX;
+    var origStartIdx = tlStartIdx;
+    var origEndIdx = tlEndIdx;
+    var span = origEndIdx - origStartIdx;
+    var width = canvas.clientWidth || 800;
+    var isDragging = false;
+
+    canvas.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+
+    function onMouseMove(me) {
+      var dx = me.clientX - startX;
+      if (!isDragging && Math.abs(dx) > 3) isDragging = true;
+      if (!isDragging) return;
+
+      var shiftRatio = -dx / width;
+      var shiftUnits = Math.round(shiftRatio * span);
+      if (shiftUnits === 0) return;
+
+      var maxIdx = TL_DATES.length - 1;
+      var newStart = origStartIdx + shiftUnits;
+      var newEnd = origEndIdx + shiftUnits;
+
+      var MIN_SPAN = 6;
+      if (newStart < 0 && newEnd > maxIdx) {
+        newStart = 0;
+        newEnd = maxIdx;
+      } else if (newEnd > maxIdx) {
+        newEnd = maxIdx;
+        newStart = Math.max(0, Math.min(maxIdx - MIN_SPAN, origStartIdx + shiftUnits));
+      } else if (newStart < 0) {
+        newStart = 0;
+        newEnd = Math.min(maxIdx, Math.max(MIN_SPAN, origEndIdx + shiftUnits));
+      } else {
+        newStart = Math.max(0, Math.min(maxIdx - MIN_SPAN, newStart));
+        newEnd = Math.max(newStart + MIN_SPAN, Math.min(maxIdx, newEnd));
+      }
+
+      if (newStart !== tlStartIdx || newEnd !== tlEndIdx) {
+        tlStartIdx = newStart;
+        tlEndIdx = newEnd;
         renderTimeline();
         updateTlResetBtn();
         renderPriceChart([...selected]);
       }
     }
-  } finally {
-    _isSyncingZoom = false;
-  }
+
+    function onMouseUp() {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      canvas.style.cursor = 'grab';
+      document.body.style.userSelect = '';
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  });
+
+  // 2. Mouse Wheel Zoom (Centered on Cursor)
+  canvas.addEventListener('wheel', function(e) {
+    if (!priceChart || !selected || selected.size === 0) return;
+    e.preventDefault();
+
+    var rect = canvas.getBoundingClientRect();
+    var mouseRatio = (e.clientX - rect.left) / rect.width;
+    if (mouseRatio < 0) mouseRatio = 0;
+    if (mouseRatio > 1) mouseRatio = 1;
+
+    var span = tlEndIdx - tlStartIdx;
+    var zoomIn = e.deltaY < 0;
+    var step = Math.max(2, Math.round(span * 0.12));
+    var MIN_SPAN = 6;
+    var maxIdx = TL_DATES.length - 1;
+
+    var newStart, newEnd;
+    if (zoomIn) {
+      var newSpan = Math.max(MIN_SPAN, span - step);
+      var diff = span - newSpan;
+      newStart = Math.round(tlStartIdx + diff * mouseRatio);
+      newEnd = newStart + newSpan;
+    } else {
+      var newSpan = Math.min(maxIdx, span + step);
+      var diff = newSpan - span;
+      newStart = Math.max(0, Math.round(tlStartIdx - diff * mouseRatio));
+      newEnd = Math.min(maxIdx, newStart + newSpan);
+      if (newEnd === maxIdx) newStart = Math.max(0, newEnd - newSpan);
+    }
+
+    newStart = Math.max(0, Math.min(maxIdx - MIN_SPAN, newStart));
+    newEnd = Math.max(newStart + MIN_SPAN, Math.min(maxIdx, newEnd));
+
+    if (newStart !== tlStartIdx || newEnd !== tlEndIdx) {
+      tlStartIdx = newStart;
+      tlEndIdx = newEnd;
+      renderTimeline();
+      updateTlResetBtn();
+      renderPriceChart([...selected]);
+    }
+  }, { passive: false });
+
+  // 3. Touch Drag (Mobile / Tablets)
+  var touchX = 0, touchS = 0, touchE = 0, touchSpan = 0;
+  canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1 && priceChart && selected && selected.size > 0) {
+      touchX = e.touches[0].clientX;
+      touchS = tlStartIdx;
+      touchE = tlEndIdx;
+      touchSpan = touchE - touchS;
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 1 && touchSpan > 0) {
+      var dx = e.touches[0].clientX - touchX;
+      var w = canvas.clientWidth || 800;
+      var shiftUnits = Math.round((-dx / w) * touchSpan);
+      var maxIdx = TL_DATES.length - 1;
+      var newStart = Math.max(0, Math.min(maxIdx - touchSpan, touchS + shiftUnits));
+      var newEnd = Math.min(maxIdx, newStart + touchSpan);
+
+      if (newStart !== tlStartIdx || newEnd !== tlEndIdx) {
+        tlStartIdx = newStart;
+        tlEndIdx = newEnd;
+        renderTimeline();
+        updateTlResetBtn();
+        renderPriceChart([...selected]);
+      }
+    }
+  }, { passive: true });
 }
 
 function updatePriceHud(dateIndex) {
@@ -4331,8 +4445,8 @@ function setPriceMode(mode) {
   }
   if (subEl) {
     subEl.textContent = mode === 'percent'
-      ? 'Cumulative percentage return from start of visible range (0% baseline) on logarithmic / linear scale for selected indices'
-      : 'Historical monthly close price series on logarithmic scale for selected indices';
+      ? 'Cumulative percentage return from start of visible range (0% baseline) • Click & drag chart to pan across time • Wheel to zoom'
+      : 'Historical monthly close price series on logarithmic scale • Click & drag chart to pan across time • Wheel to zoom';
   }
   renderPriceChart([...selected]);
 }
@@ -4366,9 +4480,6 @@ function resetPriceZoom() {
   tlEndIdx = dr.maxIdx;
   renderTimeline();
   updateTlResetBtn();
-  if (priceChart && typeof priceChart.resetZoom === 'function') {
-    priceChart.resetZoom();
-  }
   renderPriceChart([...selected]);
 }
 
@@ -4394,6 +4505,8 @@ function renderPriceChart(selKeys) {
   var noData = document.getElementById('priceNoData');
   var hud    = document.getElementById('priceHoverHud');
   if (!canvas) return;
+
+  initPriceChartInteractions();
 
   if (!selKeys || selKeys.length === 0) {
     if (noData) {
@@ -4612,23 +4725,6 @@ function renderPriceChart(selKeys) {
       tooltip: {
         enabled: false,
         external: externalPriceTooltip
-      },
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: 'x',
-          onPanComplete: function(chartObj) {
-            syncChartPanZoom(chartObj.chart);
-          }
-        },
-        zoom: {
-          wheel: { enabled: true },
-          pinch: { enabled: true },
-          mode: 'x',
-          onZoomComplete: function(chartObj) {
-            syncChartPanZoom(chartObj.chart);
-          }
-        }
       }
     },
     scales: {
@@ -4700,13 +4796,13 @@ function renderPriceChart(selKeys) {
         border: { color: '#252a38' }
       }
     },
-    animation: { duration: 200 }
+    animation: false
   };
 
   if (priceChart) {
     priceChart.data = { labels: allDates, datasets: datasets };
     priceChart.options = opts;
-    priceChart.update();
+    priceChart.update('none');
   } else {
     priceChart = new Chart(canvas, {
       type: 'line',
