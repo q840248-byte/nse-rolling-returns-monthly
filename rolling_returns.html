@@ -900,8 +900,8 @@
       <div class="chart-card">
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
-            <div class="chart-title">Price Chart</div>
-            <div class="chart-subtitle">Historical monthly close price series on logarithmic scale (TradingView-style) for selected indices</div>
+            <div class="chart-title">Growth Chart (% Return)</div>
+            <div class="chart-subtitle">Cumulative percentage return from start of visible range (0% baseline) on logarithmic / linear scale for selected indices</div>
           </div>
           <!-- TradingView-style Toolbar -->
           <div class="tv-toolbar">
@@ -910,10 +910,10 @@
               <button class="tv-tool-btn active" id="tvScaleLogBtn" onclick="setPriceScale('logarithmic')" title="Logarithmic scale">LOG</button>
               <button class="tv-tool-btn" id="tvScaleLinBtn" onclick="setPriceScale('linear')" title="Linear scale">LIN</button>
             </div>
-            <!-- Mode Toggle: Raw Price / Normalized % -->
+            <!-- Mode Toggle: % Growth / ₹ Price -->
             <div class="tv-btn-group">
-              <button class="tv-tool-btn active" id="tvModeRawBtn" onclick="setPriceMode('raw')" title="Raw price values">₹ Price</button>
-              <button class="tv-tool-btn" id="tvModeNormBtn" onclick="setPriceMode('norm')" title="Normalized to 100 at start of visible range">% Normalized</button>
+              <button class="tv-tool-btn active" id="tvModePercentBtn" onclick="setPriceMode('percent')" title="Percentage growth from start of visible range (0% baseline)">% Growth (0% Base)</button>
+              <button class="tv-tool-btn" id="tvModeRawBtn" onclick="setPriceMode('raw')" title="Raw price values in ₹">₹ Price</button>
             </div>
             <!-- Quick Timeframe Pills -->
             <div class="tv-btn-group">
@@ -1476,7 +1476,7 @@ function snapTimelineToSelection() {
 // ── Charts state ──────────────────────────────────────────────────────────
 
 let mainChart = null, distChart = null, recoveryChart = null, avgRecoveryChart = null, priceChart = null;
-let priceScaleType = 'logarithmic', priceDisplayMode = 'raw';
+let priceScaleType = 'logarithmic', priceDisplayMode = 'percent';
 
 // ── Persistent chart customisations (survive symbol/window changes) ────────
 let customLines = []; // [{value, color, label}]
@@ -4162,7 +4162,36 @@ snapTimelineToSelection(); buildCards(); buildCommodityCards(); renderMain();
 setupTimeline(); renderTimeline();
 setTimeout(runSimulator, 0);
 
-// ── TradingView-Style Log Price Chart ──────────────────────────────────────
+// ── TradingView-Style Log Price & Growth Chart ──────────────────────────────
+
+var _isSyncingZoom = false;
+function syncChartPanZoom(chart) {
+  if (_isSyncingZoom || !chart || !chart.scales || !chart.scales.x) return;
+  _isSyncingZoom = true;
+  try {
+    var allD = lastPriceData.allDates || [];
+    if (!allD.length) return;
+    var minVal = chart.scales.x.min;
+    var maxVal = chart.scales.x.max;
+    var minIdx = Math.max(0, Math.min(allD.length - 1, Math.round(minVal)));
+    var maxIdx = Math.max(minIdx, Math.min(allD.length - 1, Math.round(maxVal)));
+    var sDate = allD[minIdx];
+    var eDate = allD[maxIdx];
+    if (sDate && eDate && (minIdx > 0 || maxIdx < allD.length - 1)) {
+      var sIdx = TL_DATES.indexOf(sDate);
+      var eIdx = TL_DATES.indexOf(eDate);
+      if (sIdx !== -1 && eIdx !== -1 && (sIdx !== tlStartIdx || eIdx !== tlEndIdx)) {
+        tlStartIdx = sIdx;
+        tlEndIdx = eIdx;
+        renderTimeline();
+        updateTlResetBtn();
+        renderPriceChart([...selected]);
+      }
+    }
+  } finally {
+    _isSyncingZoom = false;
+  }
+}
 
 function updatePriceHud(dateIndex) {
   var hud = document.getElementById('priceHoverHud');
@@ -4176,11 +4205,10 @@ function updatePriceHud(dateIndex) {
   var allDates = lastPriceData.allDates || [];
   var datasets = lastPriceData.datasets || [];
   var portValsByDate = lastPriceData.portValsByDate || {};
-  var portBaseVal = lastPriceData.portBaseVal;
   var initialPrices = lastPriceData.initialPrices || {};
 
   if (!allDates.length || !datasets.length) {
-    hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view price chart</span>';
+    hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view chart</span>';
     return;
   }
 
@@ -4197,15 +4225,15 @@ function updatePriceHud(dateIndex) {
 
   datasets.forEach(function(ds) {
     if (ds.isPortfolio) {
-      var val = portValsByDate[d];
-      var base = portBaseVal;
-      if (val !== undefined && val !== null && base && base > 0) {
-        var chg = ((val / base - 1) * 100);
-        var valStr = priceDisplayMode === 'norm' ? val.toFixed(1) : formatPriceVal(val);
+      var pInfo = portValsByDate[d];
+      if (pInfo) {
+        var chg = pInfo.retPct;
+        var valStr = priceDisplayMode === 'percent'
+          ? (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%'
+          : formatPriceVal(pInfo.rawPrice);
         portItem = {
           label: 'Portfolio',
           color: '#ff4d6a',
-          val: val,
           chg: chg,
           valStr: valStr
         };
@@ -4220,7 +4248,9 @@ function updatePriceHud(dateIndex) {
 
     if (val !== undefined && val !== null && val > 0 && base && base > 0) {
       var chg = ((val / base - 1) * 100);
-      var valStr = priceDisplayMode === 'norm' ? ((val / base) * 100).toFixed(1) : formatPriceVal(val);
+      var valStr = priceDisplayMode === 'percent'
+        ? (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%'
+        : formatPriceVal(val);
       items.push({
         key: k,
         label: ds.label,
@@ -4245,7 +4275,7 @@ function updatePriceHud(dateIndex) {
             '<span style="width:7px;height:7px;border-radius:50%;background:#ff4d6a;flex-shrink:0;"></span>' +
             '<span style="color:#ff4d6a;font-weight:700;font-size:0.68rem;">Portfolio:</span>' +
             '<span style="color:#ff4d6a;font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + portItem.valStr + '</span>' +
-            '<span style="color:' + pChgColor + ';font-size:0.65rem;font-weight:600;">' + pChgStr + '</span>' +
+            (priceDisplayMode === 'raw' ? '<span style="color:' + pChgColor + ';font-size:0.65rem;font-weight:600;">' + pChgStr + '</span>' : '') +
             '</span>';
   }
 
@@ -4256,7 +4286,7 @@ function updatePriceHud(dateIndex) {
            '<span style="width:7px;height:7px;border-radius:50%;background:' + item.color + ';flex-shrink:0;"></span>' +
            '<span style="color:#8892aa;font-size:0.65rem;">' + item.label + ':</span>' +
            '<span style="color:#e8ecf4;font-family:Syne,sans-serif;font-size:0.76rem;font-weight:700;">' + item.valStr + '</span>' +
-           '<span style="color:' + chgColor + ';font-size:0.65rem;font-weight:600;">' + chgStr + '</span>' +
+           (priceDisplayMode === 'raw' ? '<span style="color:' + chgColor + ';font-size:0.65rem;font-weight:600;">' + chgStr + '</span>' : '') +
            '</span>';
   }
 
@@ -4284,18 +4314,26 @@ function setPriceScale(type) {
   var linBtn = document.getElementById('tvScaleLinBtn');
   if (logBtn) logBtn.classList.toggle('active', type === 'logarithmic');
   if (linBtn) linBtn.classList.toggle('active', type === 'linear');
-  if (priceChart) {
-    priceChart.options.scales.y.type = type;
-    priceChart.update();
-  }
+  renderPriceChart([...selected]);
 }
 
 function setPriceMode(mode) {
   priceDisplayMode = mode;
+  var pctBtn = document.getElementById('tvModePercentBtn');
   var rawBtn = document.getElementById('tvModeRawBtn');
-  var normBtn = document.getElementById('tvModeNormBtn');
+  if (pctBtn) pctBtn.classList.toggle('active', mode === 'percent');
   if (rawBtn) rawBtn.classList.toggle('active', mode === 'raw');
-  if (normBtn) normBtn.classList.toggle('active', mode === 'norm');
+
+  var titleEl = document.querySelector('#tabContent2 .chart-title');
+  var subEl = document.querySelector('#tabContent2 .chart-subtitle');
+  if (titleEl) {
+    titleEl.textContent = mode === 'percent' ? 'Growth Chart (% Return)' : 'Price Chart (₹)';
+  }
+  if (subEl) {
+    subEl.textContent = mode === 'percent'
+      ? 'Cumulative percentage return from start of visible range (0% baseline) on logarithmic / linear scale for selected indices'
+      : 'Historical monthly close price series on logarithmic scale for selected indices';
+  }
   renderPriceChart([...selected]);
 }
 
@@ -4303,8 +4341,9 @@ function setPriceTimeframe(years, btn) {
   document.querySelectorAll('.tv-tf-btn').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   if (years === 0) {
-    tlStartIdx = 0;
-    tlEndIdx = TL_DATES.length - 1;
+    var dr = getSelDateRange();
+    tlStartIdx = dr.minIdx;
+    tlEndIdx = dr.maxIdx;
   } else {
     var end = TL_DATES[tlEndIdx];
     var parts = end.split('-').map(Number);
@@ -4322,9 +4361,15 @@ function setPriceTimeframe(years, btn) {
 }
 
 function resetPriceZoom() {
+  var dr = getSelDateRange();
+  tlStartIdx = dr.minIdx;
+  tlEndIdx = dr.maxIdx;
+  renderTimeline();
+  updateTlResetBtn();
   if (priceChart && typeof priceChart.resetZoom === 'function') {
     priceChart.resetZoom();
   }
+  renderPriceChart([...selected]);
 }
 
 function formatPriceVal(v) {
@@ -4352,12 +4397,12 @@ function renderPriceChart(selKeys) {
 
   if (!selKeys || selKeys.length === 0) {
     if (noData) {
-      noData.textContent = 'Select at least one index in the sidebar to view price chart';
+      noData.textContent = 'Select at least one index in the sidebar to view chart';
       noData.style.display = 'block';
     }
     canvas.style.display = 'none';
     if (priceChart) { priceChart.destroy(); priceChart = null; }
-    if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view price chart</span>';
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view chart</span>';
     return;
   }
 
@@ -4386,7 +4431,7 @@ function renderPriceChart(selKeys) {
   var allDates = Array.from(dateSet).sort();
   if (allDates.length === 0) {
     if (noData) {
-      noData.textContent = 'No price data available in the selected timeline range';
+      noData.textContent = 'No data available in the selected timeline range';
       noData.style.display = 'block';
     }
     canvas.style.display = 'none';
@@ -4404,7 +4449,7 @@ function renderPriceChart(selKeys) {
     if (!idx) return;
     var raw = RAW[k] || {};
 
-    // Find base price for normalized mode (first available price in range)
+    // Find base price at the start of visible range (or first available price in range)
     var basePrice = null;
     for (var i = 0; i < allDates.length; i++) {
       var v = getMonthlyValue(raw, allDates[i], 'close');
@@ -4420,8 +4465,15 @@ function renderPriceChart(selKeys) {
       var v = getMonthlyValue(raw, d, 'close');
       if (v === undefined || v === null || v <= 0) return null;
       lastValid = v;
-      if (priceDisplayMode === 'norm') {
-        return basePrice ? +((v / basePrice) * 100).toFixed(2) : 100;
+      if (priceDisplayMode === 'percent') {
+        if (!basePrice) return null;
+        if (priceScaleType === 'logarithmic') {
+          // 100 = 0% return baseline (ratio * 100, strictly > 0 for log axis)
+          return +((v / basePrice) * 100).toFixed(2);
+        } else {
+          // Direct percentage return (0 = 0% return baseline)
+          return +(((v / basePrice) - 1) * 100).toFixed(2);
+        }
       }
       return v;
     });
@@ -4445,7 +4497,6 @@ function renderPriceChart(selKeys) {
   });
 
   // ── Portfolio dataset (when 2+ indices selected) ─────────────────────────
-  var portBaseVal = null;
   var portValsByDate = {};
   if (selKeys.length > 1) {
     var firstAvailMap = {};
@@ -4475,8 +4526,6 @@ function renderPriceChart(selKeys) {
           if (v) weightedBasePrice += ((weights[k] || 0) / rawWtSum) * v;
         });
 
-        portBaseVal = priceDisplayMode === 'norm' ? 100 : weightedBasePrice;
-
         var portPts = allDates.map(function(d) {
           if (d < pStart) return null;
           var valSum = 0;
@@ -4494,12 +4543,24 @@ function renderPriceChart(selKeys) {
             var cv = getMonthlyValue(RAW[k] || {}, d, 'close');
             if (bv && cv && cv > 0) {
               var w = (weights[k] || 0) / validWt;
-              valSum += w * (cv / bv) * portBaseVal;
+              valSum += w * (cv / bv); // cumulative growth factor
             }
           });
-          var finalVal = +valSum.toFixed(2);
-          portValsByDate[d] = finalVal;
-          return finalVal;
+          var retPct = +((valSum - 1) * 100).toFixed(2);
+          var rawPrice = +(valSum * weightedBasePrice).toFixed(2);
+          portValsByDate[d] = {
+            growthFactor: valSum,
+            retPct: retPct,
+            rawPrice: rawPrice
+          };
+          if (priceDisplayMode === 'percent') {
+            if (priceScaleType === 'logarithmic') {
+              return +(valSum * 100).toFixed(2);
+            } else {
+              return retPct;
+            }
+          }
+          return rawPrice;
         });
 
         datasets.push({
@@ -4522,11 +4583,10 @@ function renderPriceChart(selKeys) {
     }
   }
 
-  // Save snapshot for Tab 3 price chart HUD
+  // Save snapshot for Tab 2 price chart HUD
   lastPriceData.allDates = allDates;
   lastPriceData.datasets = datasets;
   lastPriceData.portValsByDate = portValsByDate;
-  lastPriceData.portBaseVal = portBaseVal;
   lastPriceData.initialPrices = initialPrices;
   if (lastPriceData.dateIndex === null || lastPriceData.dateIndex >= allDates.length) {
     lastPriceData.dateIndex = allDates.length - 1;
@@ -4554,11 +4614,20 @@ function renderPriceChart(selKeys) {
         external: externalPriceTooltip
       },
       zoom: {
-        pan: { enabled: true, mode: 'x' },
+        pan: {
+          enabled: true,
+          mode: 'x',
+          onPanComplete: function(chartObj) {
+            syncChartPanZoom(chartObj.chart);
+          }
+        },
         zoom: {
           wheel: { enabled: true },
           pinch: { enabled: true },
-          mode: 'x'
+          mode: 'x',
+          onZoomComplete: function(chartObj) {
+            syncChartPanZoom(chartObj.chart);
+          }
         }
       }
     },
@@ -4588,14 +4657,46 @@ function renderPriceChart(selKeys) {
           color: '#5c6480',
           font: { family: 'DM Mono', size: 10 },
           callback: function(val) {
-            if (val == null || val <= 0) return '';
-            if (priceDisplayMode === 'norm') {
-              return val.toFixed(0);
+            if (val == null) return '';
+            if (priceDisplayMode === 'percent') {
+              if (priceScaleType === 'logarithmic') {
+                if (val <= 0) return '';
+                var ret = val - 100;
+                var sign = ret > 0 ? '+' : '';
+                if (Math.abs(ret) < 0.1) return '0%';
+                if (Math.abs(ret) >= 1000) return sign + Math.round(ret).toLocaleString('en-IN') + '%';
+                if (Math.abs(ret) >= 100) return sign + Math.round(ret) + '%';
+                return sign + ret.toFixed(0) + '%';
+              } else {
+                var sign = val > 0 ? '+' : '';
+                if (Math.abs(val) < 0.1) return '0%';
+                if (Math.abs(val) >= 1000) return sign + Math.round(val).toLocaleString('en-IN') + '%';
+                return sign + Math.round(val) + '%';
+              }
             }
             return formatPriceTick(val);
           }
         },
-        grid: { color: '#1c2030' },
+        grid: {
+          color: function(ctx) {
+            if (priceDisplayMode === 'percent' && ctx.tick) {
+              var zeroVal = (priceScaleType === 'logarithmic') ? 100 : 0;
+              if (Math.abs(ctx.tick.value - zeroVal) < 0.2) {
+                return 'rgba(79, 158, 248, 0.45)'; // Distinct 0% baseline accent
+              }
+            }
+            return '#1c2030';
+          },
+          lineWidth: function(ctx) {
+            if (priceDisplayMode === 'percent' && ctx.tick) {
+              var zeroVal = (priceScaleType === 'logarithmic') ? 100 : 0;
+              if (Math.abs(ctx.tick.value - zeroVal) < 0.2) {
+                return 1.8;
+              }
+            }
+            return 1;
+          }
+        },
         border: { color: '#252a38' }
       }
     },
@@ -4614,7 +4715,6 @@ function renderPriceChart(selKeys) {
     });
   }
 }
-
 // ── Tab switching ─────────────────────────────────────────────────────────
 function switchTab(idx) {
   var tabs = document.querySelectorAll('.tab-content');
