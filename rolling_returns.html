@@ -297,59 +297,7 @@
   }
   .no-data-msg { display: none; text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem; }
 
-  /* ── Custom Interactive Legend (Above Charts) ─────────────────────────── */
-  .custom-chart-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 12px;
-    align-items: center;
-    margin-bottom: 14px;
-    padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 9999px;
-    width: fit-content;
-    max-width: 100%;
-  }
-  .custom-legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    padding: 3px 8px;
-    border-radius: 9999px;
-    transition: all 0.15s ease;
-    user-select: none;
-    font-size: 0.72rem;
-    font-family: 'Syne', sans-serif;
-    color: var(--muted);
-  }
-  .custom-legend-item:hover {
-    color: var(--text);
-    background: rgba(255, 255, 255, 0.04);
-  }
-  .custom-legend-item.hero {
-    color: #5E9CFF;
-    font-weight: 700;
-    background: rgba(94, 156, 255, 0.12);
-  }
-  .custom-legend-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    flex-shrink: 0;
-    transition: all 0.15s ease;
-  }
-  .custom-legend-item.hero .custom-legend-dot {
-    box-shadow: 0 0 8px currentColor;
-  }
-  .custom-legend-item.hero {
-    color: #F5F5F7;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-  }
+
 
   /* ── Tab 1: Stat Cards (Glassy Metric Cards) ───────────────────────────── */
   .stats-wrap { display: flex; flex-direction: column; gap: 10px; overflow-y: visible; }
@@ -1034,8 +982,7 @@
           <span id="chartHoverValues" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;width:100%;"></span>
         </div>
         <div id="noDataMsg" class="no-data-msg">Select at least one index to begin</div>
-        <div id="mainLegendWrap" class="custom-chart-legend" style="display:none;"></div>
-        <div style="position: relative; height: 340px; width: 100%;">
+                <div style="position: relative; height: 340px; width: 100%;">
           <canvas id="mainChart"></canvas>
         </div>
         <!-- Modern Timeline Slider -->
@@ -1238,8 +1185,7 @@
           <span style="color:var(--muted);font-style:italic;">Hover over chart to view details</span>
         </div>
         <div id="priceNoData" class="no-data-msg" style="display:none;">Select at least one index in the sidebar to view price chart</div>
-        <div id="priceLegendWrap" class="custom-chart-legend" style="display:none;"></div>
-        <div style="position:relative;height:520px;width:100%;">
+                <div style="position:relative;height:520px;width:100%;">
           <canvas id="priceChartCanvas" style="cursor:grab;touch-action:none;"></canvas>
         </div>
       </div>
@@ -2133,72 +2079,7 @@ function syncSimYearsFromEnd() {
 // ── Main render ───────────────────────────────────────────────────────────
 
 
-// ── Hero Series Spotlight & Glassy Gradient Helpers ─────────────────────────
-let focusedHeroKey = null; // null = default: portfolio if multiple selected, else selKeys[0]
 
-function getHeroKey(selKeys) {
-  if (focusedHeroKey && (selKeys.includes(focusedHeroKey) || focusedHeroKey === '__portfolio__')) {
-    return focusedHeroKey;
-  }
-  if (selKeys.length > 1) return '__portfolio__';
-  return selKeys.length ? selKeys[0] : null;
-}
-
-function setFocusedHero(k) {
-  if (focusedHeroKey === k) {
-    focusedHeroKey = null;
-  } else {
-    focusedHeroKey = k;
-  }
-  renderMain();
-  if (priceChart) renderPriceChart([...selected]);
-}
-
-function hexToRgba(hex, alpha) {
-  if (!hex) return 'rgba(94, 156, 255, ' + alpha + ')';
-  if (hex.startsWith('rgba') || hex.startsWith('rgb')) return hex;
-  var c = hex.replace('#', '');
-  if (c.length === 3) c = c[0]+c[0] + c[1]+c[1] + c[2]+c[2];
-  var num = parseInt(c, 16);
-  if (isNaN(num)) return 'rgba(94, 156, 255, ' + alpha + ')';
-  var r = (num >> 16) & 255;
-  var g = (num >> 8) & 255;
-  var b = num & 255;
-  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
-}
-
-function getHeroGradient(chart, color) {
-  var baseColor = color || '#5E9CFF';
-  if (!chart || !chart.ctx) return hexToRgba(baseColor, 0.15);
-  var ctx = chart.ctx;
-  var chartArea = chart.chartArea;
-  if (!chartArea) return hexToRgba(baseColor, 0.15);
-  var gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  gradient.addColorStop(0, hexToRgba(baseColor, 0.22));
-  gradient.addColorStop(0.65, hexToRgba(baseColor, 0.05));
-  gradient.addColorStop(1, hexToRgba(baseColor, 0.0));
-  return gradient;
-}
-
-function renderCustomChartLegend(containerId, items, activeHeroKey, onSelectFunc) {
-  var el = document.getElementById(containerId);
-  if (!el) return;
-  if (!items || !items.length) {
-    el.innerHTML = '';
-    el.style.display = 'none';
-    return;
-  }
-  el.style.display = 'flex';
-  var html = items.map(function(it) {
-    var isHero = (it.key === activeHeroKey);
-    var color = it.color || '#5E9CFF';
-    return '<div class="custom-legend-item' + (isHero ? ' hero' : '') + '" onclick="' + onSelectFunc + '(&apos;' + it.key + '&apos;)" title="Click to spotlight this series">' +
-             '<span class="custom-legend-dot" style="background:' + color + ';' + (isHero ? 'box-shadow:0 0 8px ' + color + ';' : '') + '"></span>' +
-             '<span style="' + (isHero ? 'color:#F5F5F7;font-weight:700;' : 'color:var(--text);opacity:0.85;') + '">' + it.label + '</span>' +
-           '</div>';
-  }).join('');
-  el.innerHTML = html;
-}
 
 function renderMain() {
   const selKeys = [...selected];
@@ -2239,56 +2120,48 @@ function renderMain() {
     : Object.values(portfolioMap);
   const p5val = nthPercentile(primaryVals, 5);
 
-  const currentHero = getHeroKey(selKeys);
-  const legendItems = [];
   const datasets = [];
 
   selKeys.forEach(function(k) {
     const idx = findSeries(k);
     if (!idx) return;
     const map = computeRollingCAGR(k, horizon, 'close');
-    const isHero = (k === currentHero);
     const sColor = idx.color || '#4f9ef8';
-    legendItems.push({ key: k, label: idx.label, color: sColor });
     datasets.push({
       label: idx.label,
       seriesKey: k,
       data: allDates.map(d => map[d] !== undefined ? map[d] : null),
       borderColor: sColor,
-      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart, sColor); } : 'transparent',
-      borderWidth: isHero ? 2.5 : 1.5,
+      backgroundColor: 'transparent',
+      borderWidth: 2,
       pointRadius: 0,
-      pointHoverRadius: isHero ? 6 : 4,
+      pointHoverRadius: 5,
       pointHoverBackgroundColor: sColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.2,
-      fill: isHero ? 'start' : false,
+      fill: false,
       spanGaps: true,
-      order: isHero ? 1 : 2,
     });
   });
 
   if (selKeys.length > 1) {
-    const isPortHero = (currentHero === '__portfolio__');
     const portColor = '#5E9CFF';
-    legendItems.unshift({ key: '__portfolio__', label: 'Portfolio', color: portColor });
     datasets.push({
       label: 'Portfolio',
       seriesKey: '__portfolio__',
       data: allDates.map(d => portfolioMap[d] !== undefined ? portfolioMap[d] : null),
       borderColor: portColor,
-      backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart, portColor); } : 'transparent',
-      borderWidth: isPortHero ? 2.5 : 1.5,
+      backgroundColor: 'transparent',
+      borderWidth: 2.2,
       pointRadius: 0,
-      pointHoverRadius: isPortHero ? 6 : 4,
+      pointHoverRadius: 5,
       pointHoverBackgroundColor: portColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.2,
-      fill: isPortHero ? 'start' : false,
+      fill: false,
       spanGaps: true,
-      order: isPortHero ? 1 : 2,
     });
   }
 
@@ -2326,7 +2199,6 @@ function renderMain() {
     });
   });
 
-  renderCustomChartLegend('mainLegendWrap', legendItems, currentHero, 'setFocusedHero');
 
   const tickCb = function(val, i) {
     const d = allDates[i]; if (!d) return '';
@@ -4962,8 +4834,6 @@ function renderPriceChart(selKeys) {
   }
 
   // Build datasets
-  var currentHero = getHeroKey(selKeys);
-  var legendItems = [];
   var datasets = [];
   var initialPrices = {};
   var latestPrices = {};
@@ -4972,7 +4842,6 @@ function renderPriceChart(selKeys) {
     var idx = findSeries(k);
     if (!idx) return;
     var sColor = idx.color || '#4f9ef8';
-    legendItems.push({ key: k, label: idx.label, color: sColor });
     var raw = RAW[k] || {};
 
     // Find base price at the start of visible range (or first available price in range)
@@ -5004,23 +4873,21 @@ function renderPriceChart(selKeys) {
       return v;
     });
     latestPrices[k] = lastValid;
-    var isHero = (k === currentHero);
 
     datasets.push({
       label: idx.label,
       seriesKey: k,
       borderColor: sColor,
-      backgroundColor: isHero ? function(ctx) { return getHeroGradient(ctx.chart, sColor); } : 'transparent',
-      borderWidth: isHero ? 2.5 : 1.5,
+      backgroundColor: 'transparent',
+      borderWidth: 2,
       pointRadius: 0,
-      pointHoverRadius: isHero ? 6 : 4,
+      pointHoverRadius: 5,
       pointHoverBackgroundColor: sColor,
       pointHoverBorderColor: '#0B0C10',
       pointHoverBorderWidth: 2,
       tension: 0.15,
-      fill: isHero ? 'start' : false,
+      fill: false,
       spanGaps: true,
-      order: isHero ? 1 : 2,
       data: pts
     });
   });
@@ -5092,32 +4959,28 @@ function renderPriceChart(selKeys) {
           return rawPrice;
         });
 
-        var isPortHero = (currentHero === '__portfolio__');
         var portColor = '#5E9CFF';
-        legendItems.unshift({ key: '__portfolio__', label: 'Portfolio', color: portColor });
         datasets.push({
           label: 'Portfolio',
           seriesKey: '__portfolio__',
           isPortfolio: true,
           borderColor: portColor,
-          backgroundColor: isPortHero ? function(ctx) { return getHeroGradient(ctx.chart, portColor); } : 'transparent',
-          borderWidth: isPortHero ? 2.5 : 1.5,
+          backgroundColor: 'transparent',
+          borderWidth: 2.2,
           pointRadius: 0,
-          pointHoverRadius: isPortHero ? 6 : 4,
+          pointHoverRadius: 5,
           pointHoverBackgroundColor: portColor,
           pointHoverBorderColor: '#0B0C10',
           pointHoverBorderWidth: 2,
           tension: 0.15,
-          fill: isPortHero ? 'start' : false,
+          fill: false,
           spanGaps: false,
-          order: isPortHero ? 1 : 2,
           data: portPts
         });
       }
     }
   }
 
-  renderCustomChartLegend('priceLegendWrap', legendItems, currentHero, 'setFocusedHero');
 
   // Save snapshot for Tab 2 price chart HUD
   lastPriceData.allDates = allDates;
