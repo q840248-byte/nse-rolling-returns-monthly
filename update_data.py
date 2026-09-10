@@ -33,76 +33,6 @@ HEADERS = {
 # Map display names → (api_name, base_date)
 # base_date is only used in --full mode to know where to start fetching from
 INDEX_CONFIG = {
-    "Nifty Auto": ("NIFTY AUTO", "1990-01-01"),
-    "Nifty FMCG": ("NIFTY FMCG", "1990-01-01"),
-    "Nifty IT": ("NIFTY IT", "1990-01-01"),
-    "Nifty Bank": ("NIFTY BANK", "1990-01-01"),
-    "Nifty Media": ("NIFTY MEDIA", "1990-01-01"),
-    "Nifty Metal": ("NIFTY METAL", "1990-01-01"),
-    "Nifty Pharma": ("NIFTY PHARMA", "1990-01-01"),
-    "Nifty PSU Bank": ("NIFTY PSU BANK", "1990-01-01"),
-    "Nifty Realty": ("NIFTY REALTY", "1990-01-01"),
-    "Nifty Private Bank": ("NIFTY PRIVATE BANK", "1990-01-01"),
-    "Nifty Healthcare": ("NIFTY HEALTHCARE", "1990-01-01"),
-    "Nifty Consumer Durables": ("NIFTY CONSUMER DURABLES", "1990-01-01"),
-    "Nifty Oil & Gas": ("NIFTY OIL & GAS", "1990-01-01"),
-    "Nifty Chemicals": ("NIFTY CHEMICALS", "1990-01-01"),
-    "Nifty Cement": ("NIFTY CEMENT", "1990-01-01"),
-    "Nifty Financial Services": ("NIFTY FINANCIAL SERVICES", "1990-01-01"),
-    "Nifty Financial Services 25-50": ("NIFTY FINANCIAL SERVICES 25/50", "1990-01-01"),
-    "Nifty Financial Services Ex-Bank": ("NIFTY FINANCIAL SERVICES EX-BANK", "1990-01-01"),
-    "Nifty MidSmall Financial Services": ("NIFTY MIDSMALL FINANCIAL SERVICES", "1990-01-01"),
-    "Nifty MidSmall Healthcare": ("NIFTY MIDSMALL HEALTHCARE", "1990-01-01"),
-    "Nifty MidSmall IT & Telecom": ("NIFTY MIDSMALL IT & TELECOM", "1990-01-01"),
-    "Nifty500 Healthcare": ("NIFTY500 HEALTHCARE", "1990-01-01"),
-    "Nifty REITs & Realty": ("NIFTY REITS & REALTY", "1990-01-01"),
-    "Nifty Commodities": ("NIFTY COMMODITIES", "1990-01-01"),
-    "Nifty India Consumption": ("NIFTY INDIA CONSUMPTION", "1990-01-01"),
-    "Nifty CPSE": ("NIFTY CPSE", "1990-01-01"),
-    "Nifty Energy": ("NIFTY ENERGY", "1990-01-01"),
-    "Nifty Infrastructure": ("NIFTY INFRASTRUCTURE", "1990-01-01"),
-    "Nifty MNC": ("NIFTY MNC", "1990-01-01"),
-    "Nifty PSE": ("NIFTY PSE", "1990-01-01"),
-    "Nifty Services Sector": ("NIFTY SERVICES SECTOR", "1990-01-01"),
-    "Nifty India Digital": ("NIFTY INDIA DIGITAL", "1990-01-01"),
-    "Nifty India Defence": ("NIFTY INDIA DEFENCE", "1990-01-01"),
-    "Nifty India Manufacturing": ("NIFTY INDIA MANUFACTURING", "1990-01-01"),
-    "Nifty India Tourism": ("NIFTY INDIA TOURISM", "1990-01-01"),
-    "Nifty Capital Markets": ("NIFTY CAPITAL MARKETS", "1990-01-01"),
-    "Nifty EV & New Age Automotive": ("NIFTY EV & NEW AGE AUTOMOTIVE", "1990-01-01"),
-    "Nifty India New Age Consumption": ("NIFTY INDIA NEW AGE CONSUMPTION", "1990-01-01"),
-    "Nifty Mobility": ("NIFTY MOBILITY", "1990-01-01"),
-    "Nifty Core Housing": ("NIFTY CORE HOUSING", "1990-01-01"),
-    "Nifty Housing": ("NIFTY HOUSING", "1990-01-01"),
-    "Nifty MidSmall India Consumption": ("NIFTY MIDSMALL INDIA CONSUMPTION", "1990-01-01"),
-    "Nifty Non-Cyclical Consumer": ("NIFTY NON-CYCLICAL CONSUMER", "1990-01-01"),
-    "Nifty Rural": ("NIFTY RURAL", "1990-01-01"),
-    "Nifty Transportation & Logistics": ("NIFTY TRANSPORTATION & LOGISTICS", "1990-01-01"),
-    "Nifty India Internet": ("NIFTY INDIA INTERNET", "1990-01-01"),
-    "Nifty Waves": ("NIFTY WAVES", "1990-01-01"),
-    "Nifty India Infrastructure & Logistics": ("NIFTY INDIA INFRASTRUCTURE & LOGISTICS", "1990-01-01"),
-    "Nifty India Railways PSU": ("NIFTY INDIA RAILWAYS PSU", "1990-01-01"),
-    "Nifty Conglomerate 50": ("NIFTY CONGLOMERATE 50", "1990-01-01"),
-    "Nifty500 Multicap India Manufacturing 50-30-20": ("NIFTY500 MULTICAP INDIA MANUFACTURING 50:30:20", "1990-01-01"),
-    "Nifty500 Multicap Infrastructure 50-30-20": ("NIFTY500 MULTICAP INFRASTRUCTURE 50:30:20", "1990-01-01"),
-    "Nifty Tata Group 25% Cap": ("NIFTY INDIA CORPORATE GROUP INDEX - TATA GROUP 25% CAP", "1990-01-01"),
-    "Nifty Select 5 Corporate Groups (MAATR)": ("NIFTY INDIA SELECT 5 CORPORATE GROUPS (MAATR)", "1990-01-01"),
-    "Nifty100 ESG": ("NIFTY100 ESG", "1990-01-01"),
-    "Nifty100 ESG Sector Leaders": ("NIFTY100 ESG SECTOR LEADERS", "1990-01-01"),
-    "Nifty100 Enhanced ESG": ("NIFTY100 ENHANCED ESG", "1990-01-01"),
-    "Nifty Shariah 25": ("NIFTY SHARIAH 25", "1990-01-01"),
-    "Nifty50 Shariah": ("NIFTY50 SHARIAH", "1990-01-01"),
-    "Nifty500 Shariah": ("NIFTY500 SHARIAH", "1990-01-01"),
-    "India VIX": ("INDIA VIX", "1990-01-01"),
-    "Nifty50 TR 2X Leverage": ("NIFTY50 TR 2X LEVERAGE", "1990-01-01"),
-    "Nifty50 PR 2X Leverage": ("NIFTY50 PR 2X LEVERAGE", "1990-01-01"),
-    "Nifty50 TR 1X Inverse": ("NIFTY50 TR 1X INVERSE", "1990-01-01"),
-    "Nifty50 PR 1X Inverse": ("NIFTY50 PR 1X INVERSE", "1990-01-01"),
-    "Nifty50 Dividend Points": ("NIFTY50 DIVIDEND POINTS", "1990-01-01"),
-    "Nifty100 Liquid 15": ("NIFTY100 LIQUID 15", "1990-01-01"),
-    "Nifty Midcap Liquid 15": ("NIFTY MIDCAP LIQUID 15", "1990-01-01"),
-    "Nifty SME EMERGE": ("NIFTY SME EMERGE", "1990-01-01"),
-    "Nifty IPO": ("NIFTY IPO", "1990-01-01"),
     "Nifty 50":                                     ("NIFTY 50",                                    "1990-01-01"),
     "Nifty Next 50":                                ("NIFTY NEXT 50",                               "1990-01-01"),
     "Nifty 100":                                    ("NIFTY 100",                                   "1990-01-01"),
@@ -261,6 +191,55 @@ def get_last_month_in_data(data_dict):
     keys = [k for k in data_dict.keys() if re.match(r"^\d{4}-\d{2}$", k)]
     return max(keys) if keys else None
 
+# ── Commodity (Gold & Silver) Fetching & Conversion Helpers ──────────────────
+TROY_OZ_TO_GRAMS = 31.1034768
+_COMMODITIES_CACHE = None
+
+def get_commodities_data(full_history=False):
+    """Fetch Gold & Silver from Yahoo Finance and return { 'Gold (INR)': {month: val}, 'Silver (INR)': {month: val} }."""
+    global _COMMODITIES_CACHE
+    if _COMMODITIES_CACHE is not None:
+        return _COMMODITIES_CACHE
+
+    try:
+        import yfinance as yf
+        import pandas as pd
+    except ImportError:
+        print("  ⚠️ yfinance/pandas not installed, skipping commodities update.")
+        return {}
+
+    today = date.today()
+    if full_history:
+        start_date = "2003-12-01"
+        print("  [Commodities] Fetching full Yahoo Finance history from 2003-12-01...", flush=True)
+    else:
+        start_date = (today - relativedelta(months=5)).replace(day=1).strftime("%Y-%m-%d")
+        print(f"  [Commodities] Fetching Yahoo Finance data from {start_date}...", flush=True)
+
+    tickers = ["GC=F", "SI=F", "INR=X"]
+    try:
+        df = yf.download(tickers, start=start_date, progress=False)["Close"]
+        if isinstance(df.columns, pd.MultiIndex):
+            df = df.droplevel(0, axis=1)
+        df = df.rename(columns={"GC=F": "Gold_USD", "SI=F": "Silver_USD", "INR=X": "USD_INR"}).ffill().dropna()
+
+        # Pure physical weight conversions (Zero tax/duty)
+        df["gold_10g"] = (((df["Gold_USD"] * df["USD_INR"]) / TROY_OZ_TO_GRAMS) * 10).round(2)
+        df["silver_1kg"] = (((df["Silver_USD"] * df["USD_INR"]) / TROY_OZ_TO_GRAMS) * 1000).round(2)
+
+        monthly = df.groupby(df.index.strftime("%Y-%m")).last()
+        gold_monthly = {m: float(val) for m, val in monthly["gold_10g"].items()}
+        silver_monthly = {m: float(val) for m, val in monthly["silver_1kg"].items()}
+
+        _COMMODITIES_CACHE = {
+            "Gold (INR)": gold_monthly,
+            "Silver (INR)": silver_monthly
+        }
+        return _COMMODITIES_CACHE
+    except Exception as e:
+        print(f"  ⚠️ Error fetching commodity data from Yahoo Finance: {e}")
+        return {}
+
 def main():
     mode = "FULL HISTORY" if FULL_MODE else "LAST 6 MONTHS"
     print(f"Reading {HTML_FILE}... [Mode: {mode}]")
@@ -284,7 +263,37 @@ def main():
         old_json   = m.group(3)
 
         if index_name in ("Gold (INR)", "Silver (INR)"):
-            return m.group(0)
+            total += 1
+            try:
+                data = json.loads(old_json)
+            except Exception:
+                print(f"  [{index_name}] ⚠️  Could not parse existing data — skipping")
+                return m.group(0)
+
+            comm_cache = get_commodities_data(FULL_MODE)
+            new_monthly = comm_cache.get(index_name, {})
+            if not new_monthly:
+                print(f"  [{index_name}] ⚠️  No commodity data returned")
+                return m.group(0)
+
+            added = 0
+            for k, v in sorted(new_monthly.items()):
+                if k <= this_month:
+                    if k not in data or data[k] != v:
+                        data[k] = v
+                        added += 1
+
+            if added == 0:
+                print(f"  [{index_name}] no changes")
+                return m.group(0)
+
+            latest = max(k for k in data if re.match(r'^\d{4}-\d{2}$', k))
+            latest_close = data[latest]
+            print(f"  [{index_name}] updated {added} month(s) -> latest: {latest} (close: {latest_close})")
+            updated += 1
+
+            new_json = json.dumps(dict(sorted(data.items())), separators=(",", ":"))
+            return f'{prefix}{new_json};' 
 
         total += 1
         config = INDEX_CONFIG.get(index_name)
@@ -376,7 +385,7 @@ def main():
 
     new_html = pattern.sub(replace_block, html)
 
-    # UI PATCH removed: snapTimelineToSelection is maintained cleanly in rolling_returns.html
+    # snapTimelineToSelection already cleanly set to return in rolling_returns.html
 
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(new_html)
