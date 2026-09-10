@@ -33,7 +33,6 @@ HEADERS = {
 # Map display names → (api_name, base_date)
 # base_date is only used in --full mode to know where to start fetching from
 INDEX_CONFIG = {
-    "Nifty REITs & InvITs":                         ("NIFTY REITS & INVITS",                        "2019-07-01"),
     "Nifty 50":                                     ("NIFTY 50",                                    "1990-01-01"),
     "Nifty Next 50":                                ("NIFTY NEXT 50",                               "1990-01-01"),
     "Nifty 100":                                    ("NIFTY 100",                                   "1990-01-01"),
@@ -197,60 +196,6 @@ TROY_OZ_TO_GRAMS = 31.1034768
 _COMMODITIES_CACHE = None
 
 def get_commodities_data(full_history=False):
-    """Fetch Gold, Silver, S&P 500, Brent Crude, Copper, Bitcoin, Ethereum in INR."""
-    global _COMMODITIES_CACHE
-    if _COMMODITIES_CACHE is not None:
-        return _COMMODITIES_CACHE
-
-    try:
-        import yfinance as yf
-        import pandas as pd
-    except ImportError:
-        print("  ⚠️ yfinance/pandas not installed, skipping commodities update.")
-        return {}
-
-    today = date.today()
-    if full_history:
-        start_date = "2000-01-01"
-        print("  [Global/Commodities] Fetching full Yahoo Finance history from 2000-01-01...", flush=True)
-    else:
-        start_date = (today - relativedelta(months=5)).replace(day=1).strftime("%Y-%m-%d")
-        print(f"  [Global/Commodities] Fetching Yahoo Finance data from {start_date}...", flush=True)
-
-    try:
-        # FX USD/INR
-        fx_df = yf.download("INR=X", start=start_date, progress=False)["Close"]
-        fx = fx_df.iloc[:, 0] if isinstance(fx_df, pd.DataFrame) else fx_df
-
-        tickers = {
-            "Gold (INR)":        ("GC=F",    lambda p, f: (((p * f) / TROY_OZ_TO_GRAMS) * 10).round(2)),
-            "Silver (INR)":      ("SI=F",    lambda p, f: (((p * f) / TROY_OZ_TO_GRAMS) * 1000).round(2)),
-            "S&P 500 (INR)":     ("^GSPC",   lambda p, f: (p * f).round(2)),
-            "Brent Crude (INR)": ("BZ=F",    lambda p, f: (p * f).round(2)),
-            "Copper (INR)":      ("HG=F",    lambda p, f: ((p / 0.45359237) * f).round(2)),
-            "Bitcoin (INR)":     ("BTC-USD", lambda p, f: (p * f).round(2)),
-            "Ethereum (INR)":    ("ETH-USD", lambda p, f: (p * f).round(2))
-        }
-
-        cache = {}
-        for name, (sym, conv) in tickers.items():
-            try:
-                p_df = yf.download(sym, start=start_date, progress=False)["Close"]
-                p = p_df.iloc[:, 0] if isinstance(p_df, pd.DataFrame) else p_df
-                comb = pd.DataFrame({"P": p, "FX": fx}).ffill().dropna()
-                comb["Val"] = conv(comb["P"], comb["FX"])
-                m = comb["Val"].groupby(comb.index.strftime("%Y-%m")).last()
-                cache[name] = {k: round(float(v), 2) for k, v in m.items()}
-            except Exception as ex:
-                print(f"    ⚠️ Could not fetch {name}: {ex}")
-
-        _COMMODITIES_CACHE = cache
-        return _COMMODITIES_CACHE
-    except Exception as e:
-        print(f"  ⚠️ Error in get_commodities_data: {e}")
-        return {}
-
-def _old_get_commodities_data(full_history=False):
     """Fetch Gold & Silver from Yahoo Finance and return { 'Gold (INR)': {month: val}, 'Silver (INR)': {month: val} }."""
     global _COMMODITIES_CACHE
     if _COMMODITIES_CACHE is not None:
@@ -317,7 +262,7 @@ def main():
         index_name = m.group(2)
         old_json   = m.group(3)
 
-        if index_name in ("Gold (INR)", "Silver (INR)", "S&P 500 (INR)", "Brent Crude (INR)", "Copper (INR)", "Bitcoin (INR)", "Ethereum (INR)"):
+        if index_name in ("Gold (INR)", "Silver (INR)"):
             total += 1
             try:
                 data = json.loads(old_json)
