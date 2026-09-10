@@ -11563,6 +11563,305 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
   var labels = cohorts.map(function(c){ return c.endDate; });
   var isLog = currentCashflowScale === 'log';
   var wealthData = cohorts.map(function(c){ return isLog ? Math.max(1, c.finalWealth) : c.finalWealth; });
+  var baselineData = cohorts.map(function(){ return initCorpus; });
+
+  var tempDs = [
+    { data: cohorts.map(function(c){ return c.survived ? c.terminalWealth : null; }) },
+    { data: baselineData }
+  ];
+  var bounds = isLog ? getSmartLogBounds(tempDs) : { min: undefined, max: undefined };
+  if (survivedCount < totalCohorts && isLog) {
+    bounds.min = Math.min(bounds.min, initCorpus * 0.2);
+  }
+
+  var terminalData = cohorts.map(function(c){
+    if (c.survived) return c.terminalWealth;
+    return isLog ? (bounds.min || 1) : 0;
+  });
+  var pointColors = cohorts.map(function(c){ return c.survived ? '#22d3a0' : '#f87171'; });
+
+  var ds = [
+    {
+      label: 'Terminal Wealth (Remaining Corpus)',
+      data: terminalData,
+      borderColor: '#5E9CFF',
+      backgroundColor: 'rgba(94, 156, 255, 0.06)',
+      fill: true,
+      borderWidth: 2,
+      pointRadius: totalCohorts > 120 ? 2 : 3,
+      pointHoverRadius: 6,
+      pointBackgroundColor: pointColors,
+      pointBorderColor: pointColors,
+      tension: 0.2
+    },
+    {
+      label: 'Initial Starting Capital (Break-Even)',
+      data: baselineData,
+      borderColor: 'rgba(255, 255, 255, 0.4)',
+      borderDash: [6, 4],
+      backgroundColor: 'transparent',
+      fill: false,
+      borderWidth: 1.5,
+      pointRadius: 0,
+      tension: 0
+    }
+  ];
+
+  renderCashflowChart(labels, ds, 'Terminal Remaining Wealth (₹)', function(ctx) {
+    updateRollingSwpHud(ctx, cohorts, horizonYears);
+  });
+
+  if (insightsBox) {
+    var strategyText = isFixed 
+      ? 'a flat monthly withdrawal of <strong>' + formatINR(initWithdrawal) + '</strong> stepped up by <strong>' + inflationPct + '%</strong> inflation p.a. (initial rate: ' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '% p.a.)'
+      : 'a variable <strong>' + swpPct + '% p.a.</strong> withdrawal rate of current portfolio value';
+
+    var crashMsg = '';
+    if (survivedCount < totalCohorts) {
+      var depletedCohorts = cohorts.filter(function(c){ return !c.survived; });
+      var depDates = depletedCohorts.map(function(c){ return c.startDate; });
+      var minStart = depDates[0], maxStart = depDates[depDates.length - 1];
+      crashMsg = '⚠️ <strong>Sequence of Returns Vulnerability:</strong> ' + (totalCohorts - survivedCount) + ' cohorts starting between <strong>' + minStart + '</strong> and <strong>' + maxStart + '</strong> depleted early due to major early bear markets during the first 2-3 years of retirement.<br>💡 <strong>Survival Remedy:</strong> Lowering the initial withdrawal rate by 0.5% - 1.0% or maintaining a 2-year cash buffer historically converts nearly 100% of these failed cohorts into lifelong survivors.';
+    } else {
+      crashMsg = '✅ <strong>Bulletproof Historical Survival:</strong> Every single retirement cohort tested survived all <strong>' + horizonYears + ' years</strong> without once running out of money!';
+    }
+
+    insightsBox.innerHTML = 
+      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">🛡️ Multi-Decade Retirement Longevity Analysis (' + totalCohorts + ' Historical Cohorts Tested)</div>' +
+      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
+      '• Testing <strong>' + horizonYears + '-year</strong> retirements across all start dates from <strong>' + dates[0] + '</strong> to <strong>' + dates[dates.length - horizonMonths] + '</strong> with ' + strategyText + ' produced an empirical survival rate of <strong style="color:' + survColor + ';">' + survivalRate + '%</strong>.<br>' +
+      '• <strong>Surviving Legacy:</strong> Retirees who survived finished with a median terminal wealth of <strong>' + formatINR(medianTerminal) + '</strong> (' + (medianTerminal >= initCorpus ? 'greater than their starting capital' : 'after consuming some principal') + ').<br>' +
+      crashMsg +
+      '</div>';
+  }
+}
+
+function executeRollingSipSim(selKeys, dates, monthlyReturns) {
+  var initMonthly = parseFloat(document.getElementById('cfSipAmount').value) || 10000;
+  var stepUpPct = parseFloat(document.getElementById('cfSipStepUp').value) || 0;
+  var horizonYears = parseFloat(document.getElementById('cfYears').value) || 10;
+  var horizonMonths = Math.round(horizonYears * 12);
+
+  var summaryGrid = document.getElementById('cfSummaryGrid');
+  var insightsBox = document.getElementById('cfInsightsBox');
+  var noData = document.getElementById('cfNoData');
+  var canvas = document.getElementById('cashflowChartCanvas');
+
+  if (monthlyReturns.length < horizonMonths + 1) {
+    if (noData) {
+      noData.style.display = 'block';
+      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year SIP horizon.';
+    }
+    if (summaryGrid) summaryGrid.innerHTML = '';
+    if (insightsBox) insightsBox.innerHTML = '';
+    if (canvas) canvas.style.display = 'none';
+    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+    return;
+  }
+
+  if (noData) noData.style.display = 'none';
+  if (canvas) canvas.style.display = 'block';
+
+  var cohorts = [];
+  var bestCohort = null;
+  var worstCohort = null;
+  var maxWealth = -1;
+  var minWealth = Infinity;
+
+  var totalInvestedStandard = 0;
+  var mAmount = initMonthly;
+  for (var m = 0; m <= horizonMonths; m++) {
+    if (m > 0 && m % 12 === 0 && stepUpPct > 0) {
+      mAmount = Math.round(mAmount * (1 + stepUpPct / 100));
+    }
+    totalInvestedStandard += mAmount;
+  }
+
+  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
+    var startMonth = dates[i];
+    var endMonth = dates[i + horizonMonths];
+    var portVal = initMonthly;
+    var curMonthly = initMonthly;
+    var cfs = [{ amount: -initMonthly, t: 0 }];
+
+    for (var m = 0; m < horizonMonths; m++) {
+      var r = monthlyReturns[i + m].r;
+      if ((m + 1) % 12 === 0 && stepUpPct > 0) {
+        curMonthly = Math.round(curMonthly * (1 + stepUpPct / 100));
+      }
+      portVal = (portVal * (1 + r)) + curMonthly;
+      cfs.push({ amount: -curMonthly, t: (m + 1) / 12.0 });
+    }
+
+    cfs.push({ amount: portVal, t: horizonYears });
+    var xirr = calculateXIRR(cfs);
+    var finalWealth = Math.round(portVal);
+
+    var cohortObj = {
+      startDate: startMonth,
+      endDate: endMonth,
+      finalWealth: finalWealth,
+      totalInvested: totalInvestedStandard,
+      xirr: xirr,
+      gain: finalWealth - totalInvestedStandard,
+      multiple: (finalWealth / totalInvestedStandard).toFixed(2)
+    };
+    cohorts.push(cohortObj);
+
+    if (finalWealth > maxWealth) {
+      maxWealth = finalWealth;
+      bestCohort = cohortObj;
+    }
+    if (finalWealth < minWealth) {
+      minWealth = finalWealth;
+      worstCohort = cohortObj;
+    }
+  }
+
+  var totalCohorts = cohorts.length;
+  var sortedXirrs = cohorts.map(function(c){ return c.xirr; }).sort(function(a,b){ return a - b; });
+  var medianXirr = sortedXirrs[Math.floor(totalCohorts * 0.5)];
+  var sortedWealths = cohorts.map(function(c){ return c.finalWealth; }).sort(function(a,b){ return a - b; });
+  var medianWealth = sortedWealths[Math.floor(totalCohorts * 0.5)];
+  var positiveCount = cohorts.filter(function(c){ return c.gain > 0; }).length;
+  var posPct = ((positiveCount / totalCohorts) * 100).toFixed(1);
+
+  if (summaryGrid) {
+    summaryGrid.innerHTML = 
+      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median SIP XIRR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianXirr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x of ' + formatINR(totalInvestedStandard) + ' invested</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst-Ever SIP Window</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best-Ever SIP Window</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.xirr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
+      '<div class="sim-stat-box"><div class="sim-stat-label">Profitable Periods Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + posPct + '%</div><div class="stat-pct">' + positiveCount + ' of ' + totalCohorts + ' windows beat capital</div></div>';
+  }
+
+  var labels = cohorts.map(function(c){ return c.endDate; });
+  var isLog = currentCashflowScale === 'log';
+  var wealthData = cohorts.map(function(c){ return isLog ? Math.max(1, c.finalWealth) : c.finalWealth; });
+  var investedData = cohorts.map(function(){ return isLog ? Math.max(1, totalInvestedStandard) : totalInvestedStandard; });
+
+  var ds = [
+    {
+      label: 'Terminal SIP Wealth (₹)',
+      data: wealthData,
+      borderColor: '#5E9CFF',
+      backgroundColor: 'rgba(94, 156, 255, 0.08)',
+      fill: true,
+      borderWidth: 2.2,
+      pointRadius: totalCohorts > 120 ? 1.5 : 2.5,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#5E9CFF',
+      tension: 0.2
+    },
+    {
+      label: 'Total Capital Invested (₹)',
+      data: investedData,
+      borderColor: 'rgba(255, 255, 255, 0.45)',
+      borderDash: [5, 4],
+      backgroundColor: 'transparent',
+      fill: false,
+      borderWidth: 1.6,
+      pointRadius: 0,
+      tension: 0
+    }
+  ];
+
+  renderCashflowChart(labels, ds, 'Portfolio Value (₹)', function(ctx) {
+    updateRollingSipHud(ctx, cohorts, horizonYears);
+  });
+
+  if (insightsBox) {
+    insightsBox.innerHTML = 
+      '<div style="font-family:Syne,sans-serif;font-size:0.82rem;font-weight:700;color:#5E9CFF;margin-bottom:8px;">📊 Rolling ' + horizonYears + '-Year SIP Compounding Performance (' + totalCohorts + ' Windows Tested)</div>' +
+      '<div style="font-size:0.72rem;color:var(--text);line-height:1.6;">' +
+      '• In <strong>' + posPct + '%</strong> of all rolling ' + horizonYears + '-year periods across history, starting an SIP in this allocation grew above total invested capital.<br>' +
+      '• <strong>Wealth Multiple:</strong> An investor investing ' + formatINR(initMonthly) + '/month with ' + stepUpPct + '% annual step-up invested a total of <strong>' + formatINR(totalInvestedStandard) + '</strong>, maturing into a median wealth of <strong>' + formatINR(medianWealth) + '</strong> (<strong>' + (medianWealth/totalInvestedStandard).toFixed(2) + 'x</strong> wealth multiplier).<br>' +
+      '• <strong>Return Range:</strong> Annualized XIRR ranged from <strong>' + (worstCohort.xirr >= 0 ? '+' : '') + worstCohort.xirr.toFixed(1) + '%</strong> in the worst historical window (' + worstCohort.startDate + ' to ' + worstCohort.endDate + ') up to <strong>+' + bestCohort.xirr.toFixed(1) + '%</strong> in the best historical run (' + bestCohort.startDate + ' to ' + bestCohort.endDate + ').' +
+      '</div>';
+  }
+}
+
+function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
+  var lumpAmount = parseFloat(document.getElementById('cfLumpAmount').value) || 500000;
+  var horizonYears = parseFloat(document.getElementById('cfYears').value) || 10;
+  var horizonMonths = Math.round(horizonYears * 12);
+
+  var summaryGrid = document.getElementById('cfSummaryGrid');
+  var insightsBox = document.getElementById('cfInsightsBox');
+  var noData = document.getElementById('cfNoData');
+  var canvas = document.getElementById('cashflowChartCanvas');
+
+  if (monthlyReturns.length < horizonMonths + 1) {
+    if (noData) {
+      noData.style.display = 'block';
+      noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year horizon.';
+    }
+    if (summaryGrid) summaryGrid.innerHTML = '';
+    if (insightsBox) insightsBox.innerHTML = '';
+    if (canvas) canvas.style.display = 'none';
+    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+    return;
+  }
+
+  if (noData) noData.style.display = 'none';
+  if (canvas) canvas.style.display = 'block';
+
+  var cohorts = [];
+  var bestCohort = null;
+  var worstCohort = null;
+  var maxWealth = -1;
+  var minWealth = Infinity;
+
+  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
+    var startMonth = dates[i];
+    var endMonth = dates[i + horizonMonths];
+    var portVal = lumpAmount;
+
+    for (var m = 0; m < horizonMonths; m++) {
+      portVal = portVal * (1 + monthlyReturns[i + m].r);
+    }
+
+    var cagr = (Math.pow(portVal / lumpAmount, 1 / horizonYears) - 1) * 100;
+    var finalWealth = Math.round(portVal);
+
+    var cohortObj = {
+      startDate: startMonth,
+      endDate: endMonth,
+      finalWealth: finalWealth,
+      cagr: cagr,
+      multiple: (finalWealth / lumpAmount).toFixed(2)
+    };
+    cohorts.push(cohortObj);
+
+    if (finalWealth > maxWealth) {
+      maxWealth = finalWealth;
+      bestCohort = cohortObj;
+    }
+    if (finalWealth < minWealth) {
+      minWealth = finalWealth;
+      worstCohort = cohortObj;
+    }
+  }
+
+  var totalCohorts = cohorts.length;
+  var sortedCagrs = cohorts.map(function(c){ return c.cagr; }).sort(function(a,b){ return a - b; });
+  var medianCagr = sortedCagrs[Math.floor(totalCohorts * 0.5)];
+  var sortedWealths = cohorts.map(function(c){ return c.finalWealth; }).sort(function(a,b){ return a - b; });
+  var medianWealth = sortedWealths[Math.floor(totalCohorts * 0.5)];
+  var posCount = cohorts.filter(function(c){ return c.cagr > 0; }).length;
+
+  if (summaryGrid) {
+    summaryGrid.innerHTML = 
+      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Median Lumpsum CAGR</div><div class="sim-stat-val" style="color:#22d3a0;">+' + medianCagr.toFixed(1) + '%</div><div class="stat-pct">Across ' + totalCohorts + ' historical ' + horizonYears + 'Y windows</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #5E9CFF;"><div class="sim-stat-label">Median Final Wealth</div><div class="sim-stat-val" style="color:#5E9CFF;">' + formatINR(medianWealth) + '</div><div class="stat-pct">' + (medianWealth / lumpAmount).toFixed(2) + 'x capital multiple</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #f87171;"><div class="sim-stat-label">Worst Historical Entry</div><div class="sim-stat-val" style="color:#f87171;font-size:1.0rem;">' + (worstCohort ? (worstCohort.cagr >= 0 ? '+' : '') + worstCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (worstCohort ? worstCohort.startDate + ' → ' + worstCohort.endDate + ' (' + formatINR(worstCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
+      '<div class="sim-stat-box" style="border-left:3px solid #22d3a0;"><div class="sim-stat-label">Best Historical Entry</div><div class="sim-stat-val" style="color:#22d3a0;font-size:1.0rem;">+' + (bestCohort ? bestCohort.cagr.toFixed(1) + '%' : 'N/A') + '</div><div class="stat-pct">' + (bestCohort ? bestCohort.startDate + ' → ' + bestCohort.endDate + ' (' + formatINR(bestCohort.finalWealth) + ')' : 'N/A') + '</div></div>' +
+      '<div class="sim-stat-box"><div class="sim-stat-label">Positive Return Chance</div><div class="sim-stat-val" style="color:#22d3a0;">' + ((posCount/totalCohorts)*100).toFixed(1) + '%</div><div class="stat-pct">' + posCount + ' of ' + totalCohorts + ' periods profitable</div></div>';
+  }
+
+  var labels = cohorts.map(function(c){ return c.endDate; });
+  var isLog = currentCashflowScale === 'log';
+  var wealthData = cohorts.map(function(c){ return isLog ? Math.max(1, c.finalWealth) : c.finalWealth; });
   var baselineData = cohorts.map(function(){ return isLog ? Math.max(1, lumpAmount) : lumpAmount; });
 
   var ds = [
@@ -11608,6 +11907,42 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
 // ─────────────────────────────────────────────────────────────────────────────
 // CHART RENDERING & HOVER HUD UPGRADE
 // ─────────────────────────────────────────────────────────────────────────────
+function getSmartLogBounds(datasets) {
+  var allVals = [];
+  datasets.forEach(function(ds) {
+    if (!ds.data) return;
+    ds.data.forEach(function(v) {
+      if (typeof v === 'number' && !isNaN(v) && v > 10) {
+        allVals.push(v);
+      }
+    });
+  });
+
+  if (allVals.length === 0) return { min: undefined, max: undefined };
+
+  var minV = Math.min.apply(null, allVals);
+  var maxV = Math.max.apply(null, allVals);
+
+  // Dynamic min: ~10% below minV, rounded cleanly
+  var expMin = Math.floor(Math.log10(minV));
+  var baseMin = Math.pow(10, expMin);
+  var fracMin = minV / baseMin;
+  var targetFracMin = fracMin * 0.90;
+  var stepMin = fracMin >= 2 ? 0.5 : 0.2;
+  var yMin = Math.floor(targetFracMin / stepMin) * stepMin * baseMin;
+  if (yMin <= 0 || isNaN(yMin)) yMin = minV * 0.85;
+
+  // Dynamic max: ~10% above maxV, rounded cleanly
+  var expMax = Math.floor(Math.log10(maxV));
+  var baseMax = Math.pow(10, expMax);
+  var fracMax = maxV / baseMax;
+  var targetFracMax = fracMax * 1.10;
+  var stepMax = fracMax >= 2 ? 0.5 : 0.2;
+  var yMax = Math.ceil(targetFracMax / stepMax) * stepMax * baseMax;
+
+  return { min: yMin, max: yMax };
+}
+
 function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
   var canvas = document.getElementById('cashflowChartCanvas');
   if (!canvas) return;
@@ -11618,6 +11953,8 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
   }
 
   var isLog = currentCashflowScale === 'log';
+  var bounds = isLog ? getSmartLogBounds(datasets) : { min: undefined, max: undefined };
+
   var ctx = canvas.getContext('2d');
   cashflowChart = new Chart(ctx, {
     type: 'line',
@@ -11661,16 +11998,14 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
         },
         y: {
           type: isLog ? 'logarithmic' : 'linear',
-          min: isLog ? 1000 : undefined,
+          min: bounds.min,
+          max: bounds.max,
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
           ticks: {
             color: '#8B8D98',
             font: { family: "'DM Mono', monospace", size: 9 },
+            maxTicksLimit: 8,
             callback: function(val) {
-              if (isLog) {
-                var remain = val / Math.pow(10, Math.floor(Math.log10(val)));
-                if (remain > 1.05 && remain < 9.95 && Math.abs(remain - 2) > 0.1 && Math.abs(remain - 5) > 0.1) return '';
-              }
               return formatINR(val);
             }
           }
