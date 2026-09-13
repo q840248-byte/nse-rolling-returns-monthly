@@ -11395,6 +11395,10 @@ function executeSwpSim(selKeys, dates, monthlyReturns) {
       renderKpiCard('Net Wealth Created', (netSurplus >= 0 ? '+' : '') + formatINR(netSurplus), 'Withdrawn + Terminal − Start', netSurplus >= 0 ? '#22d3a0' : '#f87171');
   }
 
+  var baselineCorpus = chartLabels.map(function() {
+    return isLog ? Math.max(1, Math.round(initCorpus)) : Math.round(initCorpus);
+  });
+
   renderCashflowChart(chartLabels, [
     {
       label: 'Remaining Corpus',
@@ -11407,17 +11411,19 @@ function executeSwpSim(selKeys, dates, monthlyReturns) {
       tension: 0.25
     },
     {
-      label: 'Cumulative Withdrawn',
-      data: withdrawnSeries,
-      borderColor: '#f59e0b',
-      borderDash: [5, 4],
+      label: 'Initial Starting Capital (₹' + formatBadgeINR(initCorpus) + ' Break-Even)',
+      data: baselineCorpus,
+      borderColor: 'rgba(255, 255, 255, 0.38)',
+      borderDash: [6, 4],
       backgroundColor: 'transparent',
       fill: false,
-      borderWidth: 1.6,
+      borderWidth: 1.5,
       pointRadius: 0,
-      tension: 0.25
+      tension: 0
     }
-  ], 'Value (₹)');
+  ], 'Value (₹)', function(ctx) {
+    updateSingleSwpHud(ctx, chartLabels, corpusSeries, withdrawnSeries);
+  });
 
   renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflationPct);
 }
@@ -11979,12 +11985,10 @@ function getSmartLogBounds(datasets) {
   var yMin = Math.pow(10, logMin - pad);
   var yMax = Math.pow(10, logMax + pad);
 
-  // Round yMin DOWN to a clean power-of-10 or half-decade that's ≤ yMin
-  // e.g. if minV = 10Cr → logMin=8 → yMin stays close to 10Cr, not 20L
+  // Round yMin DOWN to a clean human-friendly multiple: 1, 2, 3, 5, 7
   var floorExp = Math.floor(Math.log10(yMin));
   var floorBase = Math.pow(10, floorExp);
-  // snap to nearest: 1x, 2x, 5x that base
-  var snaps = [1, 2, 5];
+  var snaps = [1, 2, 3, 5, 7];
   var snappedMin = floorBase;
   for (var i = snaps.length - 1; i >= 0; i--) {
     var candidate = snaps[i] * floorBase;
@@ -11992,11 +11996,11 @@ function getSmartLogBounds(datasets) {
   }
   yMin = snappedMin;
 
-  // Round yMax UP to a clean power-of-10 or half-decade that's ≥ yMax
+  // Round yMax UP to a clean multiple: 1, 1.5, 2, 3, 5, 7, 10
   var ceilExp = Math.floor(Math.log10(yMax));
   var ceilBase = Math.pow(10, ceilExp);
-  var snappedMax = ceilBase * 10; // default: next full decade
-  var snapsUp = [1, 2, 5, 10];
+  var snappedMax = ceilBase * 10;
+  var snapsUp = [1, 1.5, 2, 3, 5, 7, 10];
   for (var j = 0; j < snapsUp.length; j++) {
     var cand = snapsUp[j] * ceilBase;
     if (cand >= yMax) { snappedMax = cand; break; }
@@ -12090,6 +12094,31 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
       }
     }
   });
+}
+
+function updateSingleSwpHud(context, labels, corpusArr, withdrawnArr) {
+  var hud = document.getElementById('cfHoverHud');
+  if (!hud) return;
+  var tooltip = context.tooltip;
+  if (!tooltip || !tooltip.dataPoints || tooltip.dataPoints.length === 0) return;
+
+  var idx = tooltip.dataPoints[0].dataIndex;
+  var dateStr = labels[idx] || tooltip.dataPoints[0].label;
+  var cVal = corpusArr[idx] !== undefined ? corpusArr[idx] : tooltip.dataPoints[0].raw;
+  var wVal = (withdrawnArr && withdrawnArr[idx] !== undefined) ? withdrawnArr[idx] : 0;
+
+  hud.innerHTML = 
+    '<span style="color:var(--text);font-weight:700;font-size:0.72rem;">📅 ' + dateStr + '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#22d3a0;box-shadow:0 0 6px #22d3a0;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Remaining Corpus:</span>' +
+      '<strong style="color:#F5F5F7;font-size:0.72rem;">' + formatINR(cVal) + '</strong>' +
+    '</span>' +
+    '<span class="cf-hud-pill">' +
+      '<span class="cf-hud-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span>' +
+      '<span style="color:var(--muted);font-size:0.64rem;">Cumulative Withdrawn:</span>' +
+      '<strong style="color:#f59e0b;font-size:0.72rem;">' + formatINR(wVal) + '</strong>' +
+    '</span>';
 }
 
 function updateCashflowHud(context) {
