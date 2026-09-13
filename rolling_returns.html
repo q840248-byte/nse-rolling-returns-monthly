@@ -12064,8 +12064,14 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
           min: bounds.min,
           max: bounds.max,
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          afterDataLimits: isLog ? function(axis) {
+            // Force the visual axis range — Chart.js 4.x log scale expands bounds
+            // to "nice" power-of-10 values unless we override here
+            if (bounds.min !== undefined) axis.min = bounds.min;
+            if (bounds.max !== undefined) axis.max = bounds.max;
+          } : undefined,
           afterBuildTicks: isLog ? function(axis) {
-            // Chart.js log scale ignores 'min' for tick generation — filter manually
+            // Strip any ticks Chart.js generated outside our forced range
             if (bounds.min !== undefined) {
               axis.ticks = axis.ticks.filter(function(t) {
                 return t.value >= bounds.min && t.value <= bounds.max;
