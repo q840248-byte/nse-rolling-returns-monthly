@@ -11959,7 +11959,7 @@ function getSmartLogBounds(datasets) {
   datasets.forEach(function(ds) {
     if (!ds.data) return;
     ds.data.forEach(function(v) {
-      if (typeof v === 'number' && !isNaN(v) && v > 10) {
+      if (typeof v === 'number' && !isNaN(v) && v > 0) {
         allVals.push(v);
       }
     });
@@ -11970,20 +11970,38 @@ function getSmartLogBounds(datasets) {
   var minV = Math.min.apply(null, allVals);
   var maxV = Math.max.apply(null, allVals);
 
-  var expMin = Math.floor(Math.log10(minV));
-  var baseMin = Math.pow(10, expMin);
-  var fracMin = minV / baseMin;
-  var targetFracMin = fracMin * 0.90;
-  var stepMin = fracMin >= 2 ? 0.5 : 0.2;
-  var yMin = Math.floor(targetFracMin / stepMin) * stepMin * baseMin;
-  if (yMin <= 0 || isNaN(yMin)) yMin = minV * 0.85;
+  // Work in log10 space and add a small fractional pad (5% of the log range)
+  var logMin = Math.log10(minV);
+  var logMax = Math.log10(maxV);
+  var logRange = logMax - logMin;
+  var pad = Math.max(logRange * 0.05, 0.05); // at least 0.05 decades of padding
 
-  var expMax = Math.floor(Math.log10(maxV));
-  var baseMax = Math.pow(10, expMax);
-  var fracMax = maxV / baseMax;
-  var targetFracMax = fracMax * 1.10;
-  var stepMax = fracMax >= 2 ? 0.5 : 0.2;
-  var yMax = Math.ceil(targetFracMax / stepMax) * stepMax * baseMax;
+  var yMin = Math.pow(10, logMin - pad);
+  var yMax = Math.pow(10, logMax + pad);
+
+  // Round yMin DOWN to a clean power-of-10 or half-decade that's ≤ yMin
+  // e.g. if minV = 10Cr → logMin=8 → yMin stays close to 10Cr, not 20L
+  var floorExp = Math.floor(Math.log10(yMin));
+  var floorBase = Math.pow(10, floorExp);
+  // snap to nearest: 1x, 2x, 5x that base
+  var snaps = [1, 2, 5];
+  var snappedMin = floorBase;
+  for (var i = snaps.length - 1; i >= 0; i--) {
+    var candidate = snaps[i] * floorBase;
+    if (candidate <= yMin) { snappedMin = candidate; break; }
+  }
+  yMin = snappedMin;
+
+  // Round yMax UP to a clean power-of-10 or half-decade that's ≥ yMax
+  var ceilExp = Math.floor(Math.log10(yMax));
+  var ceilBase = Math.pow(10, ceilExp);
+  var snappedMax = ceilBase * 10; // default: next full decade
+  var snapsUp = [1, 2, 5, 10];
+  for (var j = 0; j < snapsUp.length; j++) {
+    var cand = snapsUp[j] * ceilBase;
+    if (cand >= yMax) { snappedMax = cand; break; }
+  }
+  yMax = snappedMax;
 
   return { min: yMin, max: yMax };
 }
@@ -12046,6 +12064,14 @@ function renderCashflowChart(labels, datasets, yAxisLabel, customHudFn) {
           min: bounds.min,
           max: bounds.max,
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          afterBuildTicks: isLog ? function(axis) {
+            // Chart.js log scale ignores 'min' for tick generation — filter manually
+            if (bounds.min !== undefined) {
+              axis.ticks = axis.ticks.filter(function(t) {
+                return t.value >= bounds.min && t.value <= bounds.max;
+              });
+            }
+          } : undefined,
           ticks: {
             color: '#8B8D98',
             font: { family: "'DM Mono', monospace", size: 9 },
