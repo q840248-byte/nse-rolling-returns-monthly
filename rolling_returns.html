@@ -2692,6 +2692,9 @@
               </div>
               <input class="cf-input" id="cfEndDate" type="month" min="1973-01" max="2026-03" placeholder="Latest" style="width:142px;" oninput="syncCfYearsFromEnd(); debounceCfSim();">
             </div>
+            <div class="cf-field cf-field-single" style="justify-content:flex-end;align-items:flex-end;padding-bottom:4px;">
+              <span id="cfPortfolioRange" style="font-size:10px;opacity:0.45;letter-spacing:0.02em;font-family:monospace;white-space:nowrap;"></span>
+            </div>
 
             <!-- Horizon (Years): Visible in BOTH Single Journey and Rolling Stress-Test -->
             <div class="cf-field">
@@ -11092,14 +11095,54 @@ function runCashflowSim() {
     selKeys.forEach(function(k) { normWeights[k] = 1.0 / selKeys.length; });
   }
 
+  // ── Compute portfolio date INTERSECTION ──────────────────────────────────
+  // Portfolio is only valid where ALL selected indices have data.
+  // portfolioStart = max of each index's first date
+  // portfolioEnd   = min of each index's last date
+  var portfolioStart = null;
+  var portfolioEnd   = null;
+  selKeys.forEach(function(k) {
+    var kDates = Object.keys(RAW[k]).sort();
+    if (!kDates.length) return;
+    var kFirst = kDates[0];
+    var kLast  = kDates[kDates.length - 1];
+    if (!portfolioStart || kFirst > portfolioStart) portfolioStart = kFirst;
+    if (!portfolioEnd   || kLast  < portfolioEnd)   portfolioEnd   = kLast;
+  });
+  if (!portfolioStart) portfolioStart = '1973-01';
+  if (!portfolioEnd)   portfolioEnd   = '2099-12';
+
+  // Update Start Month input: clamp min and value to portfolio start
+  var startEl = document.getElementById('cfStartDate');
+  var endEl   = document.getElementById('cfEndDate');
+  if (startEl) {
+    startEl.min = portfolioStart;
+    // If current value is before portfolio start, snap it forward
+    if (!startEl.value || startEl.value < portfolioStart) {
+      startEl.value = portfolioStart;
+    }
+    // Show portfolio range hint in the label
+    var rangeHint = document.getElementById('cfPortfolioRange');
+    if (rangeHint) {
+      rangeHint.textContent = 'Portfolio: ' + portfolioStart + ' → ' + portfolioEnd;
+    }
+  }
+  if (endEl) {
+    endEl.max = portfolioEnd;
+    if (endEl.value && endEl.value > portfolioEnd) {
+      endEl.value = portfolioEnd;
+    }
+  }
+
   if (currentCashflowView === 'rolling') {
-    // Collect all historical dates with data for selected keys
-    var allDateSet = new Set();
+    // Use intersection date range for rolling view too
+    var intersectSet = new Set();
     selKeys.forEach(function(k) {
-      var raw = RAW[k];
-      Object.keys(raw).forEach(function(d) { allDateSet.add(d); });
+      Object.keys(RAW[k]).forEach(function(d) {
+        if (d >= portfolioStart && d <= portfolioEnd) intersectSet.add(d);
+      });
     });
-    var dates = Array.from(allDateSet).sort();
+    var dates = Array.from(intersectSet).sort();
 
     var monthlyReturns = [];
     for (var m = 1; m < dates.length; m++) {
@@ -11131,21 +11174,25 @@ function runCashflowSim() {
     return;
   }
 
-  // Single Journey View
-  var startMonth = document.getElementById('cfStartDate').value || '2010-01';
-  var endMonth = document.getElementById('cfEndDate').value;
+  // Single Journey View — use intersection + user's chosen start/end
+  var startMonth = (startEl && startEl.value) ? startEl.value : portfolioStart;
+  // Clamp startMonth to portfolio bounds
+  if (startMonth < portfolioStart) startMonth = portfolioStart;
+  if (startMonth > portfolioEnd)   startMonth = portfolioEnd;
 
-  var allDateSet = new Set();
+  var endMonth = (endEl && endEl.value) ? endEl.value : '';
+  if (endMonth && endMonth > portfolioEnd) endMonth = portfolioEnd;
+
+  var intersectSet2 = new Set();
   selKeys.forEach(function(k) {
-    var raw = RAW[k];
-    Object.keys(raw).forEach(function(d) {
-      if (d >= startMonth && (!endMonth || d <= endMonth)) {
-        allDateSet.add(d);
+    Object.keys(RAW[k]).forEach(function(d) {
+      if (d >= startMonth && d <= portfolioEnd && (!endMonth || d <= endMonth)) {
+        intersectSet2.add(d);
       }
     });
   });
 
-  var dates = Array.from(allDateSet).sort();
+  var dates = Array.from(intersectSet2).sort();
   var noData = document.getElementById('cfNoData');
   var summaryGrid = document.getElementById('cfSummaryGrid');
   var insightsBox = document.getElementById('cfInsightsBox');
