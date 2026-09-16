@@ -9,6 +9,7 @@ Modes:
   python update_data.py --full        → fetches ALL history from each index base date
 """
 
+import os
 import re
 import sys
 import json
@@ -16,6 +17,7 @@ import time
 import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+from concurrent.futures import ThreadPoolExecutor
 
 HTML_FILE  = "rolling_returns.html"
 FULL_MODE  = "--full" in sys.argv
@@ -240,6 +242,104 @@ def get_commodities_data(full_history=False):
         print(f"  ⚠️ Error fetching commodity data from Yahoo Finance: {e}")
         return {}
 
+# ── P/E Ratio Fetching & Update Helper ───────────────────────────────────────
+PE_URL = "https://www.niftyindices.com/BackPage/getpepbHistoricaldataDBtoString"
+PE_HEADERS = {
+    "Content-Type": "application/json; charset=utf-8",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://www.niftyindices.com/reports/historical-data",
+}
+
+def update_pe_data(html, today):
+    """Fetch latest 3 months of P/E data for all supported indices and update const RAW_PE in html."""
+    mapping_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pe_index_mapping.json")
+    if not os.path.exists(mapping_file):
+        print("  ⚠️ pe_index_mapping.json not found, skipping PE update.")
+        return html
+
+    with open(mapping_file, "r", encoding="utf-8") as f:
+        matched = json.load(f)
+
+    m = re.search(r'const RAW_PE\s*=\s*(\{.*?\});\n', html)
+    if not m:
+        print("  ⚠️ const RAW_PE not found in HTML, skipping PE update.")
+        return html
+
+    try:
+        pe_dict = json.loads(m.group(1))
+    except Exception as e:
+        print(f"  ⚠️ Error parsing existing RAW_PE JSON: {e}")
+        return html
+
+    from_date = (today - relativedelta(months=3)).replace(day=1)
+    fmt_date = lambda d: d.strftime("%d-%b-%Y")
+
+    def fetch_one(item):
+        disp_name, api_name, index_name = item
+        payload = {
+            "cinfo": json.dumps({
+                "name": api_name.upper().strip(),
+                "startDate": fmt_date(from_date),
+                "endDate": fmt_date(today),
+                "indexName": index_name
+            })
+        }
+        for attempt in range(2):
+            try:
+                r = requests.post(PE_URL, headers=PE_HEADERS, json=payload, timeout=20)
+                data = r.json()
+                rows = data if isinstance(data, list) else (json.loads(data.get("d", "[]")) if isinstance(data.get("d"), str) else data.get("d", []))
+                monthend = {}
+                for row in rows:
+                    dt_str = row.get("DATE") or row.get("HistoricalDate") or ""
+                    pe_val = row.get("pe") or row.get("PE") or 0
+                    if not dt_str: continue
+                    try:
+                        for fmt_cand in ["%d %b %Y", "%d-%b-%Y", "%Y-%m-%d"]:
+                            try:
+                                dt = datetime.strptime(dt_str.strip(), fmt_cand)
+                                break
+                            except ValueError:
+                                pass
+                        else:
+                            continue
+                        pe = round(float(str(pe_val).replace(",", "")), 2)
+                    except Exception:
+                        continue
+                    if pe <= 0 or pe > 600: continue
+                    ym = dt.strftime("%Y-%m")
+                    if ym not in monthend or dt > monthend[ym]["dt"]:
+                        monthend[ym] = {"dt": dt, "pe": pe}
+                return disp_name, {ym: v["pe"] for ym, v in monthend.items()}
+            except Exception:
+                time.sleep(0.5)
+        return disp_name, {}
+
+    print("\nUpdating historical P/E ratios for all indices...", flush=True)
+    pe_updated_count = 0
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        results = list(ex.map(fetch_one, matched))
+
+    this_month = today.strftime("%Y-%m")
+    for disp_name, new_pe in results:
+        if not new_pe: continue
+        if disp_name not in pe_dict:
+            pe_dict[disp_name] = {}
+        changed = False
+        for ym, val in new_pe.items():
+            if ym <= this_month and pe_dict[disp_name].get(ym) != val:
+                pe_dict[disp_name][ym] = val
+                changed = True
+        if changed:
+            pe_updated_count += 1
+
+    print(f"  [PE Ratios] Updated {pe_updated_count}/{len(matched)} indices.")
+    new_pe_json = json.dumps(pe_dict, separators=(",", ":"))
+    html = html[:m.start(1)] + new_pe_json + html[m.end(1):]
+    return html
+
 def main():
     mode = "FULL HISTORY" if FULL_MODE else "LAST 6 MONTHS"
     print(f"Reading {HTML_FILE}... [Mode: {mode}]")
@@ -384,6 +484,9 @@ def main():
         return f'{prefix}{new_json};'
 
     new_html = pattern.sub(replace_block, html)
+
+    # Update historical P/E ratios for all indices
+    new_html = update_pe_data(new_html, today)
 
     # snapTimelineToSelection already cleanly set to return in rolling_returns.html
 
