@@ -1996,6 +1996,18 @@
     <button class="tab-btn" onclick="switchTab(3)" id="tabBtn3">
       <span class="tab-icon">💸</span> Cashflow Sim
     </button>
+    <button class="tab-btn" onclick="switchTab(4)" id="tabBtn4">
+      <span class="tab-icon">🏛️</span> Raw P/E
+    </button>
+    <button class="tab-btn" onclick="switchTab(5)" id="tabBtn5">
+      <span class="tab-icon">🔬</span> Harmonized P/E
+    </button>
+    <button class="tab-btn" onclick="switchTab(6)" id="tabBtn6">
+      <span class="tab-icon">🎯</span> Dynamic Bands
+    </button>
+    <button class="tab-btn" onclick="switchTab(7)" id="tabBtn7">
+      <span class="tab-icon">🏷️</span> Lynch P/E Bands
+    </button>
 
   </div>
 
@@ -2039,7 +2051,7 @@
 
           <button class="wt-action-btn" onclick="equalWeights()">= Equal</button>
 
-          <button class="wt-action-btn" onclick="redistributeWeights();buildCards();buildCommodityCards(); buildPeCards(); buildPeCards(); renderMain()">↺ Reset</button>
+          <button class="wt-action-btn" onclick="redistributeWeights();buildCards();buildCommodityCards();   renderMain()">↺ Reset</button>
 
         </div>
 
@@ -2061,22 +2073,6 @@
 
         <div id="commodityCards" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-      </div>
-
-      <div class="panel" id="pePanel" style="margin-top:12px;">
-        <div class="panel-label" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePePanelCollapse()">
-          <span style="display:flex;align-items:center;gap:6px;">
-            <span id="pePanelArrow" style="font-size:9px;transition:transform 0.2s;">▼</span>
-            <span>PE Ratio (Valuation)</span>
-          </span>
-          <span id="peCountBadge" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:none;">0 selected</span>
-        </div>
-        <div id="pePanelBody">
-          <div style="font-size:0.64rem;color:var(--muted);margin-bottom:8px;line-height:1.3;">
-            Auto-synced from symbols. Independent selection for P/E chart.
-          </div>
-          <div id="peCards" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;padding-right:4px;"></div>
-        </div>
       </div>
 
 
@@ -2552,11 +2548,6 @@
 
             </div>
 
-            <!-- P/E Ratio Toggle -->
-            <div class="tv-btn-group" title="Toggle P/E Ratio Valuation Sub-Chart">
-              <button class="tv-tool-btn" id="tvPeToggleBtn" onclick="togglePeChart()">📊 P/E: OFF</button>
-            </div>
-
 
             <!-- Reset Zoom -->
 
@@ -2590,29 +2581,6 @@
 
           <canvas id="priceChartCanvas" style="cursor:grab;touch-action:none;"></canvas>
 
-        </div>
-
-        <!-- Synchronized P/E Ratio Valuation Sub-Chart (TradingView Style) -->
-        <div id="peSubChartContainer" style="display:none;margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-family:'Syne',sans-serif;font-size:0.76rem;font-weight:700;color:var(--text);letter-spacing:0.02em;">
-                📊 Historical P/E Ratio (Constituent Valuation Trajectory)
-              </span>
-              <span style="font-size:0.62rem;color:var(--muted);font-family:'DM Mono',monospace;display:flex;gap:8px;align-items:center;">
-                <span style="display:inline-block;width:8px;height:2px;background:#22d3a0;"></span> Value &lt;18
-                <span style="display:inline-block;width:8px;height:2px;background:#8B8D98;"></span> Fair 18-22
-                <span style="display:inline-block;width:8px;height:2px;background:#f87171;"></span> Extended &gt;25
-              </span>
-              <button id="peScaleToggleBtn" onclick="togglePeScale()" style="padding:2px 8px;font-size:0.62rem;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;cursor:pointer;margin-left:4px;" title="Toggle Logarithmic / Linear scale">LOG</button>
-            </div>
-            <div id="peHoverHud" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-              <span style="color:var(--muted);font-style:italic;">Hover over chart to view historical P/E</span>
-            </div>
-          </div>
-          <div style="position:relative;height:220px;width:100%;">
-            <canvas id="peChartCanvas"></canvas>
-          </div>
         </div>
 
 
@@ -2771,10 +2739,206 @@
           <div id="cfInsightsBox" class="cf-insights-box"></div>
         </div>
       </div>
+
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 4: RAW P/E (OFFICIAL REPORTED DATA)                                  -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent4" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🏛️</span> Raw Historical P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OFFICIAL REPORTED</span>
+            </div>
+            <div class="chart-subtitle">
+              Unadjusted P/E ratios exactly as published by NSE • Shows pre-2021 standalone era &amp; post-2021 consolidated era
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn active" id="rawPeLogBtn" onclick="setRawPeScale(true)">LOG</button>
+              <button class="tv-tool-btn" id="rawPeLinBtn" onclick="setRawPeScale(false)">LIN</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="rawTf1Y" onclick="setRawPeTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="rawTf3Y" onclick="setRawPeTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="rawTf5Y" onclick="setRawPeTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="rawTf10Y" onclick="setRawPeTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="rawTfMAX" onclick="setRawPeTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetRawPeZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="rawPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to view historical constituent P/E</span>
+        </div>
+
+        <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="rawPeChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--muted);line-height:1.6;">
+          <strong style="color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>ℹ️</span> Why does this chart look fractured?
+          </strong>
+          Until March 31, 2021, NSE published <strong>Standalone</strong> P/E (excluding subsidiaries like JLR for Tata Motors). On April 1, 2021, NSE switched to <strong>Consolidated</strong> TTM earnings without back-adjusting the historical data. Notice the sudden artificial compression in mid-2021 where reported P/E dropped ~18.5% overnight without stock prices falling.
+        </div>
       </div>
+    </div>
 
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 5: HARMONIZED P/E (OPTION 1: BACK-ADJUSTED CONSOLIDATED)              -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent5" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🔬</span> Harmonized P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 1: CONSOLIDATED BASIS</span>
+            </div>
+            <div class="chart-subtitle">
+              Pre-2021 standalone data normalized to consolidated basis using the audited 18.5% subsidiary factor • Continuous 25-year ruler
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn active" id="harmPeLogBtn" onclick="setHarmPeScale(true)">LOG</button>
+              <button class="tv-tool-btn" id="harmPeLinBtn" onclick="setHarmPeScale(false)">LIN</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="harmTf1Y" onclick="setHarmPeTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="harmTf3Y" onclick="setHarmPeTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="harmTf5Y" onclick="setHarmPeTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="harmTf10Y" onclick="setHarmPeTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="harmTfMAX" onclick="setHarmPeTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetHarmPeZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
 
+        <div id="harmPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to view harmonized P/E values</span>
+        </div>
 
+        <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="harmPeChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(34,211,160,0.03);border:1px solid rgba(34,211,160,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#22d3a0;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>✅</span> Harmonization Methodology (Institutional Standard)
+          </strong>
+          By applying an 18.5% subsidiary adjustment factor to pre-April 2021 standalone data, the artificial 2021 drop is eliminated. The 2008 peak is normalized to ~23x (matching modern consolidated metrics), and the 2008 bottom aligns to ~10x, creating a true, continuous multi-decade valuation cycle.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 6: DYNAMIC VALUATION BANDS (OPTION 2: ROLLING ±1.5σ Z-SCORE)         -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent6" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🎯</span> Dynamic Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(79,158,248,0.12);color:#4f9ef8;border:1px solid rgba(79,158,248,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 2: ADAPTIVE ±1.5σ</span>
+            </div>
+            <div class="chart-subtitle">
+              Rolling 5-year statistical bands (Mean, +1.5σ Froth Zone, -1.5σ Value Zone) • Automatically adapts to interest rate regimes
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;">Index:</span>
+              <select id="dynIndexSelect" onchange="renderDynamicBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:'DM Mono',monospace;cursor:pointer;"></select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="dynTf3Y" onclick="setDynPeTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="dynTf5Y" onclick="setDynPeTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="dynTf10Y" onclick="setDynPeTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="dynTfMAX" onclick="setDynPeTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetDynPeZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="dynPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:gap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect dynamic valuation metrics</span>
+        </div>
+
+        <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="dynPeChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(79,158,248,0.03);border:1px solid rgba(79,158,248,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#4f9ef8;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>🎯</span> Why Dynamic Bands eliminate false extremes:
+          </strong>
+          Fixed lines (like 15x or 25x) fail because Indian interest rates declined from 12% to 6.5% over 20 years, structurally increasing justifiable baseline P/E. Dynamic bands use a <strong>rolling 5-year window</strong>: when P/E touches the <strong style="color:#22d3a0;">Lower Green Band (-1.5σ)</strong>, it signals a statistically rare, high-conviction accumulation zone. Touching the <strong style="color:#f87171;">Upper Red Band (+1.5σ)</strong> signals cycle froth.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 7: PETER LYNCH P/E PRICE BANDS (OPTION 3: VALUATION PRICE CHANNELS)   -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent7" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🏷️</span> Peter Lynch P/E Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 3: PRICE SPACE OVERLAY</span>
+            </div>
+            <div class="chart-subtitle">
+              Actual Index Price plotted directly against 16x, 20x, and 24x Implied Earnings Envelopes • Instantly visualizes price vs corporate earnings
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;">Index:</span>
+              <select id="lynchIndexSelect" onchange="renderLynchBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:'DM Mono',monospace;cursor:pointer;"></select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn active" id="lynchLogBtn" onclick="setLynchScale(true)">LOG</button>
+              <button class="tv-tool-btn" id="lynchLinBtn" onclick="setLynchScale(false)">LIN</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="lynchTf1Y" onclick="setLynchTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="lynchTf3Y" onclick="setLynchTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="lynchTf5Y" onclick="setLynchTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="lynchTf10Y" onclick="setLynchTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="lynchTfMAX" onclick="setLynchTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetLynchZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="lynchHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to view actual price vs earnings valuation envelopes</span>
+        </div>
+
+        <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="lynchChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(245,158,11,0.03);border:1px solid rgba(245,158,11,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#f59e0b;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>🏷️</span> The Peter Lynch Breakthrough:
+          </strong>
+          Instead of a separate squiggly P/E line below, valuation is mapped into <strong>Actual Price</strong>. We calculate monthly Trailing EPS (Price / PE) and plot what the index would cost at <strong style="color:#22d3a0;">16x EPS (Green Band)</strong>, <strong style="color:#8B8D98;">20x EPS (Gray Line)</strong>, and <strong style="color:#f87171;">24x EPS (Red Band)</strong>. When the actual price line drops into the green channel, you see immediate, visual undervaluation in price terms.
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -3377,12 +3541,6 @@ let horizon = 5;
 
 let selected = new Set();
 window.selected = selected;
-var selectedPE = new Set(['Nifty 50']);
-window.selectedPE = selectedPE;
-var isPeChartActive = false;
-window.isPeChartActive = isPeChartActive;
-var peChartInstance = null;
-var _pePanelCollapsed = false;
 
 let weights  = {};
 
@@ -8292,6 +8450,10 @@ function buildCommodityCards() {
 
       redistributeWeights(); snapTimelineToSelection(); buildCards(); buildCommodityCards();  renderMain();
       if (_activeTabIdx === 3) debounceCfSim();
+      if (_activeTabIdx === 4) renderRawPeTab();
+      if (_activeTabIdx === 5) renderHarmonizedPeTab();
+      if (_activeTabIdx === 6) renderDynamicBandsTab();
+      if (_activeTabIdx === 7) renderLynchBandsTab();
 
     });
 
@@ -8543,17 +8705,17 @@ function buildCards() {
 
           } else {
 
-            if (selected.has(idx.key)) { selected.delete(idx.key); locked.delete(idx.key); syncPeFromSymbols(null, idx.key); }
+            if (selected.has(idx.key)) { selected.delete(idx.key); locked.delete(idx.key); }
 
-            else { selected.add(idx.key); syncPeFromSymbols(idx.key, null); }
+            else { selected.add(idx.key); }
 
           }
 
         } else {
 
-          if (selected.has(idx.key)) { selected.delete(idx.key); locked.delete(idx.key); syncPeFromSymbols(null, idx.key); }
+          if (selected.has(idx.key)) { selected.delete(idx.key); locked.delete(idx.key); }
 
-          else { selected.add(idx.key); syncPeFromSymbols(idx.key, null); }
+          else { selected.add(idx.key); }
 
           _lastClickedKey = idx.key;
 
@@ -8561,6 +8723,10 @@ function buildCards() {
 
         redistributeWeights(); snapTimelineToSelection(); buildCards(); buildCommodityCards();  renderMain();
         if (_activeTabIdx === 3) debounceCfSim();
+      if (_activeTabIdx === 4) renderRawPeTab();
+      if (_activeTabIdx === 5) renderHarmonizedPeTab();
+      if (_activeTabIdx === 6) renderDynamicBandsTab();
+      if (_activeTabIdx === 7) renderLynchBandsTab();
 
       });
 
@@ -8618,6 +8784,10 @@ function buildCards() {
 
           updateAllocBar(); renderMain();
           if (_activeTabIdx === 3) debounceCfSim();
+      if (_activeTabIdx === 4) renderRawPeTab();
+      if (_activeTabIdx === 5) renderHarmonizedPeTab();
+      if (_activeTabIdx === 6) renderDynamicBandsTab();
+      if (_activeTabIdx === 7) renderLynchBandsTab();
 
         });
 
@@ -8875,7 +9045,7 @@ function syncTooltipLimit(val) {
 
   updateMainHud();
 
-  updatePriceHud(); if (isPeChartActive) renderPeChart(); if (isPeChartActive) renderPeChart();
+  updatePriceHud();
 
 }
 
@@ -9223,7 +9393,7 @@ function deselectAllIndices() {
 
 redistributeWeights();
 
-snapTimelineToSelection(); buildCards(); buildCommodityCards(); buildPeCards(); renderMain();
+snapTimelineToSelection(); buildCards(); buildCommodityCards();  renderMain();
 
 
 
@@ -10550,9 +10720,7 @@ function renderPriceChart(selKeys) {
 
   }
 
-  if (typeof isPeChartActive !== 'undefined' && isPeChartActive && typeof renderPeChart === 'function') {
-    renderPeChart();
-  }
+
 
 }
 
@@ -10607,6 +10775,22 @@ function switchTab(idx) {
   } else if (idx === 3) {
     setTimeout(function() {
       runCashflowSim();
+    }, 50);
+  } else if (idx === 4) {
+    setTimeout(function() {
+      renderRawPeTab();
+    }, 50);
+  } else if (idx === 5) {
+    setTimeout(function() {
+      renderHarmonizedPeTab();
+    }, 50);
+  } else if (idx === 6) {
+    setTimeout(function() {
+      renderDynamicBandsTab();
+    }, 50);
+  } else if (idx === 7) {
+    setTimeout(function() {
+      renderLynchBandsTab();
     }, 50);
   }
 }
@@ -12444,268 +12628,141 @@ function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflation
 
 
 
-// ── P/E Ratio Valuation Module ───────────────────────────────────────────────
-var isPeScaleLog = true;
-
-function togglePeScale() {
-  isPeScaleLog = !isPeScaleLog;
-  var btn = document.getElementById('peScaleToggleBtn');
-  if (btn) btn.textContent = isPeScaleLog ? 'LOG' : 'LIN';
-  if (peChartInstance) {
-    peChartInstance.options.scales.y.type = isPeScaleLog ? 'logarithmic' : 'linear';
-    if (isPeScaleLog) {
-      peChartInstance.options.scales.y.min = 10;
-    } else {
-      delete peChartInstance.options.scales.y.min;
-    }
-    peChartInstance.update();
-  }
-}
-window.togglePeScale = togglePeScale;
-
-var selectedPE = new Set(['Nifty 50']);
-var isPeChartActive = false;
-var peChartInstance = null;
-var _pePanelCollapsed = false;
-
-function togglePePanelCollapse() {
-  _pePanelCollapsed = !_pePanelCollapsed;
-  var body = document.getElementById('pePanelBody');
-  var arrow = document.getElementById('pePanelArrow');
-  if (body) body.style.display = _pePanelCollapsed ? 'none' : 'block';
-  if (arrow) arrow.style.transform = _pePanelCollapsed ? 'rotate(-90deg)' : 'none';
-}
-
+// ── Valuation Modules (Tabs 4, 5, 6, 7) ──────────────────────────────────────
 function findIndexObj(key) {
-  if (typeof INDICES !== 'undefined') {
+  if (typeof INDICES !== 'undefined' && INDICES) {
     var found = INDICES.find(function(i) { return i.key === key; });
     if (found) return found;
   }
-  if (typeof COMMODITIES !== 'undefined') {
-    var cFound = COMMODITIES.find(function(i) { return i.key === key; });
-    if (cFound) return cFound;
+  if (typeof COMMODITIES !== 'undefined' && COMMODITIES) {
+    var foundComm = COMMODITIES.find(function(c) { return c.key === key; });
+    if (foundComm) return foundComm;
   }
-  return null;
+  return { key: key, label: key, color: '#4f9ef8' };
 }
 
-function getLatestPE(key) {
-  if (typeof RAW_PE === 'undefined' || !RAW_PE || !RAW_PE[key]) return null;
-  var d = RAW_PE[key];
-  var keys = Object.keys(d);
-  if (!keys.length) return null;
-  keys.sort();
-  return d[keys[keys.length - 1]];
+var SUBSIDIARY_FACTOR = 0.815; // 18.5% subsidiary adjustment for pre-April 2021 standalone data
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 4: RAW P/E (OFFICIAL REPORTED DATA)
+// ─────────────────────────────────────────────────────────────────────────────
+var rawPeChartInstance = null;
+var isRawPeLog = true;
+var rawPeTimeframe = 'MAX';
+
+function setRawPeScale(isLog) {
+  isRawPeLog = isLog;
+  var logBtn = document.getElementById('rawPeLogBtn');
+  var linBtn = document.getElementById('rawPeLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', isLog);
+  if (linBtn) linBtn.classList.toggle('active', !isLog);
+  renderRawPeTab();
 }
 
-function buildPeCards() {
-  var container = document.getElementById('peCards');
-  if (!container) return;
-  container.innerHTML = '';
+function setRawPeTimeframe(tf) {
+  rawPeTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('rawTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderRawPeTab();
+}
 
-  if (typeof RAW_PE === 'undefined' || !RAW_PE) return;
-  if (typeof selectedPE === 'undefined' || !selectedPE) {
-    if (window.selectedPE) {
-      selectedPE = window.selectedPE;
-    } else {
-      selectedPE = window.selectedPE = new Set(['Nifty 50']);
+function resetRawPeZoom() {
+  rawPeTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('rawTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderRawPeTab();
+}
+
+function renderRawPeTab() {
+  var canvas = document.getElementById('rawPeChartCanvas');
+  var hud = document.getElementById('rawPeHoverHud');
+  if (!canvas) return;
+
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  var userSelWithPe = [...selected].filter(function(k) { return peDict[k]; });
+  // If user hasn't selected any index with PE yet, default to Nifty 50 preview
+  var activeKeys = userSelWithPe.length > 0 ? userSelWithPe : (peDict['Nifty 50'] ? ['Nifty 50'] : Object.keys(peDict).slice(0, 1));
+
+  if (activeKeys.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view historical P/E</span>';
+    if (rawPeChartInstance) { rawPeChartInstance.destroy(); rawPeChartInstance = null; }
+    window.rawPeChartInstance = null;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  var dateSet = new Set();
+  activeKeys.forEach(function(k) {
+    if (peDict[k]) {
+      Object.keys(peDict[k]).forEach(function(d) { dateSet.add(d); });
     }
+  });
+  var allDates = Array.from(dateSet).sort();
+
+  if (rawPeTimeframe !== 'MAX' && allDates.length > 0) {
+    var latestD = allDates[allDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = rawPeTimeframe === '1Y' ? 1 : (rawPeTimeframe === '3Y' ? 3 : (rawPeTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+    allDates = allDates.filter(function(d) { return d >= startD; });
   }
 
-  var countBadge = document.getElementById('peCountBadge');
-  if (countBadge) countBadge.textContent = selectedPE.size + ' selected';
+  if (allDates.length === 0) return;
 
-  // Sort indices: selected first, then alphabetical
-  var peKeys = Object.keys(RAW_PE).filter(function(k) {
-    return RAW_PE[k] && Object.keys(RAW_PE[k]).length > 0;
-  });
-
-  peKeys.sort(function(a, b) {
-    var aSel = selectedPE.has(a) ? 1 : 0;
-    var bSel = selectedPE.has(b) ? 1 : 0;
-    if (aSel !== bSel) return bSel - aSel;
-    return a.localeCompare(b);
-  });
-
-  peKeys.forEach(function(key) {
-    var isSel = selectedPE.has(key);
-    var idx = findIndexObj(key);
-    var color = idx ? idx.color : '#4f9ef8';
-    var latestPE = getLatestPE(key);
-
-    var card = document.createElement('div');
-    card.className = 'index-card' + (isSel ? ' selected' : '');
-    card.style.setProperty('--card-color', color);
-    card.style.padding = '6px 10px';
-
-    var peBadgeHtml = '';
-    if (latestPE !== null) {
-      var peColor = latestPE < 18 ? '#22d3a0' : (latestPE > 25 ? '#f87171' : '#f59e0b');
-      var peBg = latestPE < 18 ? 'rgba(34,211,160,0.12)' : (latestPE > 25 ? 'rgba(248,113,113,0.12)' : 'rgba(245,158,11,0.12)');
-      peBadgeHtml = '<span style="font-family:monospace;font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:4px;background:' + peBg + ';color:' + peColor + ';border:1px solid ' + peColor + '33;">' + latestPE.toFixed(1) + 'x</span>';
-    }
-
-    card.innerHTML = '<div class="card-header" style="gap:8px;">' +
-      '<div class="card-dot" style="width:7px;height:7px;"></div>' +
-      '<div class="card-name" style="font-size:0.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + key + '">' + key + '</div>' +
-      peBadgeHtml +
-      '<div class="card-check" style="width:14px;height:14px;"><svg viewBox="0 0 10 8" fill="none" width="8" height="7"><path d="M1 4l3 3 5-5" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
-      '</div>';
-
-    // ONE-WAY ISOLATION: Clicking inside PE cards ONLY modifies selectedPE, never touches selected!
-    card.addEventListener('click', function() {
-      if (selectedPE.has(key)) {
-        selectedPE.delete(key);
-      } else {
-        selectedPE.add(key);
-      }
-      buildPeCards();
-      if (isPeChartActive) renderPeChart();
+  var datasets = activeKeys.map(function(k) {
+    var idx = findIndexObj(k);
+    var sColor = idx ? idx.color : '#4f9ef8';
+    var seriesData = allDates.map(function(d) {
+      var v = peDict[k] ? peDict[k][d] : null;
+      return (v !== undefined && v !== null) ? v : null;
     });
-
-    container.appendChild(card);
-  });
-}
-
-function syncPeFromSymbols(addedKey, removedKey) {
-  if (addedKey && RAW_PE && RAW_PE[addedKey]) {
-    selectedPE.add(addedKey);
-  }
-  if (removedKey) {
-    selectedPE.delete(removedKey);
-  }
-  buildPeCards();
-  if (isPeChartActive) renderPeChart();
-}
-
-function togglePeChart() {
-  isPeChartActive = !isPeChartActive;
-  var btn = document.getElementById('tvPeToggleBtn');
-  var container = document.getElementById('peSubChartContainer');
-  if (btn) {
-    btn.classList.toggle('active', isPeChartActive);
-    btn.textContent = isPeChartActive ? '📊 P/E: ON' : '📊 P/E: OFF';
-  }
-  if (container) {
-    container.style.display = isPeChartActive ? 'block' : 'none';
-  }
-  if (isPeChartActive) {
-    renderPeChart();
-  }
-}
-
-function renderPeChart() {
-  var canvas = document.getElementById('peChartCanvas');
-  if (!canvas || !isPeChartActive) return;
-
-  if (peChartInstance) {
-    peChartInstance.destroy();
-    peChartInstance = null;
-  }
-
-  var lpd = window.lastPriceData || (typeof lastPriceData !== 'undefined' ? lastPriceData : null);
-  var allDates = (lpd && lpd.allDates && lpd.allDates.length) ? lpd.allDates : (typeof GLOBAL_TL_DATES !== 'undefined' ? GLOBAL_TL_DATES : []);
-  if (!allDates || !allDates.length) return;
-  var datasets = [];
-
-  selectedPE.forEach(function(key) {
-    var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE);
-    if (!peDict || !peDict[key]) return;
-    var rawPe = peDict[key];
-    var rawPe = RAW_PE[key];
-    var idx = findIndexObj(key);
-    var color = idx ? idx.color : '#4f9ef8';
-
-    var pts = allDates.map(function(d) {
-      var v = rawPe[d];
-      return (v !== undefined && v !== null && v > 0) ? v : null;
-    });
-
-    datasets.push({
-      label: key + ' P/E',
-      seriesKey: key,
-      data: pts,
-      borderColor: color,
-      backgroundColor: 'transparent',
+    return {
+      label: k,
+      data: seriesData,
+      borderColor: sColor,
+      backgroundColor: sColor,
       borderWidth: 2,
-      pointRadius: 0,
+      pointRadius: allDates.length > 80 ? 0 : 2,
       pointHoverRadius: 5,
-      pointHoverBackgroundColor: color,
       tension: 0.15,
       spanGaps: true
-    });
+    };
   });
 
-  // Add reference lines (Value 15, Median 20, Expensive 25)
-  var line15 = allDates.map(function() { return 15; });
-  var line20 = allDates.map(function() { return 20; });
-  var line25 = allDates.map(function() { return 25; });
-
-  datasets.push({
-    label: 'Value (15x)',
-    data: line15,
-    borderColor: 'rgba(34, 211, 160, 0.4)',
-    borderDash: [5, 4],
-    borderWidth: 1.2,
-    pointRadius: 0,
-    fill: false,
-    tension: 0
-  });
-
-  datasets.push({
-    label: 'Fair (20x)',
-    data: line20,
-    borderColor: 'rgba(139, 141, 152, 0.4)',
-    borderDash: [5, 4],
-    borderWidth: 1.2,
-    pointRadius: 0,
-    fill: false,
-    tension: 0
-  });
-
-  datasets.push({
-    label: 'Extended (25x)',
-    data: line25,
-    borderColor: 'rgba(248, 113, 113, 0.4)',
-    borderDash: [5, 4],
-    borderWidth: 1.2,
-    pointRadius: 0,
-    fill: false,
-    tension: 0
-  });
-
-  function updatePeHud(dateIdx) {
-  window.updatePeHud = updatePeHud;
-    var hud = document.getElementById('peHoverHud');
+  function updateHud(idx) {
     if (!hud) return;
-    var d = allDates[dateIdx];
+    var d = allDates[idx];
     if (!d) return;
-
     var items = ['<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>'];
-    selectedPE.forEach(function(key) {
-      var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE);
-      if (!peDict || !peDict[key]) return;
-      var v = RAW_PE[key][d];
-      var idx = findIndexObj(key);
-      var color = idx ? idx.color : '#4f9ef8';
+    activeKeys.forEach(function(k) {
+      var v = peDict[k] ? peDict[k][d] : null;
+      var idxObj = findIndexObj(k);
+      var color = idxObj ? idxObj.color : '#4f9ef8';
       var valStr = (v !== undefined && v !== null) ? v.toFixed(1) + 'x' : '—';
       items.push(
         '<span style="display:inline-flex;align-items:center;gap:4px;">' +
-          '<span style="width:6px;height:6px;border-radius:50%;background:' + color + ';"></span>' +
-          '<span>' + key + ':</span>' +
-          '<strong style="color:' + (v ? (v < 18 ? '#22d3a0' : (v > 25 ? '#f87171' : '#F5F5F7')) : 'var(--muted)') + ';">' + valStr + '</strong>' +
+          '<span style="width:7px;height:7px;border-radius:50%;background:' + color + ';"></span>' +
+          '<span>' + k + ':</span>' +
+          '<strong style="color:#F5F5F7;">' + valStr + '</strong>' +
         '</span>'
       );
     });
-
     hud.innerHTML = items.join('');
   }
 
-  peChartInstance = new Chart(canvas.getContext('2d'), {
+  if (rawPeChartInstance) { rawPeChartInstance.destroy(); rawPeChartInstance = null; }
+
+  rawPeChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
-    data: {
-      labels: allDates,
-      datasets: datasets
-    },
+    data: { labels: allDates, datasets: datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -12716,31 +12773,718 @@ function renderPeChart() {
           enabled: false,
           external: function(ctx) {
             if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
-            var idx = ctx.tooltip.dataPoints[0].dataIndex;
-            updatePeHud(idx);
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
           }
         }
       },
       scales: {
         x: {
           ticks: {
-            color: '#3d4560',
+            color: '#5c6480',
             font: { family: 'DM Mono', size: 10 },
             maxRotation: 0,
             autoSkip: true,
-            maxTicksLimit: 15,
+            maxTicksLimit: 14,
             callback: function(val, index) {
               var d = allDates[index];
-              if (!d) return '';
-              return allDates.length > 60 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d;
+              return d ? (allDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
             }
           },
           grid: { display: false },
-          border: { display: false }
+          border: { color: '#252a38' }
         },
         y: {
-          type: (typeof isPeScaleLog !== 'undefined' && isPeScaleLog) ? 'logarithmic' : 'linear',
-          min: (typeof isPeScaleLog !== 'undefined' && isPeScaleLog) ? 10 : undefined,
+          type: isRawPeLog ? 'logarithmic' : 'linear',
+          min: isRawPeLog ? 8 : undefined,
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.rawPeChartInstance = rawPeChartInstance;
+  updateHud(allDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 5: HARMONIZED P/E (OPTION 1: BACK-ADJUSTED CONSOLIDATED BASIS)
+// ─────────────────────────────────────────────────────────────────────────────
+var harmPeChartInstance = null;
+var isHarmPeLog = true;
+var harmPeTimeframe = 'MAX';
+
+function setHarmPeScale(isLog) {
+  isHarmPeLog = isLog;
+  var logBtn = document.getElementById('harmPeLogBtn');
+  var linBtn = document.getElementById('harmPeLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', isLog);
+  if (linBtn) linBtn.classList.toggle('active', !isLog);
+  renderHarmonizedPeTab();
+}
+
+function setHarmPeTimeframe(tf) {
+  harmPeTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('harmTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderHarmonizedPeTab();
+}
+
+function resetHarmPeZoom() {
+  harmPeTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('harmTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderHarmonizedPeTab();
+}
+
+function renderHarmonizedPeTab() {
+  var canvas = document.getElementById('harmPeChartCanvas');
+  var hud = document.getElementById('harmPeHoverHud');
+  if (!canvas) return;
+
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  var userSelWithPe = [...selected].filter(function(k) { return peDict[k]; });
+  var activeKeys = userSelWithPe.length > 0 ? userSelWithPe : (peDict['Nifty 50'] ? ['Nifty 50'] : Object.keys(peDict).slice(0, 1));
+
+  if (activeKeys.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);font-style:italic;">Select indices in sidebar to view harmonized P/E</span>';
+    if (harmPeChartInstance) { harmPeChartInstance.destroy(); harmPeChartInstance = null; }
+    window.harmPeChartInstance = null;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  var dateSet = new Set();
+  activeKeys.forEach(function(k) {
+    if (peDict[k]) {
+      Object.keys(peDict[k]).forEach(function(d) { dateSet.add(d); });
+    }
+  });
+  var allDates = Array.from(dateSet).sort();
+
+  if (harmPeTimeframe !== 'MAX' && allDates.length > 0) {
+    var latestD = allDates[allDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = harmPeTimeframe === '1Y' ? 1 : (harmPeTimeframe === '3Y' ? 3 : (harmPeTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+    allDates = allDates.filter(function(d) { return d >= startD; });
+  }
+
+  if (allDates.length === 0) return;
+
+  var datasets = activeKeys.map(function(k) {
+    var idx = findIndexObj(k);
+    var sColor = idx ? idx.color : '#22d3a0';
+    var seriesData = allDates.map(function(d) {
+      var raw = peDict[k] ? peDict[k][d] : null;
+      if (raw === undefined || raw === null) return null;
+      return d < '2021-04' ? parseFloat((raw * SUBSIDIARY_FACTOR).toFixed(2)) : raw;
+    });
+    return {
+      label: k,
+      data: seriesData,
+      borderColor: sColor,
+      backgroundColor: sColor,
+      borderWidth: 2.2,
+      pointRadius: allDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      spanGaps: true
+    };
+  });
+
+  // Reference lines: 25x (Froth), 20x (Fair Value), 15x (Deep Value)
+  datasets.push({
+    label: '25x Froth',
+    data: allDates.map(function() { return 25; }),
+    borderColor: 'rgba(248, 113, 113, 0.65)',
+    borderWidth: 1.5,
+    borderDash: [5, 4],
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false
+  });
+  datasets.push({
+    label: '20x Median',
+    data: allDates.map(function() { return 20; }),
+    borderColor: 'rgba(148, 163, 184, 0.45)',
+    borderWidth: 1.2,
+    borderDash: [3, 3],
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false
+  });
+  datasets.push({
+    label: '15x Deep Value',
+    data: allDates.map(function() { return 15; }),
+    borderColor: 'rgba(34, 211, 160, 0.65)',
+    borderWidth: 1.5,
+    borderDash: [5, 4],
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false
+  });
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = allDates[idx];
+    if (!d) return;
+    var items = ['<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>'];
+    activeKeys.forEach(function(k) {
+      var raw = peDict[k] ? peDict[k][d] : null;
+      var val = (raw !== undefined && raw !== null) ? (d < '2021-04' ? (raw * SUBSIDIARY_FACTOR) : raw) : null;
+      var idxObj = findIndexObj(k);
+      var color = idxObj ? idxObj.color : '#22d3a0';
+      var valStr = val !== null ? val.toFixed(1) + 'x' : '—';
+      var badge = '';
+      if (val !== null) {
+        if (val < 15.5) badge = ' <span style="color:#22d3a0;font-size:0.65rem;">(Deep Value)</span>';
+        else if (val > 24) badge = ' <span style="color:#f87171;font-size:0.65rem;">(Overvalued)</span>';
+        else badge = ' <span style="color:#8B8D98;font-size:0.65rem;">(Fair)</span>';
+      }
+      items.push(
+        '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+          '<span style="width:7px;height:7px;border-radius:50%;background:' + color + ';"></span>' +
+          '<span>' + k + ':</span>' +
+          '<strong style="color:#F5F5F7;">' + valStr + '</strong>' + badge +
+        '</span>'
+      );
+    });
+    hud.innerHTML = items.join('');
+  }
+
+  if (harmPeChartInstance) { harmPeChartInstance.destroy(); harmPeChartInstance = null; }
+
+  harmPeChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: allDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = allDates[index];
+              return d ? (allDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          type: isHarmPeLog ? 'logarithmic' : 'linear',
+          min: isHarmPeLog ? 8 : undefined,
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.harmPeChartInstance = harmPeChartInstance;
+  updateHud(allDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 6: DYNAMIC VALUATION BANDS (OPTION 2: ROLLING ±1.5σ Z-SCORE)
+// ─────────────────────────────────────────────────────────────────────────────
+var dynPeChartInstance = null;
+var dynPeTimeframe = 'MAX';
+
+function setDynPeTimeframe(tf) {
+  dynPeTimeframe = tf;
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('dynTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderDynamicBandsTab();
+}
+
+function resetDynPeZoom() {
+  dynPeTimeframe = 'MAX';
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('dynTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderDynamicBandsTab();
+}
+
+function renderDynamicBandsTab() {
+  var canvas = document.getElementById('dynPeChartCanvas');
+  var hud = document.getElementById('dynPeHoverHud');
+  var select = document.getElementById('dynIndexSelect');
+  if (!canvas) return;
+
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  var availableIndices = Object.keys(peDict).filter(function(k) { return peDict[k] && Object.keys(peDict[k]).length >= 12; });
+
+  if (availableIndices.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No P/E data available</span>';
+    return;
+  }
+
+  if (select) {
+    var curVal = select.value;
+    var userSelWithPe = [...selected].filter(function(k) { return peDict[k]; });
+    var choices = userSelWithPe.length > 0 ? userSelWithPe : availableIndices;
+    if (!choices.includes(curVal)) {
+      curVal = choices.includes('Nifty 50') ? 'Nifty 50' : choices[0];
+    }
+    select.innerHTML = choices.map(function(k) {
+      return '<option value="' + k + '"' + (k === curVal ? ' selected' : '') + '>' + k + '</option>';
+    }).join('');
+  }
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  if (!peDict[chosenKey]) chosenKey = availableIndices[0];
+
+  var rawMap = peDict[chosenKey];
+  var rawDates = Object.keys(rawMap).sort();
+  var peSeries = rawDates.map(function(d) {
+    var v = rawMap[d];
+    return d < '2021-04' ? (v * SUBSIDIARY_FACTOR) : v;
+  });
+
+  var windowSize = 60;
+  var meanArr = [];
+  var upperBandArr = [];
+  var lowerBandArr = [];
+  var zScores = [];
+
+  for (var i = 0; i < peSeries.length; i++) {
+    var startIdx = Math.max(0, i - windowSize + 1);
+    var count = i - startIdx + 1;
+    var sum = 0;
+    for (var j = startIdx; j <= i; j++) sum += peSeries[j];
+    var mean = sum / count;
+
+    var sumSq = 0;
+    for (var j = startIdx; j <= i; j++) sumSq += Math.pow(peSeries[j] - mean, 2);
+    var std = Math.sqrt(sumSq / count);
+
+    meanArr.push(parseFloat(mean.toFixed(2)));
+    upperBandArr.push(parseFloat((mean + 1.5 * std).toFixed(2)));
+    lowerBandArr.push(parseFloat(Math.max(0, mean - 1.5 * std).toFixed(2)));
+    zScores.push(std > 0 ? parseFloat(((peSeries[i] - mean) / std).toFixed(2)) : 0);
+  }
+
+  var filteredDates = rawDates;
+  var fPeSeries = peSeries;
+  var fMean = meanArr;
+  var fUpper = upperBandArr;
+  var fLower = lowerBandArr;
+  var fZ = zScores;
+
+  if (dynPeTimeframe !== 'MAX' && filteredDates.length > 0) {
+    var latestD = filteredDates[filteredDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = dynPeTimeframe === '3Y' ? 3 : (dynPeTimeframe === '5Y' ? 5 : 10);
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+
+    var startIdx = 0;
+    for (var i = 0; i < filteredDates.length; i++) {
+      if (filteredDates[i] >= startD) { startIdx = i; break; }
+    }
+    filteredDates = filteredDates.slice(startIdx);
+    fPeSeries = fPeSeries.slice(startIdx);
+    fMean = fMean.slice(startIdx);
+    fUpper = fUpper.slice(startIdx);
+    fLower = fLower.slice(startIdx);
+    fZ = fZ.slice(startIdx);
+  }
+
+  var datasets = [
+    {
+      label: chosenKey + ' P/E',
+      data: fPeSeries,
+      borderColor: '#4f9ef8',
+      backgroundColor: '#4f9ef8',
+      borderWidth: 2.5,
+      pointRadius: filteredDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      order: 1
+    },
+    {
+      label: 'Upper Band (+1.5σ Froth)',
+      data: fUpper,
+      borderColor: '#f87171',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 2
+    },
+    {
+      label: '5Y Rolling Mean (μ)',
+      data: fMean,
+      borderColor: 'rgba(148, 163, 184, 0.7)',
+      borderWidth: 1.5,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      fill: false,
+      order: 3
+    },
+    {
+      label: 'Lower Band (-1.5σ Value)',
+      data: fLower,
+      borderColor: '#22d3a0',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 4
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = filteredDates[idx];
+    if (!d) return;
+    var peVal = fPeSeries[idx];
+    var meanVal = fMean[idx];
+    var upperVal = fUpper[idx];
+    var lowerVal = fLower[idx];
+    var zVal = fZ[idx];
+
+    var zBadge = '';
+    if (zVal <= -1.5) zBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Deep Value Zone (Z: ' + zVal + 'σ)</span>';
+    else if (zVal < -0.5) zBadge = '<span style="background:rgba(34,211,160,0.1);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:600;">🟢 Attractive Value (Z: ' + zVal + 'σ)</span>';
+    else if (zVal <= 0.5) zBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Fair Value (Z: ' + zVal + 'σ)</span>';
+    else if (zVal < 1.5) zBadge = '<span style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:2px 8px;border-radius:4px;font-weight:600;">🟠 Elevated (Z: +' + zVal + 'σ)</span>';
+    else zBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Cycle Froth Zone (Z: +' + zVal + 'σ)</span>';
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>P/E: <strong style="color:#4f9ef8;">' + peVal.toFixed(1) + 'x</strong></span>' +
+      '<span>5Y Mean: <strong style="color:#94a3b8;">' + meanVal.toFixed(1) + 'x</strong></span>' +
+      '<span>+1.5σ: <strong style="color:#f87171;">' + upperVal.toFixed(1) + 'x</strong></span>' +
+      '<span>-1.5σ: <strong style="color:#22d3a0;">' + lowerVal.toFixed(1) + 'x</strong></span>' +
+      zBadge;
+  }
+
+  if (dynPeChartInstance) { dynPeChartInstance.destroy(); dynPeChartInstance = null; }
+
+  dynPeChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: filteredDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = filteredDates[index];
+              return d ? (filteredDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.dynPeChartInstance = dynPeChartInstance;
+  updateHud(filteredDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 7: PETER LYNCH P/E PRICE BANDS (OPTION 3: VALUATION CHANNELS)
+// ─────────────────────────────────────────────────────────────────────────────
+var lynchChartInstance = null;
+var isLynchLog = true;
+var lynchTimeframe = 'MAX';
+
+function setLynchScale(isLog) {
+  isLynchLog = isLog;
+  var logBtn = document.getElementById('lynchLogBtn');
+  var linBtn = document.getElementById('lynchLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', isLog);
+  if (linBtn) linBtn.classList.toggle('active', !isLog);
+  renderLynchBandsTab();
+}
+
+function setLynchTimeframe(tf) {
+  lynchTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('lynchTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderLynchBandsTab();
+}
+
+function resetLynchZoom() {
+  lynchTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('lynchTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderLynchBandsTab();
+}
+
+function renderLynchBandsTab() {
+  var canvas = document.getElementById('lynchChartCanvas');
+  var hud = document.getElementById('lynchHoverHud');
+  var select = document.getElementById('lynchIndexSelect');
+  if (!canvas) return;
+
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  var rawPriceDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+
+  var availableIndices = Object.keys(peDict).filter(function(k) {
+    return rawPriceDict[k] && Object.keys(peDict[k]).length >= 12;
+  });
+
+  if (availableIndices.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No P/E and Price data available</span>';
+    return;
+  }
+
+  if (select) {
+    var curVal = select.value;
+    var userSel = [...selected].filter(function(k) { return availableIndices.includes(k); });
+    var choices = userSel.length > 0 ? userSel : availableIndices;
+    if (!choices.includes(curVal)) {
+      curVal = choices.includes('Nifty 50') ? 'Nifty 50' : choices[0];
+    }
+    select.innerHTML = choices.map(function(k) {
+      return '<option value="' + k + '"' + (k === curVal ? ' selected' : '') + '>' + k + '</option>';
+    }).join('');
+  }
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  if (!peDict[chosenKey] || !rawPriceDict[chosenKey]) chosenKey = availableIndices[0];
+
+  var pObj = rawPriceDict[chosenKey];
+  var peObj = peDict[chosenKey];
+  var commonDates = Object.keys(pObj).filter(function(d) {
+    return peObj[d] !== undefined && peObj[d] !== null && pObj[d] > 0 && peObj[d] > 0;
+  }).sort();
+
+  if (commonDates.length === 0) return;
+
+  var priceArr = [];
+  var epsArr = [];
+  var band16Arr = [];
+  var band20Arr = [];
+  var band24Arr = [];
+
+  commonDates.forEach(function(d) {
+    var price = pObj[d];
+    var rawPe = peObj[d];
+    var harmPe = d < '2021-04' ? (rawPe * SUBSIDIARY_FACTOR) : rawPe;
+    var eps = price / harmPe;
+
+    priceArr.push(price);
+    epsArr.push(eps);
+    band16Arr.push(parseFloat((16 * eps).toFixed(1)));
+    band20Arr.push(parseFloat((20 * eps).toFixed(1)));
+    band24Arr.push(parseFloat((24 * eps).toFixed(1)));
+  });
+
+  var fDates = commonDates;
+  var fPrice = priceArr;
+  var fEps = epsArr;
+  var f16 = band16Arr;
+  var f20 = band20Arr;
+  var f24 = band24Arr;
+
+  if (lynchTimeframe !== 'MAX' && fDates.length > 0) {
+    var latestD = fDates[fDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = lynchTimeframe === '1Y' ? 1 : (lynchTimeframe === '3Y' ? 3 : (lynchTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+
+    var startIdx = 0;
+    for (var i = 0; i < fDates.length; i++) {
+      if (fDates[i] >= startD) { startIdx = i; break; }
+    }
+    fDates = fDates.slice(startIdx);
+    fPrice = fPrice.slice(startIdx);
+    fEps = fEps.slice(startIdx);
+    f16 = f16.slice(startIdx);
+    f20 = f20.slice(startIdx);
+    f24 = f24.slice(startIdx);
+  }
+
+  var datasets = [
+    {
+      label: chosenKey + ' Price',
+      data: fPrice,
+      borderColor: '#F5F5F7',
+      backgroundColor: '#F5F5F7',
+      borderWidth: 2.5,
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      order: 1
+    },
+    {
+      label: '24x EPS (Overvalued)',
+      data: f24,
+      borderColor: '#f87171',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 2
+    },
+    {
+      label: '20x EPS (Fair Value)',
+      data: f20,
+      borderColor: 'rgba(148, 163, 184, 0.7)',
+      borderWidth: 1.5,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      fill: false,
+      order: 3
+    },
+    {
+      label: '16x EPS (Deep Value)',
+      data: f16,
+      borderColor: '#22d3a0',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 4
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = fDates[idx];
+    if (!d) return;
+    var p = fPrice[idx];
+    var eps = fEps[idx];
+    var b16 = f16[idx];
+    var b20 = f20[idx];
+    var b24 = f24[idx];
+    var curPe = p / eps;
+
+    var statusBadge = '';
+    if (curPe < 16.5) statusBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Deep Value (<16x EPS)</span>';
+    else if (curPe > 23.5) statusBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Froth Zone (>24x EPS)</span>';
+    else statusBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Fair Value Channel</span>';
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>Price: <strong style="color:#F5F5F7;">₹' + p.toLocaleString('en-IN', {maximumFractionDigits:1}) + '</strong></span>' +
+      '<span>EPS: <strong style="color:#f59e0b;">₹' + eps.toFixed(1) + '</strong></span>' +
+      '<span>16x: <strong style="color:#22d3a0;">₹' + b16.toLocaleString('en-IN', {maximumFractionDigits:0}) + '</strong></span>' +
+      '<span>20x: <strong style="color:#94a3b8;">₹' + b20.toLocaleString('en-IN', {maximumFractionDigits:0}) + '</strong></span>' +
+      '<span>24x: <strong style="color:#f87171;">₹' + b24.toLocaleString('en-IN', {maximumFractionDigits:0}) + '</strong></span>' +
+      statusBadge;
+  }
+
+  if (lynchChartInstance) { lynchChartInstance.destroy(); lynchChartInstance = null; }
+
+  lynchChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: fDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = fDates[index];
+              return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          type: isLynchLog ? 'logarithmic' : 'linear',
           position: 'right',
           grid: { color: '#1c2030' },
           border: { color: '#252a38' },
@@ -12748,7 +13492,8 @@ function renderPeChart() {
             color: '#5c6480',
             font: { family: 'DM Mono', size: 10 },
             callback: function(val) {
-              return val + 'x';
+              if (val >= 1000) return '₹' + (val / 1000).toFixed(0) + 'k';
+              return '₹' + val;
             }
           }
         }
@@ -12756,14 +13501,29 @@ function renderPeChart() {
     }
   });
 
-  // Default HUD with latest date
-  updatePeHud(allDates.length - 1);
+  window.lynchChartInstance = lynchChartInstance;
+  updateHud(fDates.length - 1);
 }
 
-window.buildPeCards = buildPeCards;
-window.togglePeChart = togglePeChart;
-window.renderPeChart = renderPeChart;
-window.syncPeFromSymbols = syncPeFromSymbols;
+// Global exports
+window.renderRawPeTab = renderRawPeTab;
+window.setRawPeScale = setRawPeScale;
+window.setRawPeTimeframe = setRawPeTimeframe;
+window.resetRawPeZoom = resetRawPeZoom;
+
+window.renderHarmonizedPeTab = renderHarmonizedPeTab;
+window.setHarmPeScale = setHarmPeScale;
+window.setHarmPeTimeframe = setHarmPeTimeframe;
+window.resetHarmPeZoom = resetHarmPeZoom;
+
+window.renderDynamicBandsTab = renderDynamicBandsTab;
+window.setDynPeTimeframe = setDynPeTimeframe;
+window.resetDynPeZoom = resetDynPeZoom;
+
+window.renderLynchBandsTab = renderLynchBandsTab;
+window.setLynchScale = setLynchScale;
+window.setLynchTimeframe = setLynchTimeframe;
+window.resetLynchZoom = resetLynchZoom;
 
 </script>
 
