@@ -966,19 +966,21 @@
 
   .tab-bar {
 
-    display: inline-flex;
+    display: flex;
+
+    flex-wrap: wrap;
 
     align-items: center;
 
-    gap: 4px;
+    gap: 6px;
 
-    padding: 4px;
+    padding: 6px 10px;
 
     background: rgba(255, 255, 255, 0.03);
 
     border: 1px solid rgba(255, 255, 255, 0.06);
 
-    border-radius: 9999px;
+    border-radius: 14px;
 
     margin-bottom: 24px;
 
@@ -2008,6 +2010,21 @@
     <button class="tab-btn" onclick="switchTab(7)" id="tabBtn7">
       <span class="tab-icon">🏷️</span> Lynch P/E Bands
     </button>
+    <button class="tab-btn" onclick="switchTab(8)" id="tabBtn8">
+      <span class="tab-icon">🏦</span> Yield Gap (BEER)
+    </button>
+    <button class="tab-btn" onclick="switchTab(9)" id="tabBtn9">
+      <span class="tab-icon">🎲</span> Forward Odds Matrix
+    </button>
+    <button class="tab-btn" onclick="switchTab(10)" id="tabBtn10">
+      <span class="tab-icon">🔬</span> Shiller CAPE
+    </button>
+    <button class="tab-btn" onclick="switchTab(11)" id="tabBtn11">
+      <span class="tab-icon">⚡</span> PEG Growth
+    </button>
+    <button class="tab-btn" onclick="switchTab(12)" id="tabBtn12">
+      <span class="tab-icon">🔄</span> P/E Rolling Returns
+    </button>
 
   </div>
 
@@ -2689,7 +2706,7 @@
               <input class="cf-input" id="cfLumpAmount" type="number" value="500000" min="10000" step="50000" style="width:135px;" oninput="debounceCfSim()">
             </div>
             <div class="cf-field cf-field-lump" style="display:none;align-self:center;margin-bottom:4px;">
-              <label style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:0.70rem;color:var(--muted);cursor:pointer;">
+              <label style="display:inline-flex;align-items:center;gap:6px;font-family:monospace;font-size:0.70rem;color:var(--muted);cursor:pointer;">
                 <input type="checkbox" id="cfLumpStpCheck" checked style="cursor:pointer;accent-color:#5E9CFF;" onchange="debounceCfSim()"> vs 12M STP (6.5% Liquid)
               </label>
             </div>
@@ -2749,7 +2766,7 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🏛️</span> Raw Historical P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OFFICIAL REPORTED</span>
+              <span>🏛️</span> Raw Historical P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600;font-family:monospace;letter-spacing:0.04em;">OFFICIAL REPORTED</span>
             </div>
             <div class="chart-subtitle">
               Unadjusted P/E ratios exactly as published by NSE • Shows pre-2021 standalone era &amp; post-2021 consolidated era
@@ -2773,7 +2790,7 @@
           </div>
         </div>
 
-        <div id="rawPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+        <div id="rawPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
           <span style="color:var(--muted);font-style:italic;">Hover over chart to view historical constituent P/E</span>
         </div>
 
@@ -2798,7 +2815,7 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🔬</span> Harmonized P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 1: CONSOLIDATED BASIS</span>
+              <span>🔬</span> Harmonized P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">OPTION 1: CONSOLIDATED BASIS</span>
             </div>
             <div class="chart-subtitle">
               Pre-2021 standalone data normalized to consolidated basis using the audited 18.5% subsidiary factor • Continuous 25-year ruler
@@ -2822,7 +2839,7 @@
           </div>
         </div>
 
-        <div id="harmPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+        <div id="harmPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
           <span style="color:var(--muted);font-style:italic;">Hover over chart to view harmonized P/E values</span>
         </div>
 
@@ -2847,7 +2864,7 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🎯</span> Dynamic Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(79,158,248,0.12);color:#4f9ef8;border:1px solid rgba(79,158,248,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 2: ADAPTIVE ±1.5σ</span>
+              <span>🎯</span> Dynamic Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(79,158,248,0.12);color:#4f9ef8;border:1px solid rgba(79,158,248,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">OPTION 2: ADAPTIVE ±1.5σ</span>
             </div>
             <div class="chart-subtitle">
               Rolling 5-year statistical bands (Mean, +1.5σ Froth Zone, -1.5σ Value Zone) • Automatically adapts to interest rate regimes
@@ -2855,8 +2872,8 @@
           </div>
           <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;">Index:</span>
-              <select id="dynIndexSelect" onchange="renderDynamicBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:'DM Mono',monospace;cursor:pointer;"></select>
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="dynIndexSelect" onchange="renderDynamicBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;"></select>
             </div>
             <div class="tv-btn-group">
               <button class="tv-tool-btn" id="dynTf3Y" onclick="setDynPeTimeframe('3Y')">3Y</button>
@@ -2870,7 +2887,7 @@
           </div>
         </div>
 
-        <div id="dynPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:gap;gap:14px;align-items:center;min-height:34px;">
+        <div id="dynPeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:gap;gap:14px;align-items:center;min-height:34px;">
           <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect dynamic valuation metrics</span>
         </div>
 
@@ -2895,7 +2912,7 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🏷️</span> Peter Lynch P/E Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.04em;">OPTION 3: PRICE SPACE OVERLAY</span>
+              <span>🏷️</span> Peter Lynch P/E Valuation Bands <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">OPTION 3: PRICE SPACE OVERLAY</span>
             </div>
             <div class="chart-subtitle">
               Actual Index Price plotted directly against 16x, 20x, and 24x Implied Earnings Envelopes • Instantly visualizes price vs corporate earnings
@@ -2903,8 +2920,8 @@
           </div>
           <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;">Index:</span>
-              <select id="lynchIndexSelect" onchange="renderLynchBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:'DM Mono',monospace;cursor:pointer;"></select>
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="lynchIndexSelect" onchange="renderLynchBandsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;"></select>
             </div>
             <div class="tv-btn-group">
               <button class="tv-tool-btn active" id="lynchLogBtn" onclick="setLynchScale(true)">LOG</button>
@@ -2923,7 +2940,7 @@
           </div>
         </div>
 
-        <div id="lynchHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+        <div id="lynchHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
           <span style="color:var(--muted);font-style:italic;">Hover over chart to view actual price vs earnings valuation envelopes</span>
         </div>
 
@@ -2936,6 +2953,322 @@
             <span>🏷️</span> The Peter Lynch Breakthrough:
           </strong>
           Instead of a separate squiggly P/E line below, valuation is mapped into <strong>Actual Price</strong>. We calculate monthly Trailing EPS (Price / PE) and plot what the index would cost at <strong style="color:#22d3a0;">16x EPS (Green Band)</strong>, <strong style="color:#8B8D98;">20x EPS (Gray Line)</strong>, and <strong style="color:#f87171;">24x EPS (Red Band)</strong>. When the actual price line drops into the green channel, you see immediate, visual undervaluation in price terms.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 8: YIELD GAP / BEER (EARNINGS YIELD VS 10Y G-SEC)                    -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent8" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🏦</span> Bond-Equity Yield Gap (BEER) <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">EARNINGS YIELD VS 10Y G-SEC</span>
+            </div>
+            <div class="chart-subtitle">
+              Comparing stock market Earnings Yield (1/PE) directly against the Risk-Free 10-Year Indian Government Benchmark Bond Yield
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="yieldGapIndexSelect" onchange="renderYieldGapTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;">
+                <option value="Nifty 50" selected>Nifty 50</option>
+                <option value="Nifty Midcap150 Momentum 50">Nifty Midcap150 Momentum 50</option>
+                <option value="Nifty 500">Nifty 500</option>
+              </select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="ygTf1Y" onclick="setYieldGapTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="ygTf3Y" onclick="setYieldGapTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="ygTf5Y" onclick="setYieldGapTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="ygTf10Y" onclick="setYieldGapTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="ygTfMAX" onclick="setYieldGapTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetYieldGapZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="yieldGapHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect yield spread &amp; regime metrics</span>
+        </div>
+
+        <div style="position:relative;height:500px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="yieldGapChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(245,158,11,0.03);border:1px solid rgba(245,158,11,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#f59e0b;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>💡</span> Institutional Asset Allocation Framework:
+          </strong>
+          When <strong style="color:#22d3a0;">Earnings Yield &gt; 10Y G-Sec Yield</strong> (or Yield Gap &lt; 0%), equities are yielding more than government debt <em>before</em> accounting for corporate growth, making stocks generational bargains (e.g. 2003, 2008, 2020). Conversely, when 10Y G-Sec yield exceeds Earnings Yield by &gt; 3.0%, equities are expensive relative to risk-free debt.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 9: FORWARD RETURNS ODDS MATRIX (ENTRY P/E VS SUBSEQUENT CAGR)         -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent9" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🎲</span> Historical Forward Returns Odds Matrix <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(79,158,248,0.12);color:#4f9ef8;border:1px solid rgba(79,158,248,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">PROBABILITY DISTRIBUTION</span>
+            </div>
+            <div class="chart-subtitle">
+              Historical subsequent 1-Year, 3-Year, and 5-Year CAGR realized from each Entry P/E level across 25 years of market cycles
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="fwdIndexSelect" onchange="renderForwardReturnsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;">
+                <option value="Nifty 50" selected>Nifty 50</option>
+                <option value="Nifty Midcap150 Momentum 50">Nifty Midcap150 Momentum 50</option>
+                <option value="Nifty 500">Nifty 500</option>
+              </select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="fwdHoriz1Y" onclick="setFwdHorizon('1Y')">1-Yr Forward</button>
+              <button class="tv-tool-btn active" id="fwdHoriz3Y" onclick="setFwdHorizon('3Y')">3-Yr Forward</button>
+              <button class="tv-tool-btn" id="fwdHoriz5Y" onclick="setFwdHorizon('5Y')">5-Yr Forward</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="fwdHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over scatter points to inspect specific historical purchase dates</span>
+        </div>
+
+        <div style="position:relative;height:460px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="fwdScatterCanvas"></canvas>
+        </div>
+
+        <!-- Probabilistic Valuation Bracket Table -->
+        <div style="margin-top:16px;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+            <span>📊</span> Historical Probability Table by Entry P/E Bracket
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="fwdBracketTable" style="width:100%;border-collapse:collapse;font-size:0.74rem;font-family:monospace;text-align:right;">
+              <thead>
+                <tr style="background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.1);color:var(--muted);">
+                  <th style="padding:8px 12px;text-align:left;">Entry P/E Range</th>
+                  <th style="padding:8px 12px;">Sample Months</th>
+                  <th style="padding:8px 12px;">Median CAGR</th>
+                  <th style="padding:8px 12px;">Average CAGR</th>
+                  <th style="padding:8px 12px;">Win Rate (% &gt; 0)</th>
+                  <th style="padding:8px 12px;">Min Return</th>
+                  <th style="padding:8px 12px;">Max Return</th>
+                  <th style="padding:8px 12px;text-align:center;">Historical Quality</th>
+                </tr>
+              </thead>
+              <tbody id="fwdBracketTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 10: SHILLER CAPE (CYCLICALLY ADJUSTED P/E)                            -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent10" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🔬</span> Shiller CAPE Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">CYCLICALLY ADJUSTED</span>
+            </div>
+            <div class="chart-subtitle">
+              Price divided by multi-year smoothed average earnings • Filters out temporary recessions, write-downs, and margin booms
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="capeIndexSelect" onchange="renderCapeTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;">
+                <option value="Nifty 50" selected>Nifty 50</option>
+                <option value="Nifty Midcap150 Momentum 50">Nifty Midcap150 Momentum 50</option>
+                <option value="Nifty 500">Nifty 500</option>
+              </select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="capeWin3Y" onclick="setCapeWindow(36)">3Y Smooth</button>
+              <button class="tv-tool-btn active" id="capeWin5Y" onclick="setCapeWindow(60)">5Y Smooth</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="capeTf3Y" onclick="setCapeTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="capeTf5Y" onclick="setCapeTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="capeTf10Y" onclick="setCapeTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="capeTfMAX" onclick="setCapeTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetCapeZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="capeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect Shiller CAPE vs Trailing P/E</span>
+        </div>
+
+        <div style="position:relative;height:500px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="capeChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(168,85,247,0.03);border:1px solid rgba(168,85,247,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#a855f7;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>🔬</span> Why Shiller CAPE removes false recession alarms:
+          </strong>
+          During the March 2020 COVID lockdowns, trailing 12-month earnings momentarily fell, pushing reported trailing P/E above 34x. A naive P/E investor would have avoided equities thinking the market was in a bubble. Shiller CAPE smooths multi-year earnings, proving that normalized valuation was actually in an attractive deep value zone.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 11: PEG GROWTH ENGINE (VALUATION RELATIVE TO EPS GROWTH)              -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent11" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>⚡</span> PEG Growth Engine <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">P/E RELATIVE TO EPS VELOCITY</span>
+            </div>
+            <div class="chart-subtitle">
+              P/E ratio evaluated against trailing EPS YoY growth rate • Identifies Growth at a Reasonable Price (GARP)
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="pegIndexSelect" onchange="renderPegTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;">
+                <option value="Nifty 50" selected>Nifty 50</option>
+                <option value="Nifty Midcap150 Momentum 50">Nifty Midcap150 Momentum 50</option>
+                <option value="Nifty 500">Nifty 500</option>
+              </select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="pegTf1Y" onclick="setPegTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="pegTf3Y" onclick="setPegTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="pegTf5Y" onclick="setPegTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="pegTf10Y" onclick="setPegTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="pegTfMAX" onclick="setPegTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetPegZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="pegHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect P/E, EPS Growth, and PEG ratio</span>
+        </div>
+
+        <div style="position:relative;height:500px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="pegChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(34,211,160,0.03);border:1px solid rgba(34,211,160,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#22d3a0;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>⚡</span> Peter Lynch PEG Rule of Thumb:
+          </strong>
+          A high P/E ratio (e.g. 26x) in an index like <strong>Nifty Midcap150 Momentum 50</strong> can be remarkably cheap if corporate earnings are compounding at 30% YoY (PEG = 0.86). Conversely, an index at 18x P/E with only 5% earnings growth has a PEG of 3.6x (frothy). A <strong>PEG &lt; 1.0</strong> represents Growth at a Reasonable Price (GARP).
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 12: P/E ROLLING RETURNS (MULTIPLE EXPANSION & CONTRACTION)             -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent12" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🔄</span> P/E Rolling Returns Visualizer <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(79,158,248,0.12);color:#4f9ef8;border:1px solid rgba(79,158,248,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">MULTIPLE EXPANSION / CONTRACTION</span>
+            </div>
+            <div class="chart-subtitle">
+              Rolling percentage change in the P/E multiple itself across 1M to 12M monthly and 1Y to 5Y annualized horizons
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="peRollingIndexSelect" onchange="renderPeRollingTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;">
+                <option value="Nifty 50" selected>Nifty 50</option>
+                <option value="Nifty Midcap150 Momentum 50">Nifty Midcap150 Momentum 50</option>
+                <option value="Nifty 500">Nifty 500</option>
+              </select>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="prTf1Y" onclick="setPeRollingTimeframe('1Y')">1Y</button>
+              <button class="tv-tool-btn" id="prTf3Y" onclick="setPeRollingTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="prTf5Y" onclick="setPeRollingTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="prTf10Y" onclick="setPeRollingTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="prTfMAX" onclick="setPeRollingTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetPeRollingZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rolling Horizon Selectors Ribbon -->
+        <div style="margin-bottom:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.68rem;color:var(--muted);font-weight:700;font-family:monospace;text-transform:uppercase;">Monthly Horizons:</span>
+            <div class="tv-btn-group" id="peMonthlyRibbon">
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('1M')" id="prBtn1M">1M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('2M')" id="prBtn2M">2M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('3M')" id="prBtn3M">3M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('4M')" id="prBtn4M">4M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('5M')" id="prBtn5M">5M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('6M')" id="prBtn6M">6M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('7M')" id="prBtn7M">7M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('8M')" id="prBtn8M">8M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('9M')" id="prBtn9M">9M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('10M')" id="prBtn10M">10M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('11M')" id="prBtn11M">11M</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('12M')" id="prBtn12M">12M</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.68rem;color:var(--muted);font-weight:700;font-family:monospace;text-transform:uppercase;">Yearly Horizons:</span>
+            <div class="tv-btn-group" id="peYearlyRibbon">
+              <button class="tv-tool-btn active" onclick="setPeRollingHorizon('1Y')" id="prBtn1Y">1Y</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('2Y')" id="prBtn2Y">2Y</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('3Y')" id="prBtn3Y">3Y</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('4Y')" id="prBtn4Y">4Y</button>
+              <button class="tv-tool-btn" onclick="setPeRollingHorizon('5Y')" id="prBtn5Y">5Y</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary KPI Cards Grid -->
+        <div id="peRollingKpiGrid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;margin-bottom:12px;"></div>
+
+        <div id="peRollingHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to view rolling multiple expansion / contraction values</span>
+        </div>
+
+        <div style="position:relative;height:460px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="peRollingChartCanvas"></canvas>
+        </div>
+
+        <div style="margin-top:14px;background:rgba(79,158,248,0.03);border:1px solid rgba(79,158,248,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <strong style="color:#4f9ef8;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span>💡</span> Understanding Multiple Expansion vs Fundamental Growth:
+          </strong>
+          Total index returns decompose into: <strong>Total Return ≈ EPS Growth + Multiple Expansion (% ΔPE) + Dividends</strong>.
+          When the rolling P/E line is <strong style="color:#22d3a0;">positive (Green)</strong>, the market is bidding up valuations (valuation re-rating). When it is <strong style="color:#f87171;">negative (Red)</strong>, multiples are contracting (valuation de-rating). Comparing 1M–12M against 1Y–5Y reveals whether recent market momentum is driven by fundamental earnings growth or speculative multiple expansion.
         </div>
       </div>
     </div>
@@ -8454,6 +8787,11 @@ function buildCommodityCards() {
       if (_activeTabIdx === 5) renderHarmonizedPeTab();
       if (_activeTabIdx === 6) renderDynamicBandsTab();
       if (_activeTabIdx === 7) renderLynchBandsTab();
+      if (_activeTabIdx === 8) renderYieldGapTab();
+      if (_activeTabIdx === 9) renderForwardReturnsTab();
+      if (_activeTabIdx === 10) renderCapeTab();
+      if (_activeTabIdx === 11) renderPegTab();
+      if (_activeTabIdx === 12) renderPeRollingTab();
 
     });
 
@@ -8727,6 +9065,11 @@ function buildCards() {
       if (_activeTabIdx === 5) renderHarmonizedPeTab();
       if (_activeTabIdx === 6) renderDynamicBandsTab();
       if (_activeTabIdx === 7) renderLynchBandsTab();
+      if (_activeTabIdx === 8) renderYieldGapTab();
+      if (_activeTabIdx === 9) renderForwardReturnsTab();
+      if (_activeTabIdx === 10) renderCapeTab();
+      if (_activeTabIdx === 11) renderPegTab();
+      if (_activeTabIdx === 12) renderPeRollingTab();
 
       });
 
@@ -8788,6 +9131,11 @@ function buildCards() {
       if (_activeTabIdx === 5) renderHarmonizedPeTab();
       if (_activeTabIdx === 6) renderDynamicBandsTab();
       if (_activeTabIdx === 7) renderLynchBandsTab();
+      if (_activeTabIdx === 8) renderYieldGapTab();
+      if (_activeTabIdx === 9) renderForwardReturnsTab();
+      if (_activeTabIdx === 10) renderCapeTab();
+      if (_activeTabIdx === 11) renderPegTab();
+      if (_activeTabIdx === 12) renderPeRollingTab();
 
         });
 
@@ -10791,6 +11139,26 @@ function switchTab(idx) {
   } else if (idx === 7) {
     setTimeout(function() {
       renderLynchBandsTab();
+    }, 50);
+  } else if (idx === 8) {
+    setTimeout(function() {
+      renderYieldGapTab();
+    }, 50);
+  } else if (idx === 9) {
+    setTimeout(function() {
+      renderForwardReturnsTab();
+    }, 50);
+  } else if (idx === 10) {
+    setTimeout(function() {
+      renderCapeTab();
+    }, 50);
+  } else if (idx === 11) {
+    setTimeout(function() {
+      renderPegTab();
+    }, 50);
+  } else if (idx === 12) {
+    setTimeout(function() {
+      renderPeRollingTab();
     }, 50);
   }
 }
@@ -13524,6 +13892,1124 @@ window.renderLynchBandsTab = renderLynchBandsTab;
 window.setLynchScale = setLynchScale;
 window.setLynchTimeframe = setLynchTimeframe;
 window.resetLynchZoom = resetLynchZoom;
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 10-YEAR INDIAN GOVERNMENT BENCHMARK BOND YIELD (RBI / CCIL HISTORICAL SERIES)
+// ═════════════════════════════════════════════════════════════════════════════
+const GSEC_10Y = {"2000-01": 11.15, "2000-02": 11.22, "2000-03": 11.3, "2000-04": 11.38, "2000-05": 11.45, "2000-06": 11.53, "2000-07": 11.6, "2000-08": 11.49, "2000-09": 11.38, "2000-10": 11.27, "2000-11": 11.17, "2000-12": 11.06, "2001-01": 10.95, "2001-02": 10.7, "2001-03": 10.45, "2001-04": 10.2, "2001-05": 9.95, "2001-06": 9.7, "2001-07": 9.45, "2001-08": 9.19, "2001-09": 8.93, "2001-10": 8.68, "2001-11": 8.42, "2001-12": 8.16, "2002-01": 7.9, "2002-02": 7.81, "2002-03": 7.72, "2002-04": 7.62, "2002-05": 7.53, "2002-06": 7.44, "2002-07": 7.35, "2002-08": 7.17, "2002-09": 7.0, "2002-10": 6.82, "2002-11": 6.65, "2002-12": 6.47, "2003-01": 6.3, "2003-02": 6.17, "2003-03": 6.03, "2003-04": 5.9, "2003-05": 5.77, "2003-06": 5.63, "2003-07": 5.5, "2003-08": 5.37, "2003-09": 5.23, "2003-10": 5.1, "2003-11": 5.15, "2003-12": 5.2, "2004-01": 5.25, "2004-02": 5.41, "2004-03": 5.57, "2004-04": 5.72, "2004-05": 5.88, "2004-06": 6.04, "2004-07": 6.2, "2004-08": 6.28, "2004-09": 6.35, "2004-10": 6.43, "2004-11": 6.5, "2004-12": 6.58, "2005-01": 6.65, "2005-02": 6.73, "2005-03": 6.82, "2005-04": 6.9, "2005-05": 6.98, "2005-06": 7.07, "2005-07": 7.15, "2005-08": 7.19, "2005-09": 7.23, "2005-10": 7.28, "2005-11": 7.32, "2005-12": 7.36, "2006-01": 7.4, "2006-02": 7.56, "2006-03": 7.72, "2006-04": 7.88, "2006-05": 8.03, "2006-06": 8.19, "2006-07": 8.35, "2006-08": 8.26, "2006-09": 8.17, "2006-10": 8.07, "2006-11": 7.98, "2006-12": 7.89, "2007-01": 7.8, "2007-02": 7.83, "2007-03": 7.85, "2007-04": 7.88, "2007-05": 7.9, "2007-06": 7.92, "2007-07": 7.95, "2007-08": 7.88, "2007-09": 7.82, "2007-10": 7.75, "2007-11": 7.68, "2007-12": 7.62, "2008-01": 7.55, "2008-02": 7.87, "2008-03": 8.18, "2008-04": 8.5, "2008-05": 8.82, "2008-06": 9.13, "2008-07": 9.45, "2008-08": 8.62, "2008-09": 7.79, "2008-10": 6.96, "2008-11": 6.13, "2008-12": 5.3, "2009-01": 5.57, "2009-02": 5.83, "2009-03": 6.1, "2009-04": 6.37, "2009-05": 6.63, "2009-06": 6.9, "2009-07": 7.02, "2009-08": 7.13, "2009-09": 7.25, "2009-10": 7.37, "2009-11": 7.48, "2009-12": 7.6, "2010-01": 7.59, "2010-02": 7.58, "2010-03": 7.57, "2010-04": 7.57, "2010-05": 7.56, "2010-06": 7.55, "2010-07": 7.61, "2010-08": 7.67, "2010-09": 7.72, "2010-10": 7.78, "2010-11": 7.84, "2010-12": 7.9, "2011-01": 7.97, "2011-02": 8.03, "2011-03": 8.1, "2011-04": 8.17, "2011-05": 8.23, "2011-06": 8.3, "2011-07": 8.43, "2011-08": 8.56, "2011-09": 8.69, "2011-10": 8.82, "2011-11": 8.95, "2011-12": 8.84, "2012-01": 8.72, "2012-02": 8.61, "2012-03": 8.49, "2012-04": 8.38, "2012-05": 8.26, "2012-06": 8.15, "2012-07": 8.13, "2012-08": 8.12, "2012-09": 8.1, "2012-10": 8.08, "2012-11": 8.07, "2012-12": 8.05, "2013-01": 7.87, "2013-02": 7.69, "2013-03": 7.51, "2013-04": 7.33, "2013-05": 7.15, "2013-06": 7.73, "2013-07": 8.32, "2013-08": 8.9, "2013-09": 8.89, "2013-10": 8.88, "2013-11": 8.86, "2013-12": 8.85, "2014-01": 8.82, "2014-02": 8.78, "2014-03": 8.75, "2014-04": 8.72, "2014-05": 8.68, "2014-06": 8.65, "2014-07": 8.52, "2014-08": 8.38, "2014-09": 8.25, "2014-10": 8.12, "2014-11": 7.98, "2014-12": 7.85, "2015-01": 7.84, "2015-02": 7.83, "2015-03": 7.82, "2015-04": 7.82, "2015-05": 7.81, "2015-06": 7.8, "2015-07": 7.79, "2015-08": 7.78, "2015-09": 7.78, "2015-10": 7.77, "2015-11": 7.76, "2015-12": 7.75, "2016-01": 7.7, "2016-02": 7.65, "2016-03": 7.6, "2016-04": 7.55, "2016-05": 7.5, "2016-06": 7.45, "2016-07": 7.21, "2016-08": 6.97, "2016-09": 6.73, "2016-10": 6.49, "2016-11": 6.25, "2016-12": 6.29, "2017-01": 6.34, "2017-02": 6.38, "2017-03": 6.42, "2017-04": 6.46, "2017-05": 6.51, "2017-06": 6.55, "2017-07": 6.67, "2017-08": 6.8, "2017-09": 6.92, "2017-10": 7.05, "2017-11": 7.17, "2017-12": 7.3, "2018-01": 7.4, "2018-02": 7.5, "2018-03": 7.6, "2018-04": 7.7, "2018-05": 7.8, "2018-06": 7.9, "2018-07": 7.98, "2018-08": 8.07, "2018-09": 8.15, "2018-10": 8.01, "2018-11": 7.86, "2018-12": 7.72, "2019-01": 7.57, "2019-02": 7.43, "2019-03": 7.28, "2019-04": 7.14, "2019-05": 6.99, "2019-06": 6.85, "2019-07": 6.8, "2019-08": 6.75, "2019-09": 6.7, "2019-10": 6.65, "2019-11": 6.6, "2019-12": 6.55, "2020-01": 6.42, "2020-02": 6.28, "2020-03": 6.15, "2020-04": 5.95, "2020-05": 5.75, "2020-06": 5.77, "2020-07": 5.79, "2020-08": 5.81, "2020-09": 5.84, "2020-10": 5.86, "2020-11": 5.88, "2020-12": 5.9, "2021-01": 5.93, "2021-02": 5.95, "2021-03": 5.97, "2021-04": 6.0, "2021-05": 6.03, "2021-06": 6.05, "2021-07": 6.12, "2021-08": 6.18, "2021-09": 6.25, "2021-10": 6.32, "2021-11": 6.38, "2021-12": 6.45, "2022-01": 6.62, "2022-02": 6.78, "2022-03": 6.95, "2022-04": 7.12, "2022-05": 7.28, "2022-06": 7.45, "2022-07": 7.42, "2022-08": 7.4, "2022-09": 7.38, "2022-10": 7.35, "2022-11": 7.33, "2022-12": 7.3, "2023-01": 7.26, "2023-02": 7.22, "2023-03": 7.17, "2023-04": 7.13, "2023-05": 7.09, "2023-06": 7.05, "2023-07": 7.12, "2023-08": 7.2, "2023-09": 7.27, "2023-10": 7.35, "2023-11": 7.29, "2023-12": 7.23, "2024-01": 7.17, "2024-02": 7.11, "2024-03": 7.05, "2024-04": 7.0, "2024-05": 6.95, "2024-06": 6.9, "2024-07": 6.85, "2024-08": 6.8, "2024-09": 6.75, "2024-10": 6.73, "2024-11": 6.72, "2024-12": 6.7, "2025-01": 6.68, "2025-02": 6.67, "2025-03": 6.65, "2025-04": 6.63, "2025-05": 6.62, "2025-06": 6.6, "2025-07": 6.58, "2025-08": 6.57, "2025-09": 6.55, "2025-10": 6.56, "2025-11": 6.57, "2025-12": 6.57, "2026-01": 6.58, "2026-02": 6.59, "2026-03": 6.6, "2026-04": 6.61, "2026-05": 6.63, "2026-06": 6.64, "2026-07": 6.65, "2026-08": 6.67, "2026-09": 6.68};
+window.GSEC_10Y = GSEC_10Y;
+
+// Helper to get harmonized PE for target index
+function getHarmonizedPeSeries(key) {
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  if (!peDict[key]) return { dates: [], values: {} };
+  var rawMap = peDict[key];
+  var dates = Object.keys(rawMap).sort();
+  var values = {};
+  dates.forEach(function(d) {
+    var v = rawMap[d];
+    values[d] = (v !== undefined && v !== null) ? (d < '2021-04' ? parseFloat((v * SUBSIDIARY_FACTOR).toFixed(2)) : v) : null;
+  });
+  return { dates: dates, values: values };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 8: YIELD GAP (BEER: EARNINGS YIELD VS 10Y G-SEC)
+// ─────────────────────────────────────────────────────────────────────────────
+var yieldGapChartInstance = null;
+var yieldGapTimeframe = 'MAX';
+
+function setYieldGapTimeframe(tf) {
+  yieldGapTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('ygTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderYieldGapTab();
+}
+
+function resetYieldGapZoom() {
+  yieldGapTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('ygTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderYieldGapTab();
+}
+
+function renderYieldGapTab() {
+  var canvas = document.getElementById('yieldGapChartCanvas');
+  var hud = document.getElementById('yieldGapHoverHud');
+  var select = document.getElementById('yieldGapIndexSelect');
+  if (!canvas) return;
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  var peData = getHarmonizedPeSeries(chosenKey);
+  var allDates = peData.dates;
+
+  if (allDates.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No P/E data available for ' + chosenKey + '</span>';
+    return;
+  }
+
+  // Filter timeframe
+  if (yieldGapTimeframe !== 'MAX' && allDates.length > 0) {
+    var latestD = allDates[allDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = yieldGapTimeframe === '1Y' ? 1 : (yieldGapTimeframe === '3Y' ? 3 : (yieldGapTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+    allDates = allDates.filter(function(d) { return d >= startD; });
+  }
+
+  var eySeries = [];
+  var gsecSeries = [];
+  var spreadSeries = [];
+
+  allDates.forEach(function(d) {
+    var pe = peData.values[d];
+    var ey = (pe && pe > 0) ? parseFloat(((1 / pe) * 100).toFixed(2)) : null;
+    var gsec = GSEC_10Y[d] !== undefined ? GSEC_10Y[d] : 6.68;
+    var spread = (ey !== null && gsec !== null) ? parseFloat((gsec - ey).toFixed(2)) : null;
+
+    eySeries.push(ey);
+    gsecSeries.push(gsec);
+    spreadSeries.push(spread);
+  });
+
+  var datasets = [
+    {
+      label: chosenKey + ' Earnings Yield',
+      data: eySeries,
+      borderColor: '#22d3a0',
+      backgroundColor: '#22d3a0',
+      borderWidth: 2.5,
+      pointRadius: allDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      order: 1
+    },
+    {
+      label: '10Y Indian G-Sec Yield (Risk-Free)',
+      data: gsecSeries,
+      borderColor: '#f59e0b',
+      backgroundColor: '#f59e0b',
+      borderWidth: 2,
+      pointRadius: allDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      order: 2
+    },
+    {
+      label: 'Yield Spread (G-Sec - Earnings Yield)',
+      data: spreadSeries,
+      borderColor: 'rgba(148, 163, 184, 0.4)',
+      borderWidth: 1.5,
+      borderDash: [4, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 3
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = allDates[idx];
+    if (!d) return;
+    var ey = eySeries[idx];
+    var gsec = gsecSeries[idx];
+    var spread = spreadSeries[idx];
+    var pe = peData.values[d];
+
+    var regimeBadge = '';
+    if (spread <= 0.5) {
+      regimeBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Equities Highly Attractive (Yield Spread: ' + spread + '%)</span>';
+    } else if (spread <= 2.5) {
+      regimeBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Normal Risk Premium (Spread: ' + spread + '%)</span>';
+    } else {
+      regimeBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Equities Expensive vs Debt (Spread: +' + spread + '%)</span>';
+    }
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>P/E: <strong style="color:#4f9ef8;">' + (pe ? pe.toFixed(1) + 'x' : '—') + '</strong></span>' +
+      '<span>Earnings Yield: <strong style="color:#22d3a0;">' + (ey ? ey.toFixed(2) + '%' : '—') + '</strong></span>' +
+      '<span>10Y G-Sec: <strong style="color:#f59e0b;">' + (gsec ? gsec.toFixed(2) + '%' : '—') + '</strong></span>' +
+      regimeBadge;
+  }
+
+  if (yieldGapChartInstance) { yieldGapChartInstance.destroy(); yieldGapChartInstance = null; }
+
+  yieldGapChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: allDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = allDates[index];
+              return d ? (allDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + '%'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.yieldGapChartInstance = yieldGapChartInstance;
+  updateHud(allDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 9: FORWARD RETURNS ODDS MATRIX (ENTRY P/E VS SUBSEQUENT CAGR)
+// ─────────────────────────────────────────────────────────────────────────────
+var fwdScatterChartInstance = null;
+var fwdHorizon = '3Y';
+
+function setFwdHorizon(h) {
+  fwdHorizon = h;
+  ['1Y', '3Y', '5Y'].forEach(function(k) {
+    var b = document.getElementById('fwdHoriz' + k);
+    if (b) b.classList.toggle('active', k === h);
+  });
+  renderForwardReturnsTab();
+}
+
+function renderForwardReturnsTab() {
+  var canvas = document.getElementById('fwdScatterCanvas');
+  var hud = document.getElementById('fwdHoverHud');
+  var select = document.getElementById('fwdIndexSelect');
+  var tbody = document.getElementById('fwdBracketTableBody');
+  if (!canvas) return;
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  var peData = getHarmonizedPeSeries(chosenKey);
+  var rawPriceDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+  var priceMap = rawPriceDict[chosenKey] || {};
+
+  var fwdMonths = fwdHorizon === '1Y' ? 12 : (fwdHorizon === '3Y' ? 36 : 60);
+  var fwdPower = 12 / fwdMonths;
+
+  var scatterPoints = [];
+  var allValidDates = peData.dates;
+
+  allValidDates.forEach(function(d) {
+    var pe = peData.values[d];
+    var p0 = priceMap[d];
+    if (!pe || !p0 || p0 <= 0) return;
+
+    // find future date
+    var parts = d.split('-').map(Number);
+    var y = parts[0], m = parts[1];
+    m += fwdMonths;
+    while (m > 12) { m -= 12; y++; }
+    var futureD = y + '-' + (m < 10 ? '0' + m : m);
+
+    var pFuture = priceMap[futureD];
+    if (!pFuture || pFuture <= 0) return;
+
+    var cagr = (Math.pow(pFuture / p0, fwdPower) - 1) * 100;
+    scatterPoints.push({
+      x: pe,
+      y: parseFloat(cagr.toFixed(2)),
+      date: d,
+      futureDate: futureD,
+      p0: p0,
+      pFuture: pFuture
+    });
+  });
+
+  if (scatterPoints.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">Insufficient historical forward data for ' + chosenKey + ' at ' + fwdHorizon + ' horizon.</span>';
+    if (fwdScatterChartInstance) { fwdScatterChartInstance.destroy(); fwdScatterChartInstance = null; }
+    window.fwdScatterChartInstance = null;
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:14px;">Need at least ' + fwdMonths + ' months of future forward data</td></tr>';
+    return;
+  }
+
+  // Compute linear regression: y = slope * x + intercept
+  var n = scatterPoints.length;
+  var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  var minX = Infinity, maxX = -Infinity;
+  scatterPoints.forEach(function(pt) {
+    sumX += pt.x;
+    sumY += pt.y;
+    sumXY += pt.x * pt.y;
+    sumX2 += pt.x * pt.x;
+    if (pt.x < minX) minX = pt.x;
+    if (pt.x > maxX) maxX = pt.x;
+  });
+  var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  var intercept = (sumY - slope * sumX) / n;
+
+  var trendLinePoints = [
+    { x: minX, y: parseFloat((slope * minX + intercept).toFixed(2)) },
+    { x: maxX, y: parseFloat((slope * maxX + intercept).toFixed(2)) }
+  ];
+
+  // Group into valuation brackets
+  var brackets = [
+    { label: '< 16x (Deep Value)', min: 0, max: 16, points: [] },
+    { label: '16x - 19x (Fair Value)', min: 16, max: 19, points: [] },
+    { label: '19x - 22x (Normal)', min: 19, max: 22, points: [] },
+    { label: '22x - 25x (Elevated)', min: 22, max: 25, points: [] },
+    { label: '> 25x (Froth Zone)', min: 25, max: 999, points: [] }
+  ];
+
+  scatterPoints.forEach(function(pt) {
+    for (var b of brackets) {
+      if (pt.x >= b.min && pt.x < b.max) {
+        b.points.push(pt.y);
+        break;
+      }
+    }
+  });
+
+  // Latest P/E to highlight bracket
+  var latestPe = peData.values[allValidDates[allValidDates.length - 1]] || 20;
+
+  if (tbody) {
+    tbody.innerHTML = brackets.map(function(b) {
+      var pts = b.points.sort(function(a,b){ return a - b; });
+      var count = pts.length;
+      if (count === 0) {
+        return '<tr>' +
+          '<td style="padding:8px 12px;text-align:left;font-weight:600;color:var(--text);">' + b.label + '</td>' +
+          '<td colspan="7" style="padding:8px 12px;text-align:center;color:var(--muted);">No occurrences</td>' +
+        '</tr>';
+      }
+      var sum = pts.reduce(function(a,c){ return a + c; }, 0);
+      var avg = sum / count;
+      var median = pts[Math.floor(count / 2)];
+      var winRate = (pts.filter(function(v){ return v > 0; }).length / count) * 100;
+      var minVal = pts[0];
+      var maxVal = pts[pts.length - 1];
+      var isCurrentBracket = latestPe >= b.min && latestPe < b.max;
+
+      var tag = winRate >= 95 ? '<span style="color:#22d3a0;font-weight:700;">🟢 Elite Odds</span>' :
+                (winRate >= 80 ? '<span style="color:#4f9ef8;font-weight:600;">🔵 Solid Odds</span>' :
+                (winRate >= 60 ? '<span style="color:#f59e0b;font-weight:600;">🟠 Mixed Odds</span>' :
+                '<span style="color:#f87171;font-weight:700;">🔴 Poor Odds</span>'));
+
+      var rowStyle = isCurrentBracket ? 'background:rgba(79,158,248,0.12);border-left:3px solid #4f9ef8;' : 'border-bottom:1px solid rgba(255,255,255,0.04);';
+
+      return '<tr style="' + rowStyle + '">' +
+        '<td style="padding:8px 12px;text-align:left;font-weight:700;color:' + (isCurrentBracket ? '#4f9ef8' : 'var(--text)') + ';">' +
+          b.label + (isCurrentBracket ? ' <span style="font-size:0.62rem;background:#4f9ef8;color:#0B0C10;padding:1px 5px;border-radius:3px;font-weight:800;margin-left:4px;">CURRENT</span>' : '') +
+        '</td>' +
+        '<td style="padding:8px 12px;color:var(--muted);">' + count + ' mos</td>' +
+        '<td style="padding:8px 12px;font-weight:700;color:' + (median >= 12 ? '#22d3a0' : (median > 0 ? '#4f9ef8' : '#f87171')) + ';">' + (median >= 0 ? '+' : '') + median.toFixed(1) + '%</td>' +
+        '<td style="padding:8px 12px;color:var(--text);">' + (avg >= 0 ? '+' : '') + avg.toFixed(1) + '%</td>' +
+        '<td style="padding:8px 12px;font-weight:700;color:' + (winRate >= 90 ? '#22d3a0' : (winRate >= 70 ? '#f59e0b' : '#f87171')) + ';">' + winRate.toFixed(0) + '%</td>' +
+        '<td style="padding:8px 12px;color:#f87171;">' + (minVal >= 0 ? '+' : '') + minVal.toFixed(1) + '%</td>' +
+        '<td style="padding:8px 12px;color:#22d3a0;">+' + maxVal.toFixed(1) + '%</td>' +
+        '<td style="padding:8px 12px;text-align:center;">' + tag + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  if (hud) {
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">' + chosenKey + ' (' + fwdHorizon + ' Forward)</span>' +
+      '<span>Sample Size: <strong style="color:#4f9ef8;">' + n + ' months</strong></span>' +
+      '<span>Regression Slope: <strong style="color:#f59e0b;">' + slope.toFixed(2) + 'x</strong> (Higher P/E = Lower Forward Return)</span>' +
+      '<span>Current P/E: <strong style="color:#22d3a0;">' + latestPe.toFixed(1) + 'x</strong></span>';
+  }
+
+  if (fwdScatterChartInstance) { fwdScatterChartInstance.destroy(); fwdScatterChartInstance = null; }
+
+  fwdScatterChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Historical Purchases',
+          data: scatterPoints,
+          backgroundColor: 'rgba(79, 158, 248, 0.65)',
+          borderColor: '#4f9ef8',
+          borderWidth: 1,
+          pointRadius: 4,
+          pointHoverRadius: 7
+        },
+        {
+          label: 'Expected Return Trendline',
+          data: trendLinePoints,
+          type: 'line',
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var pt = ctx.raw;
+              if (!pt || !pt.date) return '';
+              return '📅 Bought: ' + pt.date + ' @ P/E ' + pt.x + 'x ➔ ' + fwdHorizon + ' CAGR: ' + (pt.y >= 0 ? '+' : '') + pt.y + '%';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Entry P/E Ratio', color: '#5c6480', font: { family: 'DM Mono', size: 11 } },
+          ticks: { color: '#5c6480', font: { family: 'DM Mono', size: 10 }, callback: function(v){ return v + 'x'; } },
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'right',
+          title: { display: true, text: fwdHorizon + ' Forward CAGR (%)', color: '#5c6480', font: { family: 'DM Mono', size: 11 } },
+          ticks: { color: '#5c6480', font: { family: 'DM Mono', size: 10 }, callback: function(v){ return (v >= 0 ? '+' : '') + v + '%'; } },
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' }
+        }
+      }
+    }
+  });
+
+  window.fwdScatterChartInstance = fwdScatterChartInstance;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 10: SHILLER CAPE (CYCLICALLY ADJUSTED P/E)
+// ─────────────────────────────────────────────────────────────────────────────
+var capeChartInstance = null;
+var capeWindowMonths = 60; // 5Y default
+var capeTimeframe = 'MAX';
+
+function setCapeWindow(w) {
+  capeWindowMonths = w;
+  var b3 = document.getElementById('capeWin3Y');
+  var b5 = document.getElementById('capeWin5Y');
+  if (b3) b3.classList.toggle('active', w === 36);
+  if (b5) b5.classList.toggle('active', w === 60);
+  renderCapeTab();
+}
+
+function setCapeTimeframe(tf) {
+  capeTimeframe = tf;
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('capeTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderCapeTab();
+}
+
+function resetCapeZoom() {
+  capeTimeframe = 'MAX';
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('capeTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderCapeTab();
+}
+
+function renderCapeTab() {
+  var canvas = document.getElementById('capeChartCanvas');
+  var hud = document.getElementById('capeHoverHud');
+  var select = document.getElementById('capeIndexSelect');
+  if (!canvas) return;
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  var peData = getHarmonizedPeSeries(chosenKey);
+  var rawPriceDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+  var priceMap = rawPriceDict[chosenKey] || {};
+
+  var commonDates = peData.dates.filter(function(d) {
+    return priceMap[d] && priceMap[d] > 0 && peData.values[d] && peData.values[d] > 0;
+  }).sort();
+
+  if (commonDates.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No data available for ' + chosenKey + '</span>';
+    return;
+  }
+
+  // Compute monthly EPS
+  var epsMap = {};
+  commonDates.forEach(function(d) {
+    epsMap[d] = priceMap[d] / peData.values[d];
+  });
+
+  // Compute Smoothed EPS and CAPE
+  var capeSeries = [];
+  var peSeries = [];
+  var smoothedEpsMap = {};
+
+  for (var i = 0; i < commonDates.length; i++) {
+    var d = commonDates[i];
+    var startIdx = Math.max(0, i - capeWindowMonths + 1);
+    var count = i - startIdx + 1;
+    var sum = 0;
+    for (var j = startIdx; j <= i; j++) {
+      sum += epsMap[commonDates[j]];
+    }
+    var smoothedEps = sum / count;
+    smoothedEpsMap[d] = smoothedEps;
+    var cape = priceMap[d] / smoothedEps;
+
+    capeSeries.push(parseFloat(cape.toFixed(2)));
+    peSeries.push(parseFloat(peData.values[d].toFixed(2)));
+  }
+
+  // Filter timeframe
+  var fDates = commonDates;
+  var fCape = capeSeries;
+  var fPe = peSeries;
+
+  if (capeTimeframe !== 'MAX' && fDates.length > 0) {
+    var latestD = fDates[fDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = capeTimeframe === '3Y' ? 3 : (capeTimeframe === '5Y' ? 5 : 10);
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+
+    var startIdx = 0;
+    for (var i = 0; i < fDates.length; i++) {
+      if (fDates[i] >= startD) { startIdx = i; break; }
+    }
+    fDates = fDates.slice(startIdx);
+    fCape = fCape.slice(startIdx);
+    fPe = fPe.slice(startIdx);
+  }
+
+  // Compute median CAPE
+  var sortedCape = [...fCape].sort(function(a,b){ return a - b; });
+  var medianCape = sortedCape[Math.floor(sortedCape.length / 2)] || 20;
+
+  var datasets = [
+    {
+      label: chosenKey + ' Shiller CAPE (' + (capeWindowMonths/12) + 'Y Smooth)',
+      data: fCape,
+      borderColor: '#a855f7',
+      backgroundColor: '#a855f7',
+      borderWidth: 2.5,
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15,
+      order: 1
+    },
+    {
+      label: 'Trailing P/E (1Y Unsmoothed)',
+      data: fPe,
+      borderColor: 'rgba(148, 163, 184, 0.45)',
+      borderWidth: 1.5,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      fill: false,
+      order: 2
+    },
+    {
+      label: 'Median CAPE (' + medianCape.toFixed(1) + 'x)',
+      data: fDates.map(function(){ return medianCape; }),
+      borderColor: 'rgba(245, 158, 11, 0.5)',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 3
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = fDates[idx];
+    if (!d) return;
+    var cVal = fCape[idx];
+    var pVal = fPe[idx];
+    var smEps = smoothedEpsMap[d] || 0;
+    var price = priceMap[d] || 0;
+
+    var tag = '';
+    if (cVal <= medianCape * 0.85) tag = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Cyclical Value Zone</span>';
+    else if (cVal >= medianCape * 1.25) tag = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Cyclical Froth Zone</span>';
+    else tag = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Fair Value Range</span>';
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>Price: <strong style="color:#F5F5F7;">₹' + price.toLocaleString('en-IN', {maximumFractionDigits:1}) + '</strong></span>' +
+      '<span>Smoothed EPS: <strong style="color:#a855f7;">₹' + smEps.toFixed(1) + '</strong></span>' +
+      '<span>Shiller CAPE: <strong style="color:#a855f7;">' + cVal.toFixed(1) + 'x</strong></span>' +
+      '<span>Trailing P/E: <strong style="color:#94a3b8;">' + pVal.toFixed(1) + 'x</strong></span>' +
+      tag;
+  }
+
+  if (capeChartInstance) { capeChartInstance.destroy(); capeChartInstance = null; }
+
+  capeChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: fDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = fDates[index];
+              return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.capeChartInstance = capeChartInstance;
+  updateHud(fDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 11: PEG GROWTH ENGINE (VALUATION RELATIVE TO EPS GROWTH)
+// ─────────────────────────────────────────────────────────────────────────────
+var pegChartInstance = null;
+var pegTimeframe = 'MAX';
+
+function setPegTimeframe(tf) {
+  pegTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('pegTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderPegTab();
+}
+
+function resetPegZoom() {
+  pegTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('pegTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderPegTab();
+}
+
+function renderPegTab() {
+  var canvas = document.getElementById('pegChartCanvas');
+  var hud = document.getElementById('pegHoverHud');
+  var select = document.getElementById('pegIndexSelect');
+  if (!canvas) return;
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  var peData = getHarmonizedPeSeries(chosenKey);
+  var rawPriceDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+  var priceMap = rawPriceDict[chosenKey] || {};
+
+  var commonDates = peData.dates.filter(function(d) {
+    return priceMap[d] && priceMap[d] > 0 && peData.values[d] && peData.values[d] > 0;
+  }).sort();
+
+  if (commonDates.length < 13) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">Need at least 13 months of data to compute EPS growth for ' + chosenKey + '</span>';
+    return;
+  }
+
+  // Compute monthly EPS
+  var epsMap = {};
+  commonDates.forEach(function(d) {
+    epsMap[d] = priceMap[d] / peData.values[d];
+  });
+
+  // Compute 12M EPS Growth and PEG
+  var growthDates = [];
+  var peSeries = [];
+  var growthSeries = [];
+  var pegSeries = [];
+
+  for (var i = 12; i < commonDates.length; i++) {
+    var d = commonDates[i];
+    var dPrev = commonDates[i - 12];
+    var epsCur = epsMap[d];
+    var epsPrev = epsMap[dPrev];
+    if (epsPrev && epsPrev > 0) {
+      var g = ((epsCur / epsPrev) - 1) * 100;
+      var pe = peData.values[d];
+      var peg = g > 0 ? parseFloat((pe / g).toFixed(2)) : null;
+
+      growthDates.push(d);
+      peSeries.push(pe);
+      growthSeries.push(parseFloat(g.toFixed(1)));
+      pegSeries.push(peg);
+    }
+  }
+
+  var fDates = growthDates;
+  var fPe = peSeries;
+  var fGrowth = growthSeries;
+  var fPeg = pegSeries;
+
+  if (pegTimeframe !== 'MAX' && fDates.length > 0) {
+    var latestD = fDates[fDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = pegTimeframe === '1Y' ? 1 : (pegTimeframe === '3Y' ? 3 : (pegTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+
+    var startIdx = 0;
+    for (var i = 0; i < fDates.length; i++) {
+      if (fDates[i] >= startD) { startIdx = i; break; }
+    }
+    fDates = fDates.slice(startIdx);
+    fPe = fPe.slice(startIdx);
+    fGrowth = fGrowth.slice(startIdx);
+    fPeg = fPeg.slice(startIdx);
+  }
+
+  var datasets = [
+    {
+      label: chosenKey + ' P/E Ratio',
+      data: fPe,
+      borderColor: '#4f9ef8',
+      backgroundColor: '#4f9ef8',
+      borderWidth: 2.2,
+      yAxisID: 'y',
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15
+    },
+    {
+      label: 'Trailing 12M EPS YoY Growth (%)',
+      data: fGrowth,
+      borderColor: '#22d3a0',
+      backgroundColor: '#22d3a0',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      yAxisID: 'y1',
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      tension: 0.15
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = fDates[idx];
+    if (!d) return;
+    var pe = fPe[idx];
+    var g = fGrowth[idx];
+    var peg = fPeg[idx];
+
+    var pegTag = '';
+    if (peg !== null) {
+      if (peg <= 1.0) pegTag = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Attractive GARP (PEG: ' + peg + ')</span>';
+      else if (peg <= 1.8) pegTag = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Fair Value (PEG: ' + peg + ')</span>';
+      else pegTag = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Expensive vs Growth (PEG: ' + peg + ')</span>';
+    } else {
+      pegTag = '<span style="background:rgba(248,113,113,0.1);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:600;">⚠️ Negative Earnings Growth</span>';
+    }
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>P/E: <strong style="color:#4f9ef8;">' + pe.toFixed(1) + 'x</strong></span>' +
+      '<span>EPS YoY Growth: <strong style="color:' + (g >= 0 ? '#22d3a0' : '#f87171') + ';">' + (g >= 0 ? '+' : '') + g.toFixed(1) + '%</strong></span>' +
+      '<span>PEG Ratio: <strong style="color:#f59e0b;">' + (peg !== null ? peg.toFixed(2) : 'N/A') + '</strong></span>' +
+      pegTag;
+  }
+
+  if (pegChartInstance) { pegChartInstance.destroy(); pegChartInstance = null; }
+
+  pegChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: fDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = fDates[index];
+              return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'left',
+          title: { display: true, text: 'P/E Multiple', color: '#4f9ef8', font: { family: 'DM Mono', size: 10 } },
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        },
+        y1: {
+          position: 'right',
+          title: { display: true, text: 'EPS YoY Growth (%)', color: '#22d3a0', font: { family: 'DM Mono', size: 10 } },
+          grid: { display: false },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return (val >= 0 ? '+' : '') + val + '%'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.pegChartInstance = pegChartInstance;
+  updateHud(fDates.length - 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB 12: P/E ROLLING RETURNS (MULTIPLE EXPANSION & CONTRACTION)
+// ─────────────────────────────────────────────────────────────────────────────
+var peRollingChartInstance = null;
+var peRollingHorizon = '1Y'; // 1M..12M or 1Y..5Y
+var peRollingTimeframe = 'MAX';
+
+function setPeRollingHorizon(h) {
+  peRollingHorizon = h;
+  // Update UI active buttons
+  for (var i = 1; i <= 12; i++) {
+    var b = document.getElementById('prBtn' + i + 'M');
+    if (b) b.classList.toggle('active', (i + 'M') === h);
+  }
+  for (var i = 1; i <= 5; i++) {
+    var b = document.getElementById('prBtn' + i + 'Y');
+    if (b) b.classList.toggle('active', (i + 'Y') === h);
+  }
+  renderPeRollingTab();
+}
+
+function setPeRollingTimeframe(tf) {
+  peRollingTimeframe = tf;
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('prTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderPeRollingTab();
+}
+
+function resetPeRollingZoom() {
+  peRollingTimeframe = 'MAX';
+  ['1Y', '3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('prTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderPeRollingTab();
+}
+
+function renderPeRollingTab() {
+  var canvas = document.getElementById('peRollingChartCanvas');
+  var hud = document.getElementById('peRollingHoverHud');
+  var kpiGrid = document.getElementById('peRollingKpiGrid');
+  var select = document.getElementById('peRollingIndexSelect');
+  if (!canvas) return;
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  var peData = getHarmonizedPeSeries(chosenKey);
+  var allDates = peData.dates;
+
+  var horizonMonths = peRollingHorizon.endsWith('M') ?
+    parseInt(peRollingHorizon.replace('M', ''), 10) :
+    parseInt(peRollingHorizon.replace('Y', ''), 10) * 12;
+
+  var isAnnualized = peRollingHorizon.endsWith('Y') && horizonMonths > 12;
+
+  var rollingDates = [];
+  var rollingReturns = [];
+  var startPeMap = {};
+
+  for (var i = horizonMonths; i < allDates.length; i++) {
+    var dCur = allDates[i];
+    var dStart = allDates[i - horizonMonths];
+    var peCur = peData.values[dCur];
+    var peStart = peData.values[dStart];
+
+    if (peCur && peStart && peStart > 0) {
+      var ret = 0;
+      if (isAnnualized) {
+        ret = (Math.pow(peCur / peStart, 12 / horizonMonths) - 1) * 100;
+      } else {
+        ret = ((peCur / peStart) - 1) * 100;
+      }
+      rollingDates.push(dCur);
+      rollingReturns.push(parseFloat(ret.toFixed(2)));
+      startPeMap[dCur] = peStart;
+    }
+  }
+
+  if (rollingDates.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">Need at least ' + (horizonMonths + 1) + ' months of P/E data for ' + chosenKey + '</span>';
+    if (peRollingChartInstance) { peRollingChartInstance.destroy(); peRollingChartInstance = null; }
+    window.peRollingChartInstance = null;
+    if (kpiGrid) kpiGrid.innerHTML = '';
+    return;
+  }
+
+  var fDates = rollingDates;
+  var fReturns = rollingReturns;
+
+  if (peRollingTimeframe !== 'MAX' && fDates.length > 0) {
+    var latestD = fDates[fDates.length - 1];
+    var parts = latestD.split('-');
+    var endYear = parseInt(parts[0], 10);
+    var endMonth = parseInt(parts[1], 10);
+    var yearsBack = peRollingTimeframe === '1Y' ? 1 : (peRollingTimeframe === '3Y' ? 3 : (peRollingTimeframe === '5Y' ? 5 : 10));
+    var startYear = endYear - yearsBack;
+    var startD = startYear + '-' + (endMonth < 10 ? '0' + endMonth : endMonth);
+
+    var startIdx = 0;
+    for (var i = 0; i < fDates.length; i++) {
+      if (fDates[i] >= startD) { startIdx = i; break; }
+    }
+    fDates = fDates.slice(startIdx);
+    fReturns = fReturns.slice(startIdx);
+  }
+
+  // KPI Metrics Calculation
+  var maxExp = Math.max(...fReturns);
+  var maxCont = Math.min(...fReturns);
+  var curVal = fReturns[fReturns.length - 1];
+  var sortedRets = [...fReturns].sort(function(a,b){ return a - b; });
+  var medVal = sortedRets[Math.floor(sortedRets.length / 2)];
+  var expWinRate = (fReturns.filter(function(v){ return v > 0; }).length / fReturns.length) * 100;
+
+  if (kpiGrid) {
+    kpiGrid.innerHTML =
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;">' +
+        '<div style="font-size:0.65rem;color:var(--muted);font-family:monospace;text-transform:uppercase;">Current ' + peRollingHorizon + ' Multiple Δ</div>' +
+        '<div style="font-size:1.15rem;font-weight:800;color:' + (curVal >= 0 ? '#22d3a0' : '#f87171') + ';font-family:monospace;">' + (curVal >= 0 ? '+' : '') + curVal.toFixed(1) + '%</div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;">' +
+        '<div style="font-size:0.65rem;color:var(--muted);font-family:monospace;text-transform:uppercase;">Peak Expansion</div>' +
+        '<div style="font-size:1.15rem;font-weight:800;color:#22d3a0;font-family:monospace;">+' + maxExp.toFixed(1) + '%</div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;">' +
+        '<div style="font-size:0.65rem;color:var(--muted);font-family:monospace;text-transform:uppercase;">Peak Contraction</div>' +
+        '<div style="font-size:1.15rem;font-weight:800;color:#f87171;font-family:monospace;">' + maxCont.toFixed(1) + '%</div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;">' +
+        '<div style="font-size:0.65rem;color:var(--muted);font-family:monospace;text-transform:uppercase;">Expansion Ratio</div>' +
+        '<div style="font-size:1.15rem;font-weight:800;color:#4f9ef8;font-family:monospace;">' + expWinRate.toFixed(0) + '% <span style="font-size:0.65rem;color:var(--muted);">periods</span></div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;">' +
+        '<div style="font-size:0.65rem;color:var(--muted);font-family:monospace;text-transform:uppercase;">Median Multiple Δ</div>' +
+        '<div style="font-size:1.15rem;font-weight:800;color:var(--text);font-family:monospace;">' + (medVal >= 0 ? '+' : '') + medVal.toFixed(1) + '%</div>' +
+      '</div>';
+  }
+
+  var datasets = [
+    {
+      label: chosenKey + ' ' + peRollingHorizon + ' P/E Return',
+      data: fReturns,
+      borderColor: '#4f9ef8',
+      backgroundColor: function(ctx) {
+        var chart = ctx.chart;
+        var ctx2d = chart.ctx;
+        var chartArea = chart.chartArea;
+        if (!chartArea) return 'transparent';
+        var gradient = ctx2d.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        gradient.addColorStop(0, 'rgba(34, 211, 160, 0.25)');
+        gradient.addColorStop(0.5, 'rgba(79, 158, 248, 0.05)');
+        gradient.addColorStop(1, 'rgba(248, 113, 113, 0.25)');
+        return gradient;
+      },
+      fill: 'origin',
+      borderWidth: 2,
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 5,
+      tension: 0.15
+    },
+    {
+      label: 'Zero Baseline',
+      data: fDates.map(function(){ return 0; }),
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      borderWidth: 1,
+      pointRadius: 0,
+      fill: false
+    }
+  ];
+
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = fDates[idx];
+    if (!d) return;
+    var ret = fReturns[idx];
+    var peCur = peData.values[d] || 0;
+    var peStart = startPeMap[d] || 0;
+
+    var statusTag = '';
+    if (ret > 15) statusTag = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Multiple Expansion (Re-rating)</span>';
+    else if (ret < -15) statusTag = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Multiple Contraction (De-rating)</span>';
+    else statusTag = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Stable Multiple</span>';
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>Start P/E: <strong style="color:#94a3b8;">' + peStart.toFixed(1) + 'x</strong></span>' +
+      '<span>End P/E: <strong style="color:#4f9ef8;">' + peCur.toFixed(1) + 'x</strong></span>' +
+      '<span>' + peRollingHorizon + ' Multiple Δ: <strong style="color:' + (ret >= 0 ? '#22d3a0' : '#f87171') + ';">' + (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%' + (isAnnualized ? ' p.a.' : '') + '</strong></span>' +
+      statusTag;
+  }
+
+  if (peRollingChartInstance) { peRollingChartInstance.destroy(); peRollingChartInstance = null; }
+
+  peRollingChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: fDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = fDates[index];
+              return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'right',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return (val >= 0 ? '+' : '') + val + '%'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.peRollingChartInstance = peRollingChartInstance;
+  updateHud(fDates.length - 1);
+}
+
+// Global Exports
+window.renderYieldGapTab = renderYieldGapTab;
+window.setYieldGapTimeframe = setYieldGapTimeframe;
+window.resetYieldGapZoom = resetYieldGapZoom;
+
+window.renderForwardReturnsTab = renderForwardReturnsTab;
+window.setFwdHorizon = setFwdHorizon;
+
+window.renderCapeTab = renderCapeTab;
+window.setCapeWindow = setCapeWindow;
+window.setCapeTimeframe = setCapeTimeframe;
+window.resetCapeZoom = resetCapeZoom;
+
+window.renderPegTab = renderPegTab;
+window.setPegTimeframe = setPegTimeframe;
+window.resetPegZoom = resetPegZoom;
+
+window.renderPeRollingTab = renderPeRollingTab;
+window.setPeRollingHorizon = setPeRollingHorizon;
+window.setPeRollingTimeframe = setPeRollingTimeframe;
+window.resetPeRollingZoom = resetPeRollingZoom;
 
 </script>
 
