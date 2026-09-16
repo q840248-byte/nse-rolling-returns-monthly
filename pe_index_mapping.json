@@ -1,0 +1,617 @@
+[
+  [
+    "Nifty 50",
+    "Nifty 50",
+    "Nifty 50"
+  ],
+  [
+    "Nifty Next 50",
+    "Nifty Next 50",
+    "Nifty Next 50"
+  ],
+  [
+    "Nifty Midcap 100",
+    "NIFTY MIDCAP 100",
+    "NIFTY Midcap 100"
+  ],
+  [
+    "Nifty 100",
+    "Nifty 100",
+    "Nifty 100"
+  ],
+  [
+    "Nifty 200",
+    "Nifty 200",
+    "Nifty 200"
+  ],
+  [
+    "Nifty 500",
+    "Nifty 500",
+    "Nifty 500"
+  ],
+  [
+    "Nifty Alpha 50",
+    "NIFTY ALPHA 50",
+    "Nifty Alpha 50"
+  ],
+  [
+    "Nifty Alpha Low Volatility 30",
+    "NIFTY ALPHALOWVOL",
+    "NIFTY ALPHA LOW-VOLATILITY 30"
+  ],
+  [
+    "Nifty Dividend Opportunities 50",
+    "Nifty Div Opps 50",
+    "Nifty Dividend Opportunities 50"
+  ],
+  [
+    "Nifty Growth Sectors 15",
+    "Nifty GrowSect 15",
+    "Nifty Growth Sectors 15"
+  ],
+  [
+    "Nifty High Beta 50",
+    "Nifty HighBeta 50",
+    "Nifty High Beta 50"
+  ],
+  [
+    "Nifty LargeMidcap 250",
+    "NIFTY LARGEMID250",
+    "NIFTY LargeMidcap 250"
+  ],
+  [
+    "Nifty Low Volatility 50",
+    "Nifty Low Vol 50",
+    "Nifty Low Volatility 50"
+  ],
+  [
+    "Nifty Microcap 250",
+    "NIFTY MICROCAP250",
+    "Nifty Microcap 250"
+  ],
+  [
+    "Nifty Midcap 150",
+    "NIFTY MIDCAP 150",
+    "Nifty Midcap 150"
+  ],
+  [
+    "Nifty Midcap 50",
+    "Nifty Midcap 50",
+    "Nifty Midcap 50"
+  ],
+  [
+    "Nifty Midcap Select",
+    "NIFTY MID SELECT",
+    "Nifty Midcap Select"
+  ],
+  [
+    "Nifty Midcap150 Momentum 50",
+    "NIFTYM150MOMNTM50",
+    "Nifty Midcap150 Momentum 50"
+  ],
+  [
+    "Nifty Midcap150 Quality 50",
+    "NIFTY M150 QLTY50",
+    "NIFTY Midcap150 Quality 50"
+  ],
+  [
+    "Nifty MidSmallcap 400",
+    "NIFTY MIDSML 400",
+    "NIFTY MIDSMALLCAP 400"
+  ],
+  [
+    "Nifty MidSmallcap400 50-50",
+    "NIFTY MIDSML 400",
+    "NIFTY MIDSMALLCAP 400"
+  ],
+  [
+    "Nifty MidSmallcap400 Momentum Quality 100",
+    "NiftyMS400 MQ 100",
+    "Nifty MidSmallcap400 Momentum Quality 100"
+  ],
+  [
+    "Nifty Smallcap 100",
+    "NIFTY SMLCAP 100",
+    "Nifty Smallcap 100"
+  ],
+  [
+    "Nifty Smallcap 250",
+    "NIFTY SMLCAP 250",
+    "NIFTY Smallcap 250"
+  ],
+  [
+    "Nifty Smallcap 50",
+    "NIFTY SMLCAP 50",
+    "Nifty Smallcap 50"
+  ],
+  [
+    "Nifty Smallcap 500",
+    "Nifty Smallcap 500",
+    "Nifty Smallcap 500"
+  ],
+  [
+    "Nifty Smallcap250 Momentum Quality 100",
+    "NiftySml250MQ 100",
+    "Nifty Smallcap250 Momentum Quality 100"
+  ],
+  [
+    "Nifty Smallcap250 Quality 50",
+    "Nifty Sml250 Q50",
+    "Nifty Smallcap250 Quality 50"
+  ],
+  [
+    "Nifty Top 10 Equal Weight",
+    "Nifty Top 10 EW",
+    "Nifty Top 10 Equal Weight"
+  ],
+  [
+    "Nifty Top 15 Equal Weight",
+    "Nifty Top 15 EW",
+    "Nifty Top 15 Equal Weight"
+  ],
+  [
+    "Nifty Top 20 Equal Weight",
+    "Nifty Top 20 EW",
+    "Nifty Top 20 Equal Weight"
+  ],
+  [
+    "Nifty Total Market",
+    "NIFTY TOTAL MKT",
+    "Nifty Total Market"
+  ],
+  [
+    "Nifty Total Market Momentum Quality 50",
+    "Nifty Total Market Momentum Quality 50",
+    "Nifty Total Market Momentum Quality 50"
+  ],
+  [
+    "Nifty100 Alpha 30",
+    "Nifty100 Alpha 30",
+    "Nifty100 Alpha 30"
+  ],
+  [
+    "Nifty100 Equal Weight",
+    "NIFTY100 EQL WGT",
+    "Nifty100 Equal Weight"
+  ],
+  [
+    "Nifty100 Low Volatility 30",
+    "NIFTY100 LOWVOL30",
+    "Nifty100 Low Volatility 30"
+  ],
+  [
+    "Nifty100 Quality 30",
+    "NIFTY100 QUALTY30",
+    "Nifty100 Quality 30"
+  ],
+  [
+    "Nifty200 Alpha 30",
+    "Nifty200 Alpha 30",
+    "Nifty200 Alpha 30"
+  ],
+  [
+    "Nifty200 Momentum 30",
+    "Nifty200Momentm30",
+    "NIFTY200 MOMENTUM 30"
+  ],
+  [
+    "Nifty200 Quality 30",
+    "NIFTY200 QUALITY 30",
+    "NIFTY200 QUALITY 30"
+  ],
+  [
+    "Nifty200 Value 30",
+    "Nifty200 Value 30",
+    "Nifty200 Value 30"
+  ],
+  [
+    "Nifty50 Equal Weight",
+    "NIFTY50 EQL WGT",
+    "NIFTY50 Equal Weight"
+  ],
+  [
+    "Nifty50 USD",
+    "NIFTY50 USD",
+    "Nifty50 USD"
+  ],
+  [
+    "Nifty50 Value 20",
+    "Nifty50 Value 20",
+    "Nifty50 Value 20"
+  ],
+  [
+    "Nifty500 Equal Weight",
+    "Nifty500 EW",
+    "Nifty500 Equal Weight"
+  ],
+  [
+    "Nifty500 Flexicap Quality 30",
+    "Nifty500 Flexicap Quality 30",
+    "Nifty500 Flexicap Quality 30"
+  ],
+  [
+    "Nifty500 LargeMidSmall Equal-Cap Weighted",
+    "Nifty500 LMS Eql",
+    "Nifty500 LargeMidSmall Equal-Cap Weighted"
+  ],
+  [
+    "Nifty500 Low Volatility 50",
+    "Nifty500 LowVol50",
+    "Nifty500 Low Volatility 50"
+  ],
+  [
+    "Nifty500 Momentum 50",
+    "Nifty500Momentm50",
+    "Nifty500 Momentum 50"
+  ],
+  [
+    "Nifty500 Multicap 50-25-25",
+    "Nifty 50",
+    "Nifty 50"
+  ],
+  [
+    "Nifty500 Multicap Momentum Quality 50",
+    "Nifty Multi MQ 50",
+    "Nifty500 Multicap Momentum Quality 50"
+  ],
+  [
+    "Nifty500 Multifactor MQVLv 50",
+    "Nifty500 MQVLv50",
+    "Nifty500 Multifactor MQVLv 50"
+  ],
+  [
+    "Nifty500 Quality 50",
+    "Nifty500 Qlty50",
+    "Nifty500 Quality 50"
+  ],
+  [
+    "Nifty500 Value 50",
+    "Nifty500 Value 50",
+    "Nifty500 Value 50"
+  ],
+  [
+    "Nifty Auto",
+    "Nifty Auto",
+    "Nifty Auto"
+  ],
+  [
+    "Nifty FMCG",
+    "Nifty FMCG",
+    "Nifty FMCG"
+  ],
+  [
+    "Nifty IT",
+    "Nifty IT",
+    "Nifty IT"
+  ],
+  [
+    "Nifty Bank",
+    "Nifty Bank",
+    "Nifty Bank"
+  ],
+  [
+    "Nifty Media",
+    "Nifty Media",
+    "Nifty Media"
+  ],
+  [
+    "Nifty Metal",
+    "Nifty Metal",
+    "Nifty Metal"
+  ],
+  [
+    "Nifty Pharma",
+    "Nifty Pharma",
+    "Nifty Pharma"
+  ],
+  [
+    "Nifty PSU Bank",
+    "Nifty PSU Bank",
+    "Nifty PSU Bank"
+  ],
+  [
+    "Nifty Realty",
+    "Nifty Realty",
+    "Nifty Realty"
+  ],
+  [
+    "Nifty Private Bank",
+    "Nifty Pvt Bank",
+    "Nifty Private Bank"
+  ],
+  [
+    "Nifty Healthcare",
+    "NIFTY HEALTHCARE",
+    "Nifty Healthcare"
+  ],
+  [
+    "Nifty Consumer Durables",
+    "NIFTY CONSR DURBL",
+    "Nifty Consumer Durables"
+  ],
+  [
+    "Nifty Oil & Gas",
+    "NIFTY OIL AND GAS",
+    "Nifty Oil & Gas"
+  ],
+  [
+    "Nifty Chemicals",
+    "Nifty Chemicals",
+    "Nifty Chemicals"
+  ],
+  [
+    "Nifty Cement",
+    "Nifty Cement",
+    "Nifty Cement"
+  ],
+  [
+    "Nifty Financial Services",
+    "Nifty Fin Service",
+    "Nifty Financial Services"
+  ],
+  [
+    "Nifty Financial Services 25-50",
+    "Nifty Fin Service",
+    "Nifty Financial Services"
+  ],
+  [
+    "Nifty Financial Services Ex-Bank",
+    "Nifty FinSerExBnk",
+    "Nifty Financial Services Ex-Bank"
+  ],
+  [
+    "Nifty MidSmall Financial Services",
+    "Nifty MS Fin Serv",
+    "Nifty MidSmall Financial Services"
+  ],
+  [
+    "Nifty MidSmall Healthcare",
+    "NIFTY MIDSML HLTH",
+    "Nifty MidSmall Healthcare"
+  ],
+  [
+    "Nifty MidSmall IT & Telecom",
+    "Nifty MS IT Telcm",
+    "Nifty MidSmall IT & Telecom"
+  ],
+  [
+    "Nifty500 Healthcare",
+    "Nifty500 Healthcare",
+    "Nifty500 Healthcare"
+  ],
+  [
+    "Nifty REITs & Realty",
+    "Nifty REITs & Realty",
+    "Nifty REITs & Realty"
+  ],
+  [
+    "Nifty Commodities",
+    "Nifty Commodities",
+    "Nifty Commodities"
+  ],
+  [
+    "Nifty India Consumption",
+    "Nifty Consumption",
+    "Nifty India Consumption"
+  ],
+  [
+    "Nifty CPSE",
+    "Nifty CPSE",
+    "Nifty CPSE"
+  ],
+  [
+    "Nifty Energy",
+    "Nifty Energy",
+    "Nifty Energy"
+  ],
+  [
+    "Nifty Infrastructure",
+    "Nifty Infra",
+    "Nifty Infrastructure"
+  ],
+  [
+    "Nifty MNC",
+    "Nifty MNC",
+    "Nifty MNC"
+  ],
+  [
+    "Nifty PSE",
+    "Nifty PSE",
+    "Nifty PSE"
+  ],
+  [
+    "Nifty Services Sector",
+    "Nifty Serv Sector",
+    "Nifty Services Sector"
+  ],
+  [
+    "Nifty India Digital",
+    "NIFTY IND DIGITAL",
+    "Nifty India Digital"
+  ],
+  [
+    "Nifty India Defence",
+    "Nifty Ind Defence",
+    "Nifty India Defence"
+  ],
+  [
+    "Nifty India Manufacturing",
+    "NIFTY INDIA MFG",
+    "Nifty India Manufacturing"
+  ],
+  [
+    "Nifty India Tourism",
+    "Nifty Ind Tourism",
+    "Nifty India Tourism"
+  ],
+  [
+    "Nifty Capital Markets",
+    "Nifty Capital Mkt",
+    "Nifty Capital Markets"
+  ],
+  [
+    "Nifty EV & New Age Automotive",
+    "Nifty EV",
+    "Nifty EV & New Age Automotive"
+  ],
+  [
+    "Nifty India New Age Consumption",
+    "Nifty New Consump",
+    "Nifty India New Age Consumption"
+  ],
+  [
+    "Nifty Mobility",
+    "Nifty Mobility",
+    "Nifty Mobility"
+  ],
+  [
+    "Nifty Core Housing",
+    "Nifty CoreHousing",
+    "Nifty Core Housing"
+  ],
+  [
+    "Nifty Housing",
+    "Nifty Housing",
+    "Nifty Housing"
+  ],
+  [
+    "Nifty MidSmall India Consumption",
+    "Nifty MS Ind Cons",
+    "Nifty MidSmall India Consumption"
+  ],
+  [
+    "Nifty Non-Cyclical Consumer",
+    "Nifty NonCyc Cons",
+    "Nifty Non-Cyclical Consumer"
+  ],
+  [
+    "Nifty Rural",
+    "Nifty Rural",
+    "Nifty Rural"
+  ],
+  [
+    "Nifty Transportation & Logistics",
+    "Nifty Trans Logis",
+    "Nifty Transportation & Logistics"
+  ],
+  [
+    "Nifty India Internet",
+    "Nifty India Internet",
+    "Nifty India Internet"
+  ],
+  [
+    "Nifty Waves",
+    "Nifty Waves",
+    "Nifty Waves"
+  ],
+  [
+    "Nifty India Infrastructure & Logistics",
+    "Nifty India Infrastructure & Logistics",
+    "Nifty India Infrastructure & Logistics"
+  ],
+  [
+    "Nifty India Railways PSU",
+    "Nifty India Railways PSU",
+    "Nifty India Railways PSU"
+  ],
+  [
+    "Nifty Conglomerate 50",
+    "Nifty Conglomerate 50",
+    "Nifty Conglomerate 50"
+  ],
+  [
+    "Nifty500 Multicap India Manufacturing 50-30-20",
+    "Nifty 50",
+    "Nifty 50"
+  ],
+  [
+    "Nifty500 Multicap Infrastructure 50-30-20",
+    "Nifty 50",
+    "Nifty 50"
+  ],
+  [
+    "Nifty Tata Group 25% Cap",
+    "NIFTY TATA GROUP",
+    "Nifty Tata Group"
+  ],
+  [
+    "Nifty100 ESG",
+    "NIFTY100 ESG",
+    "NIFTY100 ESG"
+  ],
+  [
+    "Nifty100 ESG Sector Leaders",
+    "Nifty100ESGSecLdr",
+    "NIFTY100 ESG SECTOR LEADERS"
+  ],
+  [
+    "Nifty100 Enhanced ESG",
+    "Nifty100 Enh ESG",
+    "NIFTY100 Enhanced ESG"
+  ],
+  [
+    "Nifty Shariah 25",
+    "Nifty Shariah 25",
+    "Nifty Shariah 25"
+  ],
+  [
+    "Nifty50 Shariah",
+    "Nifty50 Shariah",
+    "Nifty50 Shariah"
+  ],
+  [
+    "Nifty500 Shariah",
+    "Nifty500 Shariah",
+    "Nifty500 Shariah"
+  ],
+  [
+    "Nifty50 TR 2X Leverage",
+    "Nifty50 TR 2x Lev",
+    "Nifty50 TR 2x Leverage"
+  ],
+  [
+    "Nifty50 PR 2X Leverage",
+    "Nifty50 PR 2x Lev",
+    "Nifty50 PR 2x Leverage"
+  ],
+  [
+    "Nifty50 TR 1X Inverse",
+    "Nifty50 TR 1x Inv",
+    "Nifty50 TR 1x Inverse"
+  ],
+  [
+    "Nifty50 PR 1X Inverse",
+    "Nifty50 PR 1x Inv",
+    "Nifty50 PR 1x Inverse"
+  ],
+  [
+    "Nifty50 Dividend Points",
+    "Nifty50 Div Point",
+    "NIFTY50 Dividend Points"
+  ],
+  [
+    "Nifty100 Liquid 15",
+    "Nifty100 Liq 15",
+    "Nifty100 Liquid 15"
+  ],
+  [
+    "Nifty Midcap Liquid 15",
+    "Nifty Mid Liq 15",
+    "Nifty Midcap Liquid 15"
+  ],
+  [
+    "Nifty SME EMERGE",
+    "NIFTY SME EMERGE",
+    "NIFTY SME EMERGE"
+  ],
+  [
+    "Nifty IPO",
+    "Nifty IPO",
+    "Nifty IPO"
+  ],
+  [
+    "Nifty India FPI 150",
+    "NIFTY India FPI 150",
+    "Nifty India FPI 150"
+  ]
+]
