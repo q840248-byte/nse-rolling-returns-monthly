@@ -2157,6 +2157,9 @@
 
           <div style="display:flex;gap:6px;align-items:center;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
 
+            <button id="alphaModeBtn" onclick="toggleAlphaMode()" title="Plot Excess Return (Alpha) over Nifty 50 instead of absolute rolling CAGR" style="padding:4px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;color:var(--text);font-family:monospace;font-size:0.65rem;cursor:pointer;letter-spacing:0.03em;display:inline-flex;align-items:center;gap:4px;">
+              <span style="font-weight:800;font-size:0.75rem;color:#22d3a0;">α</span> Excess vs Nifty: <strong id="alphaModeText" style="color:var(--muted);">OFF</strong>
+            </button>
             <button onclick="exportXLSX()" title="Export all data as Excel workbook" style="padding:4px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9999px;color:var(--text);font-family:monospace;font-size:0.65rem;cursor:pointer;letter-spacing:0.04em;">⬇ Export</button>
 
           </div>
@@ -4383,6 +4386,35 @@ function syncSimYearsFromEnd() {
 
 
 
+
+var _alphaMode = false;
+window._alphaMode = _alphaMode;
+
+function toggleAlphaMode() {
+  _alphaMode = !_alphaMode;
+  window._alphaMode = _alphaMode;
+  var btn = document.getElementById('alphaModeBtn');
+  var txt = document.getElementById('alphaModeText');
+  var sub = document.querySelector('#tabContent0 .chart-subtitle');
+  if (btn && txt) {
+    if (_alphaMode) {
+      btn.style.background = 'rgba(34, 211, 160, 0.16)';
+      btn.style.borderColor = '#22d3a0';
+      txt.textContent = 'ON';
+      txt.style.color = '#22d3a0';
+      if (sub) sub.innerHTML = 'Showing <strong>Excess Return (Alpha) over Nifty 50</strong> • Above 0% = Outperforming Nifty 50 • Below 0% = Underperforming';
+    } else {
+      btn.style.background = 'rgba(255,255,255,0.04)';
+      btn.style.borderColor = 'rgba(255,255,255,0.08)';
+      txt.textContent = 'OFF';
+      txt.style.color = 'var(--muted)';
+      if (sub) sub.innerHTML = 'How much your money would have grown (annualised) if you invested N years before each date';
+    }
+  }
+  renderMain();
+}
+window.toggleAlphaMode = toggleAlphaMode;
+
 function renderMain() {
 
   const selKeys = [...selected];
@@ -4472,16 +4504,25 @@ function renderMain() {
     if (!idx) return;
 
     const map = computeRollingCAGR(k, horizon, 'close');
-
     const sColor = idx.color || '#4f9ef8';
+    
+    let seriesData;
+    if (_alphaMode) {
+      const niftyMap = computeRollingCAGR('Nifty 50', horizon, 'close');
+      seriesData = allDates.map(function(d) {
+        if (map[d] !== undefined && niftyMap[d] !== undefined) {
+          return +(map[d] - niftyMap[d]).toFixed(2);
+        }
+        return null;
+      });
+    } else {
+      seriesData = allDates.map(d => map[d] !== undefined ? map[d] : null);
+    }
 
     datasets.push({
-
-      label: idx.label,
-
+      label: idx.label + (_alphaMode ? (k === 'Nifty 50' ? ' (Base)' : ' (α vs Nifty)') : ''),
       seriesKey: k,
-
-      data: allDates.map(d => map[d] !== undefined ? map[d] : null),
+      data: seriesData,
 
       borderColor: sColor,
 
@@ -4515,13 +4556,23 @@ function renderMain() {
 
     const portColor = '#5E9CFF';
 
+    let portData;
+    if (_alphaMode) {
+      const niftyMap = computeRollingCAGR('Nifty 50', horizon, 'close');
+      portData = allDates.map(function(d) {
+        if (portfolioMap[d] !== undefined && niftyMap[d] !== undefined) {
+          return +(portfolioMap[d] - niftyMap[d]).toFixed(2);
+        }
+        return null;
+      });
+    } else {
+      portData = allDates.map(d => portfolioMap[d] !== undefined ? portfolioMap[d] : null);
+    }
+
     datasets.push({
-
-      label: 'Portfolio',
-
+      label: 'Portfolio' + (_alphaMode ? ' (α vs Nifty)' : ''),
       seriesKey: '__portfolio__',
-
-      data: allDates.map(d => portfolioMap[d] !== undefined ? portfolioMap[d] : null),
+      data: portData,
 
       borderColor: portColor,
 
@@ -4550,6 +4601,22 @@ function renderMain() {
   }
 
 
+
+    // Zero baseline for Alpha Mode
+  if (_alphaMode) {
+    datasets.push({
+      label: 'Nifty 50 Benchmark Baseline (0% α)',
+      data: allDates.map(() => 0),
+      borderColor: 'rgba(255, 255, 255, 0.45)',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      tension: 0,
+      fill: false,
+      spanGaps: true
+    });
+  }
 
   // P5 horizontal line (recessive dashed line)
 
@@ -4731,7 +4798,7 @@ function renderMain() {
 
       y: {
 
-        ticks: { color: '#8B8D98', font: { family: 'DM Mono', size: 10 }, callback: function(v) { return v + '%'; } },
+        ticks: { color: '#8B8D98', font: { family: 'DM Mono', size: 10 }, callback: function(v) { return (_alphaMode && v >= 0 ? '+' : '') + v + (_alphaMode ? '% α' : '%'); } },
 
         grid: { color: 'rgba(255, 255, 255, 0.05)' }, border: { display: false }
 
@@ -5158,6 +5225,31 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     const midAvg = midVals.length ? +(midVals.reduce(function(a,b){return a+b;},0)/midVals.length).toFixed(2) : avg;
 
     const p5 = nthPercentile(vals, 5);
+    const minVal = vals.length ? Math.min.apply(null, vals) : null;
+    const recencyGap = (latest != null && median != null) ? +(latest - median).toFixed(1) : null;
+    
+    // Calculate Beat Rate vs Nifty 50
+    let beatNifty = null;
+    let niftyMapForStats = cagrMaps ? cagrMaps['Nifty 50'] : null;
+    if (!niftyMapForStats && typeof computeRollingCAGR === 'function') {
+      niftyMapForStats = computeRollingCAGR('Nifty 50', horizon, 'close');
+    }
+    if (k === 'Nifty 50') {
+      beatNifty = 100.0;
+    } else if (niftyMapForStats) {
+      let beatCount = 0, overlapCount = 0;
+      filteredEntries.forEach(function(e) {
+        const d = e[0], v = e[1];
+        const nV = niftyMapForStats[d];
+        if (nV !== undefined && nV !== null) {
+          overlapCount++;
+          if (v >= nV) beatCount++;
+        }
+      });
+      if (overlapCount > 0) {
+        beatNifty = +(beatCount / overlapCount * 100).toFixed(1);
+      }
+    }
 
 
 
@@ -5188,7 +5280,9 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       stddev: stddev,
 
       p5: p5,
-
+      min: minVal,
+      recencyGap: recencyGap,
+      beatNifty: beatNifty,
       max: Math.max.apply(null, vals),
 
       pct: +percentileOf(vals, latest),
@@ -5246,6 +5340,27 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       const latest = vals[vals.length - 1];
 
       const p5 = nthPercentile(vals, 5);
+      const minVal = vals.length ? Math.min.apply(null, vals) : null;
+      const recencyGap = (latest != null && pmedian != null) ? +(latest - pmedian).toFixed(1) : null;
+      let beatNifty = null;
+      let niftyMapForStats = cagrMaps ? cagrMaps['Nifty 50'] : null;
+      if (!niftyMapForStats && typeof computeRollingCAGR === 'function') {
+        niftyMapForStats = computeRollingCAGR('Nifty 50', horizon, 'close');
+      }
+      if (niftyMapForStats) {
+        let beatCount = 0, overlapCount = 0;
+        filteredPEntries.forEach(function(e) {
+          const d = e[0], v = e[1];
+          const nV = niftyMapForStats[d];
+          if (nV !== undefined && nV !== null) {
+            overlapCount++;
+            if (v >= nV) beatCount++;
+          }
+        });
+        if (overlapCount > 0) {
+          beatNifty = +(beatCount / overlapCount * 100).toFixed(1);
+        }
+      }
 
       const pavg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
 
@@ -5412,19 +5527,34 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
   function _fmt(v) { return v != null && typeof v === 'number' && !isNaN(v) ? v.toFixed(1) + '%' : '—'; }
 
   var ALL_COLS = [
-
-    { key: 'latest',  label: 'Latest',  html: function(s){ return '<div class="stat-item-label">Latest</div><div class="stat-item-val key-stat">' + _fmt(s.latest) + '</div>'; } },
-
-    { key: 'avg',     label: 'Avg',     html: function(s){ return '<div class="stat-item-label">Avg</div><div class="stat-item-val">' + _fmt(s.avg) + '</div>'; } },
-
-    { key: 'median',  label: 'Median',  html: function(s){ return '<div class="stat-item-label">Median</div><div class="stat-item-val">' + _fmt(s.median) + '</div>'; } },
-
-    { key: 'midAvg',  label: 'Mid Avg', html: function(s){ return '<div class="stat-item-label">Mid Avg</div><div class="stat-item-val" title="Avg of P25-P75 returns">' + _fmt(s.midAvg) + '</div>'; } },
-
-    { key: 'stddev',  label: 'Std Dev', html: function(s){ return '<div class="stat-item-label">Std Dev</div><div class="stat-item-val">' + _fmt(s.stddev) + '</div>'; } },
-
-    { key: 'p5',      label: 'P5',      html: function(s){ return '<div class="stat-item-label">P5</div><div class="stat-item-val">' + _fmt(s.p5) + '</div>'; } },
-
+    { key: 'latest',     label: 'Latest',     html: function(s){ return '<div class="stat-item-label">Latest</div><div class="stat-item-val key-stat">' + _fmt(s.latest) + '</div>'; } },
+    { key: 'beatNifty',  label: 'vs Nifty',   html: function(s){
+        if (s.key === 'Nifty 50') return '<div class="stat-item-label" title="% of rolling periods outperforming Nifty 50">vs Nifty</div><div class="stat-item-val" style="color:var(--muted);font-size:0.72rem;">Benchmark</div>';
+        if (s.beatNifty == null) return '<div class="stat-item-label" title="% of rolling periods outperforming Nifty 50">vs Nifty</div><div class="stat-item-val" style="color:var(--muted);">—</div>';
+        var col = s.beatNifty >= 65 ? '#22d3a0' : (s.beatNifty >= 45 ? '#f59e0b' : '#ff4d6a');
+        var badge = s.beatNifty >= 65 ? '👑 ' : (s.beatNifty < 45 ? '⚠️ ' : '');
+        return '<div class="stat-item-label" title="% of rolling periods outperforming Nifty 50">vs Nifty</div><div class="stat-item-val" style="color:' + col + ';" title="Beats Nifty 50 in ' + s.beatNifty.toFixed(1) + '% of historical rolling periods">' + badge + s.beatNifty.toFixed(1) + '%</div>';
+      }
+    },
+    { key: 'recencyGap', label: 'Recency Gap',html: function(s){
+        if (s.recencyGap == null) return '<div class="stat-item-label" title="Latest return minus historical median return (identifies lucky sprints vs steady compounders)">Recency Gap</div><div class="stat-item-val" style="color:var(--muted);">—</div>';
+        var col = s.recencyGap > 6 ? '#f43f5e' : (s.recencyGap < -6 ? '#38bdf8' : '#22d3a0');
+        var tag = s.recencyGap > 6 ? ' 🔥' : (s.recencyGap < -6 ? ' ❄️' : ' ✓');
+        var sign = s.recencyGap > 0 ? '+' : '';
+        return '<div class="stat-item-label" title="Latest return minus historical median return (identifies lucky sprints vs steady compounders)">Recency Gap</div><div class="stat-item-val" style="color:' + col + ';" title="Latest (' + _fmt(s.latest) + ') vs Historical Median (' + _fmt(s.median) + '). Gap = ' + sign + s.recencyGap.toFixed(1) + '%">' + sign + s.recencyGap.toFixed(1) + '%' + tag + '</div>';
+      }
+    },
+    { key: 'median',     label: 'Median',     html: function(s){ return '<div class="stat-item-label">Median</div><div class="stat-item-val">' + _fmt(s.median) + '</div>'; } },
+    { key: 'min',        label: 'Min',        html: function(s){
+        if (s.min == null) return '<div class="stat-item-label" title="Historical worst-case rolling return">Min</div><div class="stat-item-val" style="color:var(--muted);">—</div>';
+        var col = s.min >= 0 ? '#22d3a0' : '#ff4d6a';
+        return '<div class="stat-item-label" title="Historical worst-case rolling return">Min</div><div class="stat-item-val" style="color:' + col + ';">' + _fmt(s.min) + '</div>';
+      }
+    },
+    { key: 'avg',        label: 'Avg',        html: function(s){ return '<div class="stat-item-label">Avg</div><div class="stat-item-val">' + _fmt(s.avg) + '</div>'; } },
+    { key: 'midAvg',     label: 'Mid Avg',    html: function(s){ return '<div class="stat-item-label">Mid Avg</div><div class="stat-item-val" title="Avg of P25-P75 returns">' + _fmt(s.midAvg) + '</div>'; } },
+    { key: 'stddev',     label: 'Std Dev',    html: function(s){ return '<div class="stat-item-label">Std Dev</div><div class="stat-item-val">' + _fmt(s.stddev) + '</div>'; } },
+    { key: 'p5',         label: 'P5',         html: function(s){ return '<div class="stat-item-label">P5</div><div class="stat-item-val">' + _fmt(s.p5) + '</div>'; } },
   ];
 
 
@@ -7980,25 +8110,18 @@ function updateSortBarUI() {
   bar.innerHTML = '';
 
   var COLS = [
-
     {col:'name',           label:'Name',       numeric:false},
-
+    {col:'beatNifty',      label:'vs Nifty 👑',numeric:true},
     {col:'latest',         label:'Latest',     numeric:true},
-
-    {col:'pct',            label:'Percentile', numeric:true},
-
-    {col:'avg',            label:'Avg',        numeric:true},
-
+    {col:'recencyGap',     label:'Recency Gap',numeric:true},
     {col:'median',         label:'Median',     numeric:true},
-
+    {col:'min',            label:'Min',        numeric:true},
+    {col:'pct',            label:'Percentile', numeric:true},
+    {col:'avg',            label:'Avg',        numeric:true},
     {col:'midAvg',         label:'Mid Avg',    numeric:true},
-
     {col:'p5',             label:'P5',         numeric:true},
-
     {col:'stddev',         label:'Std Dev',    numeric:true},
-
     {col:'coverageMonths', label:'Coverage',   numeric:true},
-
   ];
 
   var label = document.createElement('span');
@@ -8907,16 +9030,20 @@ function updateMainHud(dateIndex) {
 
     if (val !== undefined && val !== null && !isNaN(val)) {
 
+      var alphaDiff = null;
+      var niftyCagr = cagrMaps['Nifty 50'];
+      if (!niftyCagr && typeof computeRollingCAGR === 'function') {
+        niftyCagr = computeRollingCAGR('Nifty 50', horizon, 'close');
+      }
+      if (niftyCagr && niftyCagr[d] !== undefined) {
+        alphaDiff = +(val - niftyCagr[d]).toFixed(2);
+      }
       items.push({
-
         key: k,
-
         label: sObj.label,
-
         color: sObj.color || '#4f9ef8',
-
-        val: val
-
+        val: val,
+        alphaDiff: alphaDiff
       });
 
     }
@@ -8933,14 +9060,19 @@ function updateMainHud(dateIndex) {
 
     if (pv !== undefined && pv !== null && !isNaN(pv)) {
 
+      var pAlphaDiff = null;
+      var niftyCagrP = cagrMaps['Nifty 50'];
+      if (!niftyCagrP && typeof computeRollingCAGR === 'function') {
+        niftyCagrP = computeRollingCAGR('Nifty 50', horizon, 'close');
+      }
+      if (niftyCagrP && niftyCagrP[d] !== undefined) {
+        pAlphaDiff = +(pv - niftyCagrP[d]).toFixed(2);
+      }
       portItem = {
-
         label: 'Portfolio',
-
         color: '#ff4d6a',
-
-        val: pv
-
+        val: pv,
+        alphaDiff: pAlphaDiff
       };
 
     }
@@ -8969,7 +9101,8 @@ function updateMainHud(dateIndex) {
 
             '<span style="color:#5E9CFF;font-weight:700;font-size:0.7rem;">Portfolio:</span>' +
 
-            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;">' + pValStr + '</span>' +
+            '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;">' + (_alphaMode && portItem.alphaDiff !== null ? (portItem.alphaDiff >= 0 ? '+' : '') + portItem.alphaDiff.toFixed(1) + '% α' : pValStr) + '</span>' +
+            (!_alphaMode && portItem.alphaDiff !== null ? ' <span style="color:' + (portItem.alphaDiff >= 0 ? '#22d3a0' : '#ff4d6a') + ';font-size:0.65rem;font-weight:700;">(' + (portItem.alphaDiff >= 0 ? '+' : '') + portItem.alphaDiff.toFixed(1) + '% α)</span>' : '') +
 
             '</span>';
 
@@ -8978,21 +9111,20 @@ function updateMainHud(dateIndex) {
 
 
   function renderMainBadge(item) {
-
     var valStr = formatPct(item.val);
-
     var itemColor = item.color || '#5E9CFF';
-
+    var alphaBadge = '';
+    if (item.alphaDiff !== null && item.alphaDiff !== undefined && item.key !== 'Nifty 50') {
+      var aColor = item.alphaDiff >= 0 ? '#22d3a0' : '#ff4d6a';
+      var aSign = item.alphaDiff >= 0 ? '+' : '';
+      alphaBadge = ' <span style="color:' + aColor + ';font-size:0.62rem;font-weight:700;margin-left:2px;">(' + aSign + item.alphaDiff.toFixed(1) + '% α)</span>';
+    }
     return '<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:9999px;white-space:nowrap;">' +
-
            '<span style="width:7px;height:7px;border-radius:50%;background:' + itemColor + ';flex-shrink:0;box-shadow:0 0 5px ' + itemColor + '80;"></span>' +
-
            '<span style="color:#8B8D98;font-size:0.68rem;">' + item.label + ':</span>' +
-
-           '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + valStr + '</span>' +
-
+           '<span style="color:#F5F5F7;font-family:Syne,sans-serif;font-size:0.74rem;font-weight:600;">' + (_alphaMode && item.alphaDiff !== null ? (item.alphaDiff >= 0 ? '+' : '') + item.alphaDiff.toFixed(1) + '% α' : valStr) + '</span>' +
+           (!_alphaMode ? alphaBadge : '') +
            '</span>';
-
   }
 
 
