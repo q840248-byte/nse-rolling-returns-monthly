@@ -5375,14 +5375,19 @@ function computeDrawdownAndRecovery(prices) {
   var peakIdx = 0;
   var maxDd = 0;
   var maxRec = 0;
+  var wasUnderwater = false;
   for (var i = 1; i < prices.length; i++) {
     var p = prices[i];
     if (p >= peak) {
-      var rec = i - peakIdx;
-      if (rec > maxRec) maxRec = rec;
+      if (wasUnderwater) {
+        var rec = i - peakIdx;
+        if (rec > maxRec) maxRec = rec;
+        wasUnderwater = false;
+      }
       peak = p;
       peakIdx = i;
     } else {
+      wasUnderwater = true;
       var dd = ((p - peak) / peak) * 100;
       if (dd < maxDd) maxDd = dd;
       var curRec = i - peakIdx;
@@ -5395,6 +5400,49 @@ function computeDrawdownAndRecovery(prices) {
   };
 }
 window.computeDrawdownAndRecovery = computeDrawdownAndRecovery;
+
+// Helper to compute synthetic cumulative NAV series for multi-asset portfolio
+function computePortfolioNavSeries(selKeys, wts) {
+  if (!selKeys || selKeys.length <= 1) return null;
+  var rawDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+  var common = null;
+  selKeys.forEach(function(k) {
+    var dList = Object.keys(rawDict[k] || {}).filter(function(d) { return rawDict[k][d] > 0; }).sort();
+    var dSet = new Set(dList);
+    if (common === null) {
+      common = dSet;
+    } else {
+      var nextCommon = new Set();
+      common.forEach(function(d) { if (dSet.has(d)) nextCommon.add(d); });
+      common = nextCommon;
+    }
+  });
+  if (!common || common.size < 2) return null;
+  var dates = Array.from(common).sort();
+  var totalW = 0;
+  selKeys.forEach(function(k) { totalW += (wts && wts[k] != null ? wts[k] : 1); });
+  if (totalW <= 0) totalW = 1;
+
+  var nav = 100;
+  var navSeries = [nav];
+  for (var i = 1; i < dates.length; i++) {
+    var dPrev = dates[i - 1], dCur = dates[i];
+    var monthlyRet = 0;
+    for (var j = 0; j < selKeys.length; j++) {
+      var k = selKeys[j];
+      var w = (wts && wts[k] != null ? wts[k] : 1) / totalW;
+      var p0 = rawDict[k][dPrev], p1 = rawDict[k][dCur];
+      var r = (p1 - p0) / p0;
+      monthlyRet += w * r;
+    }
+    nav = nav * (1 + monthlyRet);
+    navSeries.push(nav);
+  }
+  return navSeries;
+}
+window.computePortfolioNavSeries = computePortfolioNavSeries;
+
+var openConvictionDrawers = new Set();
 
 function renderStats(selKeys, cagrMaps, portfolioMap) {
 
@@ -5505,9 +5553,37 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     const rawPrices = rawDates.map(function(d) { return (RAW[k] || {})[d]; });
     const ddMetrics = computeDrawdownAndRecovery(rawPrices);
 
-    // Fundamental Corporate EPS CAGR & Multiple Expansion
-    let epsCagr = null;
+    // Compute Price CAGR over horizon for any asset with price history
     let decompPriceCagr = null;
+    const hYears = horizon || 5;
+    if (rawDates.length >= 12) {
+      const endD = rawDates[rawDates.length - 1];
+      const endParts = endD.split('-');
+      const targetStartYear = parseInt(endParts[0], 10) - hYears;
+      const targetStartD = targetStartYear + '-' + endParts[1];
+      let startD = null;
+      for (let di = rawDates.length - 1; di >= 0; di--) {
+        if (rawDates[di] <= targetStartD) {
+          startD = rawDates[di];
+          break;
+        }
+      }
+      if (!startD && rawDates.length > 0) startD = rawDates[0];
+      if (startD && startD !== endD) {
+        const sParts = startD.split('-'), eParts = endD.split('-');
+        const mSpan = (parseInt(eParts[0], 10) - parseInt(sParts[0], 10)) * 12 + (parseInt(eParts[1], 10) - parseInt(sParts[1], 10));
+        const ySpan = mSpan / 12;
+        if (ySpan >= 0.5) {
+          const p0 = (RAW[k] || {})[startD], p1 = (RAW[k] || {})[endD];
+          if (p0 > 0 && p1 > 0) {
+            decompPriceCagr = parseFloat(((Math.pow(p1 / p0, 1 / ySpan) - 1) * 100).toFixed(1));
+          }
+        }
+      }
+    }
+
+    // Fundamental Corporate EPS CAGR & Multiple Expansion (if index has P/E data)
+    let epsCagr = null;
     let decompPeCagr = null;
     const peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
     if (peDict[k]) {
@@ -5520,7 +5596,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       if (commonPDates.length >= 12) {
         const endD = commonPDates[commonPDates.length - 1];
         const endParts = endD.split('-');
-        const hYears = horizon || 5;
         const targetStartYear = parseInt(endParts[0], 10) - hYears;
         const targetStartD = targetStartYear + '-' + endParts[1];
 
@@ -5544,7 +5619,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
             const pe0 = peMap[startD], pe1 = peMap[endD];
             const eps0 = p0 / pe0, eps1 = p1 / pe1;
 
-            decompPriceCagr = parseFloat(((Math.pow(p1 / p0, 1 / ySpan) - 1) * 100).toFixed(1));
             epsCagr = parseFloat(((Math.pow(eps1 / eps0, 1 / ySpan) - 1) * 100).toFixed(1));
             decompPeCagr = parseFloat(((Math.pow(pe1 / pe0, 1 / ySpan) - 1) * 100).toFixed(1));
           }
@@ -5823,6 +5897,9 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
         }
       }
 
+      var pNavPrices = computePortfolioNavSeries(selKeys, (typeof weights !== 'undefined' ? weights : {}));
+      var pDdMetrics = pNavPrices ? computeDrawdownAndRecovery(pNavPrices) : { maxDrawdown: null, recoveryMonths: null };
+
       all.push({
 
         key: '__portfolio__',
@@ -5865,9 +5942,9 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
         coverageMonths: pCovM,
 
-        maxDrawdown: null,
+        maxDrawdown: pDdMetrics.maxDrawdown,
 
-        recoveryMonths: null,
+        recoveryMonths: pDdMetrics.recoveryMonths,
 
         lossProb: vals.length ? parseFloat((vals.filter(function(v){ return v < 0; }).length / vals.length * 100).toFixed(1)) : 0,
 
@@ -5960,6 +6037,12 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       if (bv == null) return -1;
 
       if (typeof av === 'string') return statSort.dir * av.localeCompare(bv);
+
+      if (statSort.col === 'maxDrawdown') {
+        // statSort.dir === -1 (default down arrow): worst crash first (e.g. -80% before -22%)
+        // statSort.dir === 1 (up arrow): mildest crash first (e.g. -22% before -80%)
+        return statSort.dir * (bv - av);
+      }
 
       return statSort.dir * (av - bv);
 
@@ -6129,10 +6212,16 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       var convBtn = rowEl.querySelector('.stat-conviction-btn');
       var convDrawer = rowEl.querySelector('.stat-conviction-drawer');
       if (convBtn && convDrawer) {
+        if (openConvictionDrawers.has(k)) {
+          convDrawer.classList.add('open');
+          convBtn.classList.add('active');
+        }
         convBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           var isOpen = convDrawer.classList.toggle('open');
           convBtn.classList.toggle('active', isOpen);
+          if (isOpen) openConvictionDrawers.add(k);
+          else openConvictionDrawers.delete(k);
         });
       }
 
@@ -6196,14 +6285,19 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
+      var isCommodity = COMMODITIES.some(function(c) { return c.key === s.key; });
+      var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+      var epsFallback = s.isPortfolio ? 'N/A (Portfolio)' : (isCommodity ? 'N/A (Commodity)' : (peDict[s.key] ? '— (< 1Y P/E)' : 'N/A (No P/E data)'));
+      var peFallback = s.isPortfolio ? 'N/A (Portfolio)' : (isCommodity ? 'N/A (Commodity)' : (peDict[s.key] ? '— (< 1Y P/E)' : 'N/A (No P/E data)'));
+
       var recStr = '—';
       if (s.recoveryMonths != null) {
         recStr = s.recoveryMonths >= 12 ? (s.recoveryMonths / 12).toFixed(1) + ' Yrs' : s.recoveryMonths + ' mos';
       }
       var lossStr = s.lossProb != null ? s.lossProb.toFixed(1) + '% of windows' : '— (< ' + horizon + 'Y data)';
-      var epsStr = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : 'N/A (Commodity)';
+      var epsStr = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : epsFallback;
       var pStr = s.decompPriceCagr != null ? (s.decompPriceCagr >= 0 ? '+' : '') + s.decompPriceCagr.toFixed(1) + '%/yr' : '—';
-      var peStr = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : '—';
+      var peStr = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : peFallback;
 
       var drawerHtmlInsuf =
         '<div class="stat-conviction-drawer">' +
@@ -6216,7 +6310,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
             '<div class="conviction-tile" style="border-left:3px solid #38bdf8;">' +
               '<div class="conviction-tile-title" style="color:#38bdf8;">🛡️ Loss Probability</div>' +
               '<div class="conviction-tile-stat"><span>Loss Risk:</span> <strong style="color:var(--muted);">' + lossStr + '</strong></div>' +
-              '<div class="conviction-tile-stat"><span>Negative Windows:</span> <strong>' + (s.negCount || 0) + ' of ' + (s.n || 0) + '</strong></div>' +
+              '<div class="conviction-tile-stat"><span>Negative Windows:</span> <strong>' + (s.n > 0 ? (s.negCount || 0) + ' of ' + s.n : '—') + '</strong></div>' +
             '</div>' +
             '<div class="conviction-tile" style="border-left:3px solid #a855f7;">' +
               '<div class="conviction-tile-title" style="color:#a855f7;">🔬 Real Growth vs Hype</div>' +
@@ -6307,14 +6401,19 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
+    var isCommodity = COMMODITIES.some(function(c) { return c.key === s.key; });
+    var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+    var epsFallbackNorm = s.isPortfolio ? 'N/A (Portfolio)' : (isCommodity ? 'N/A (Commodity)' : (peDict[s.key] ? '— (< 1Y P/E)' : 'N/A (No P/E data)'));
+    var peFallbackNorm = s.isPortfolio ? 'N/A (Portfolio)' : (isCommodity ? 'N/A (Commodity)' : (peDict[s.key] ? '— (< 1Y P/E)' : 'N/A (No P/E data)'));
+
     var recStrNorm = '—';
     if (s.recoveryMonths != null) {
       recStrNorm = s.recoveryMonths >= 12 ? (s.recoveryMonths / 12).toFixed(1) + ' Yrs' : s.recoveryMonths + ' mos';
     }
     var lossStrNorm = s.lossProb != null ? s.lossProb.toFixed(1) + '% of windows' : '—';
-    var epsStrNorm = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : (s.isPortfolio ? 'N/A (Portfolio)' : 'N/A (Commodity)');
+    var epsStrNorm = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : epsFallbackNorm;
     var pStrNorm = s.decompPriceCagr != null ? (s.decompPriceCagr >= 0 ? '+' : '') + s.decompPriceCagr.toFixed(1) + '%/yr' : '—';
-    var peStrNorm = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : '—';
+    var peStrNorm = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : peFallbackNorm;
 
     var drawerHtmlNorm =
       '<div class="stat-conviction-drawer">' +
@@ -14148,10 +14247,27 @@ function updateFundSeriesVisibility() {
   var chkPe = document.getElementById('chkFundPe');
   var chkRolling = document.getElementById('chkFundRolling');
 
-  fundamentalsChartInstance.setDatasetVisibility(0, chkPrice ? chkPrice.checked : true);
-  fundamentalsChartInstance.setDatasetVisibility(1, chkEps ? chkEps.checked : true);
-  fundamentalsChartInstance.setDatasetVisibility(2, chkPe ? chkPe.checked : true);
-  fundamentalsChartInstance.setDatasetVisibility(3, chkRolling ? chkRolling.checked : true);
+  var showPrice = chkPrice ? chkPrice.checked : true;
+  var showEps = chkEps ? chkEps.checked : true;
+  var showPe = chkPe ? chkPe.checked : true;
+  var showRolling = chkRolling ? chkRolling.checked : true;
+
+  fundamentalsChartInstance.setDatasetVisibility(0, showPrice);
+  fundamentalsChartInstance.setDatasetVisibility(1, showEps);
+  fundamentalsChartInstance.setDatasetVisibility(2, showPe);
+  fundamentalsChartInstance.setDatasetVisibility(3, showRolling);
+
+  if (fundamentalsChartInstance.options && fundamentalsChartInstance.options.scales) {
+    if (fundamentalsChartInstance.options.scales.y) {
+      fundamentalsChartInstance.options.scales.y.display = (showPrice || showEps);
+    }
+    if (fundamentalsChartInstance.options.scales.yPe) {
+      fundamentalsChartInstance.options.scales.yPe.display = showPe;
+    }
+    if (fundamentalsChartInstance.options.scales.yCagr) {
+      fundamentalsChartInstance.options.scales.yCagr.display = showRolling;
+    }
+  }
   fundamentalsChartInstance.update();
 }
 
@@ -14179,11 +14295,10 @@ function renderFundamentalsTab() {
     }
     if (select.options.length === 0) {
       select.innerHTML = availableIndices.map(function(k) {
-        return '<option value="' + k + '"' + (k === curVal ? ' selected' : '') + '>' + k + '</option>';
+        return '<option value="' + k + '">' + k + '</option>';
       }).join('');
-    } else {
-      select.value = curVal;
     }
+    select.value = curVal;
   }
 
   var chosenKey = select ? select.value : 'Nifty 50';
@@ -14209,37 +14324,41 @@ function renderFundamentalsTab() {
   });
 
   // 2. Rolling CAGR % overlay
+  var cagrObj = typeof computeRollingCAGR === 'function' ? computeRollingCAGR(chosenKey, fundHorizon, 'close') : {};
   var rollingCagrMap = {};
   for (var i = 0; i < commonDates.length; i++) {
     var curDate = commonDates[i];
-    var parts = curDate.split('-');
-    var targetPrev = (parseInt(parts[0], 10) - fundHorizon) + '-' + parts[1];
-    var prevPrice = priceMap[targetPrev];
-    if (prevPrice && prevPrice > 0) {
-      var cagr = (Math.pow(priceMap[curDate] / prevPrice, 1 / fundHorizon) - 1) * 100;
-      rollingCagrMap[curDate] = parseFloat(cagr.toFixed(1));
+    if (cagrObj[curDate] !== undefined && cagrObj[curDate] !== null) {
+      rollingCagrMap[curDate] = cagrObj[curDate];
     } else {
-      // Find closest earlier date within +/- 2 months if exact not found
-      var cand = null;
-      for (var ci = i - 1; ci >= 0; ci--) {
-        var cd = commonDates[ci];
-        if (cd <= targetPrev) {
-          cand = cd;
-          break;
+      var parts = curDate.split('-');
+      var targetPrev = (parseInt(parts[0], 10) - fundHorizon) + '-' + parts[1];
+      var prevPrice = priceMap[targetPrev];
+      if (prevPrice && prevPrice > 0) {
+        var cagr = (Math.pow(priceMap[curDate] / prevPrice, 1 / fundHorizon) - 1) * 100;
+        rollingCagrMap[curDate] = parseFloat(cagr.toFixed(1));
+      } else {
+        var cand = null;
+        for (var ci = i - 1; ci >= 0; ci--) {
+          var cd = commonDates[ci];
+          if (cd <= targetPrev) {
+            cand = cd;
+            break;
+          }
         }
-      }
-      if (cand && priceMap[cand]) {
-        var cParts = cand.split('-');
-        var mDiff = (parseInt(parts[0], 10) - parseInt(cParts[0], 10)) * 12 + (parseInt(parts[1], 10) - parseInt(cParts[1], 10));
-        var yDiff = mDiff / 12;
-        if (yDiff >= fundHorizon * 0.85 && yDiff <= fundHorizon * 1.15) {
-          var cagrApp = (Math.pow(priceMap[curDate] / priceMap[cand], 1 / yDiff) - 1) * 100;
-          rollingCagrMap[curDate] = parseFloat(cagrApp.toFixed(1));
+        if (cand && priceMap[cand]) {
+          var cParts = cand.split('-');
+          var mDiff = (parseInt(parts[0], 10) - parseInt(cParts[0], 10)) * 12 + (parseInt(parts[1], 10) - parseInt(cParts[1], 10));
+          var yDiff = mDiff / 12;
+          if (yDiff >= fundHorizon * 0.85 && yDiff <= fundHorizon * 1.15) {
+            var cagrApp = (Math.pow(priceMap[curDate] / priceMap[cand], 1 / yDiff) - 1) * 100;
+            rollingCagrMap[curDate] = parseFloat(cagrApp.toFixed(1));
+          } else {
+            rollingCagrMap[curDate] = null;
+          }
         } else {
           rollingCagrMap[curDate] = null;
         }
-      } else {
-        rollingCagrMap[curDate] = null;
       }
     }
   }
@@ -14262,8 +14381,8 @@ function renderFundamentalsTab() {
 
   // 4. Rebase Price and EPS to 100 at the earliest date in displayed timeframe
   var baseDate = fDates[0];
-  var basePrice = priceMap[baseDate] || 1;
-  var baseEps = epsMap[baseDate] || 1;
+  var basePrice = (priceMap[baseDate] && priceMap[baseDate] > 0) ? priceMap[baseDate] : 1;
+  var baseEps = (epsMap[baseDate] && epsMap[baseDate] > 0) ? epsMap[baseDate] : 1;
 
   var rebasedPrice = [];
   var rebasedEps = [];
@@ -14297,10 +14416,12 @@ function renderFundamentalsTab() {
     var actualE = epsMap[d] || 0;
 
     // Valuation / Hype Gap = (Price Rebased / EPS Rebased - 1) * 100
-    var valGap = ((pRebVal / eRebVal) - 1) * 100;
-    var gapSign = valGap >= 0 ? '+' : '';
+    var valGap = (eRebVal > 0 && pRebVal != null) ? (((pRebVal / eRebVal) - 1) * 100) : null;
+    var gapSign = (valGap != null && valGap >= 0) ? '+' : '';
     var gapBadge = '';
-    if (valGap > 25) {
+    if (valGap == null) {
+      gapBadge = '<span style="color:var(--muted);">—</span>';
+    } else if (valGap > 25) {
       gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">🎈 High Valuation Froth (' + gapSign + valGap.toFixed(1) + '%)</span>';
     } else if (valGap < -15) {
       gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">💎 Deep Earnings Bargain (' + valGap.toFixed(1) + '%)</span>';
@@ -14310,9 +14431,9 @@ function renderFundamentalsTab() {
 
     hud.innerHTML =
       '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
-      '<span>Price: <strong style="color:#f5c842;">' + pRebVal.toFixed(1) + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
-      '<span>Real EPS: <strong style="color:#22d3a0;">' + eRebVal.toFixed(1) + '</strong> <small style="color:var(--muted);">(₹' + actualE.toFixed(1) + ')</small></span>' +
-      '<span>P/E: <strong style="color:#a855f7;">' + peVal.toFixed(1) + 'x</strong></span>' +
+      '<span>Price: <strong style="color:#f5c842;">' + (pRebVal != null ? pRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
+      '<span>Real EPS: <strong style="color:#22d3a0;">' + (eRebVal != null ? eRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + actualE.toFixed(1) + ')</small></span>' +
+      '<span>P/E: <strong style="color:#a855f7;">' + (peVal != null ? peVal.toFixed(1) + 'x' : '—') + '</strong></span>' +
       '<span>' + fundHorizon + 'Y Rolling: <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
       gapBadge;
   }
@@ -14449,6 +14570,7 @@ function renderFundamentalsTab() {
           border: { color: '#252a38' }
         },
         y: {
+          display: (chkPrice ? chkPrice.checked : true) || (chkEps ? chkEps.checked : true),
           position: 'left',
           grid: { color: '#1c2030' },
           border: { color: '#252a38' },
@@ -14464,6 +14586,7 @@ function renderFundamentalsTab() {
           }
         },
         yPe: {
+          display: chkPe ? chkPe.checked : true,
           position: 'right',
           grid: { display: false },
           border: { color: '#a855f7' },
@@ -14480,6 +14603,7 @@ function renderFundamentalsTab() {
           }
         },
         yCagr: {
+          display: chkRolling ? chkRolling.checked : true,
           position: 'right',
           grid: { display: false },
           border: { color: '#38bdf8' },
@@ -14501,6 +14625,11 @@ function renderFundamentalsTab() {
 
   window.fundamentalsChartInstance = fundamentalsChartInstance;
   updateHud(fDates.length - 1);
+
+  // Restore HUD to latest values when mouse leaves canvas
+  canvas.onmouseleave = function() {
+    updateHud(fDates.length - 1);
+  };
 
   // 7. Render 3-Engine Return Decomposition Table
   if (tbody) {
