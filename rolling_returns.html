@@ -1958,6 +1958,135 @@
 
 
 
+
+  /* Conviction & Safety Breakdown Drawer in Tab 1 */
+  .stat-conviction-btn {
+    padding: 3px 8px;
+    background: rgba(34, 211, 160, 0.08);
+    border: 1px solid rgba(34, 211, 160, 0.25);
+    border-radius: 9999px;
+    color: #22d3a0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .stat-conviction-btn:hover {
+    background: rgba(34, 211, 160, 0.2);
+    border-color: #22d3a0;
+    color: #fff;
+  }
+  .stat-conviction-btn.active {
+    background: #22d3a0;
+    border-color: #22d3a0;
+    color: #0b0c10;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(34, 211, 160, 0.3);
+  }
+  .stat-conviction-drawer {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  }
+  .stat-conviction-drawer.open {
+    display: block;
+  }
+  .conviction-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 860px) {
+    .conviction-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .conviction-tile {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+  .conviction-tile-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.70rem;
+  }
+  .conviction-tile-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+  .conviction-tile-stat strong {
+    color: var(--text);
+  }
+
+  /* Tab 9 Fundamentals Styles */
+  .fund-checkbox-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.70rem;
+    user-select: none;
+    flex-wrap: wrap;
+  }
+  .fund-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .fund-checkbox-label:hover {
+    opacity: 0.85;
+  }
+  .fund-checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: #5E9CFF;
+  }
+  .decomp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+  }
+  .decomp-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .decomp-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text);
+  }
+  .decomp-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
 </style>
 
 </head>
@@ -1976,7 +2105,7 @@
 
   <!-- Tab Bar -->
 
-  <div class="tab-bar">
+  <div class="tab-bar" id="mainTabs">
 
     <button class="tab-btn active" onclick="switchTab(0)" id="tabBtn0">
 
@@ -2012,6 +2141,9 @@
     </button>
     <button class="tab-btn" onclick="switchTab(8)" id="tabBtn8">
       <span class="tab-icon">🔬</span> Shiller CAPE
+    </button>
+    <button class="tab-btn" onclick="switchTab(9)" id="tabBtn9">
+      <span class="tab-icon">🔬</span> Fundamentals
     </button>
 
   </div>
@@ -3011,6 +3143,110 @@
         </div>
       </div>
     </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 9: FUNDAMENTALS (PRICE VS EPS DECOMPOSITION)                         -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <div class="chart-area tab-content" id="tabContent9" style="display:none;">
+      <div class="chart-card" id="panel9">
+        <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
+              <span>🔬</span> Fundamentals: Real EPS Profits vs Price Hype
+              <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">3-ENGINE DECOMPOSITION</span>
+            </div>
+            <div class="chart-subtitle">
+              Decoupling corporate earnings power from speculative P/E multiple expansion • Graham &amp; Dodd Weighing Machine
+            </div>
+          </div>
+          <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;">Index:</span>
+              <select id="fundIndexSelect" onchange="renderFundamentalsTab()" style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;cursor:pointer;"></select>
+            </div>
+            <div class="tv-btn-group">
+              <span style="font-size:0.68rem;color:var(--muted);font-family:monospace;margin-right:2px;">Rolling:</span>
+              <button class="tv-tool-btn" id="fundHoriz1Y" onclick="setFundHorizon(1)">1Y</button>
+              <button class="tv-tool-btn" id="fundHoriz3Y" onclick="setFundHorizon(3)">3Y</button>
+              <button class="tv-tool-btn active" id="fundHoriz5Y" onclick="setFundHorizon(5)">5Y</button>
+              <button class="tv-tool-btn" id="fundHoriz10Y" onclick="setFundHorizon(10)">10Y</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" id="fundTf3Y" onclick="setFundTimeframe('3Y')">3Y</button>
+              <button class="tv-tool-btn" id="fundTf5Y" onclick="setFundTimeframe('5Y')">5Y</button>
+              <button class="tv-tool-btn" id="fundTf10Y" onclick="setFundTimeframe('10Y')">10Y</button>
+              <button class="tv-tool-btn active" id="fundTfMAX" onclick="setFundTimeframe('MAX')">MAX</button>
+            </div>
+            <div class="tv-btn-group">
+              <button class="tv-tool-btn" onclick="resetFundZoom()" title="Reset Zoom">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Line Toggles -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="fund-checkbox-group">
+            <label class="fund-checkbox-label" style="color:#f5c842;">
+              <input type="checkbox" id="chkFundPrice" checked onchange="updateFundSeriesVisibility()">
+              <span>Price (Rebased 100)</span>
+            </label>
+            <label class="fund-checkbox-label" style="color:#22d3a0;">
+              <input type="checkbox" id="chkFundEps" checked onchange="updateFundSeriesVisibility()">
+              <span>Real EPS Profits (Rebased 100)</span>
+            </label>
+            <label class="fund-checkbox-label" style="color:#a855f7;">
+              <input type="checkbox" id="chkFundPe" checked onchange="updateFundSeriesVisibility()">
+              <span>P/E Ratio</span>
+            </label>
+            <label class="fund-checkbox-label" style="color:#38bdf8;">
+              <input type="checkbox" id="chkFundRolling" checked onchange="updateFundSeriesVisibility()">
+              <span id="chkFundRollingLabel">5Y Rolling CAGR %</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Real-time Diagnostic HUD / Legend -->
+        <div id="fundHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:8px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:36px;">
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect fundamentals &amp; valuation gap</span>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
+          <canvas id="fundamentalsChart"></canvas>
+        </div>
+
+        <!-- 3-Engine Return Decomposition Table -->
+        <div style="margin-top:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            <strong style="color:var(--text);font-size:0.78rem;display:flex;align-items:center;gap:6px;">
+              <span>📊</span> 3-Engine Return Decomposition Formula
+              <span style="font-size:0.65rem;color:var(--muted);font-weight:normal;">(1 + Price CAGR) = (1 + EPS CAGR) × (1 + P/E Multiple CAGR)</span>
+            </strong>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="decomp-table" id="fundDecompTable">
+              <thead>
+                <tr>
+                  <th>Horizon</th>
+                  <th>Price CAGR</th>
+                  <th>Real EPS CAGR</th>
+                  <th>P/E Multiple CAGR</th>
+                  <th>Primary Return Engine</th>
+                </tr>
+              </thead>
+              <tbody id="fundDecompTbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);line-height:1.6;">
+            <strong style="color:#06b6d4;display:inline-flex;align-items:center;gap:4px;">💡 Institutional Takeaway:</strong>
+            When <strong>Real EPS CAGR &gt; Price CAGR</strong>, corporate earnings grew faster than the index price (P/E multiple compressed), making current market valuation safer and backed by tangible profits. When <strong>Price CAGR &gt;&gt; EPS CAGR</strong>, returns were driven primarily by speculative P/E multiple expansion (hype), increasing downside fragility.
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- ════════════════════════════════════════════════════════════════════════ -->
     </div>
@@ -5132,6 +5368,34 @@ function updateTickedCountUI() {
 
 
 
+// ── Drawdown & Recovery Calculation Helper ─────────────────────────────────
+function computeDrawdownAndRecovery(prices) {
+  if (!prices || prices.length < 2) return { maxDrawdown: 0, recoveryMonths: 0 };
+  var peak = prices[0];
+  var peakIdx = 0;
+  var maxDd = 0;
+  var maxRec = 0;
+  for (var i = 1; i < prices.length; i++) {
+    var p = prices[i];
+    if (p >= peak) {
+      var rec = i - peakIdx;
+      if (rec > maxRec) maxRec = rec;
+      peak = p;
+      peakIdx = i;
+    } else {
+      var dd = ((p - peak) / peak) * 100;
+      if (dd < maxDd) maxDd = dd;
+      var curRec = i - peakIdx;
+      if (curRec > maxRec) maxRec = curRec;
+    }
+  }
+  return {
+    maxDrawdown: parseFloat(maxDd.toFixed(1)),
+    recoveryMonths: maxRec
+  };
+}
+window.computeDrawdownAndRecovery = computeDrawdownAndRecovery;
+
 function renderStats(selKeys, cagrMaps, portfolioMap) {
 
   const grid = document.getElementById('statsGrid');
@@ -5237,6 +5501,57 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
     }
 
+    // Historical Crash & Recovery Metrics
+    const rawPrices = rawDates.map(function(d) { return (RAW[k] || {})[d]; });
+    const ddMetrics = computeDrawdownAndRecovery(rawPrices);
+
+    // Fundamental Corporate EPS CAGR & Multiple Expansion
+    let epsCagr = null;
+    let decompPriceCagr = null;
+    let decompPeCagr = null;
+    const peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+    if (peDict[k]) {
+      const peData = typeof getHarmonizedPeSeries === 'function' ? getHarmonizedPeSeries(k) : null;
+      const peMap = peData ? peData.values : peDict[k];
+      const commonPDates = rawDates.filter(function(d) {
+        return peMap[d] && peMap[d] > 0 && (RAW[k] || {})[d] && (RAW[k] || {})[d] > 0;
+      }).sort();
+
+      if (commonPDates.length >= 12) {
+        const endD = commonPDates[commonPDates.length - 1];
+        const endParts = endD.split('-');
+        const hYears = horizon || 5;
+        const targetStartYear = parseInt(endParts[0], 10) - hYears;
+        const targetStartD = targetStartYear + '-' + endParts[1];
+
+        let startD = null;
+        for (let di = commonPDates.length - 1; di >= 0; di--) {
+          if (commonPDates[di] <= targetStartD) {
+            startD = commonPDates[di];
+            break;
+          }
+        }
+        if (!startD && commonPDates.length > 0) {
+          startD = commonPDates[0];
+        }
+
+        if (startD && startD !== endD) {
+          const sParts = startD.split('-'), eParts = endD.split('-');
+          const mSpan = (parseInt(eParts[0], 10) - parseInt(sParts[0], 10)) * 12 + (parseInt(eParts[1], 10) - parseInt(sParts[1], 10));
+          const ySpan = mSpan / 12;
+          if (ySpan >= 0.5) {
+            const p0 = (RAW[k] || {})[startD], p1 = (RAW[k] || {})[endD];
+            const pe0 = peMap[startD], pe1 = peMap[endD];
+            const eps0 = p0 / pe0, eps1 = p1 / pe1;
+
+            decompPriceCagr = parseFloat(((Math.pow(p1 / p0, 1 / ySpan) - 1) * 100).toFixed(1));
+            epsCagr = parseFloat(((Math.pow(eps1 / eps0, 1 / ySpan) - 1) * 100).toFixed(1));
+            decompPeCagr = parseFloat(((Math.pow(pe1 / pe0, 1 / ySpan) - 1) * 100).toFixed(1));
+          }
+        }
+      }
+    }
+
 
 
     let map = (cagrMaps && cagrMaps[k]) ? cagrMaps[k] : null;
@@ -5314,7 +5629,21 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
         pct: null,
 
-        n: 0
+        n: 0,
+
+        maxDrawdown: ddMetrics.maxDrawdown,
+
+        recoveryMonths: ddMetrics.recoveryMonths,
+
+        lossProb: null,
+
+        negCount: 0,
+
+        epsCagr: epsCagr,
+
+        decompPriceCagr: decompPriceCagr,
+
+        decompPeCagr: decompPeCagr
 
       });
 
@@ -5409,7 +5738,21 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
       rawLast: rawLast,
 
-      rawCoverageMonths: rawCovM
+      rawCoverageMonths: rawCovM,
+
+      maxDrawdown: ddMetrics.maxDrawdown,
+
+      recoveryMonths: ddMetrics.recoveryMonths,
+
+      lossProb: vals.length ? parseFloat((vals.filter(function(v){ return v < 0; }).length / vals.length * 100).toFixed(1)) : 0,
+
+      negCount: vals.filter(function(v){ return v < 0; }).length,
+
+      epsCagr: epsCagr,
+
+      decompPriceCagr: decompPriceCagr,
+
+      decompPeCagr: decompPeCagr
 
     });
 
@@ -5520,7 +5863,21 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
         lastDate: pLast || pdates[pdates.length - 1],
 
-        coverageMonths: pCovM
+        coverageMonths: pCovM,
+
+        maxDrawdown: null,
+
+        recoveryMonths: null,
+
+        lossProb: vals.length ? parseFloat((vals.filter(function(v){ return v < 0; }).length / vals.length * 100).toFixed(1)) : 0,
+
+        negCount: vals.filter(function(v){ return v < 0; }).length,
+
+        epsCagr: null,
+
+        decompPriceCagr: vals.length ? vals[vals.length - 1] : null,
+
+        decompPeCagr: null
 
       });
 
@@ -5713,6 +6070,12 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
           '</div>' +
 
+          '<div class="stat-card-actions">' +
+            '<button class="stat-conviction-btn" title="Toggle Conviction & Safety Breakdown">' +
+              '🛡️ Conviction &amp; Safety' +
+            '</button>' +
+          '</div>' +
+
         '</div>';
 
     } else {
@@ -5741,6 +6104,10 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
           '<div class="stat-card-actions">' +
 
+            '<button class="stat-conviction-btn" title="Toggle Conviction & Safety Breakdown">' +
+              '🛡️ Conviction &amp; Safety' +
+            '</button>' +
+
             '<button class="stat-tick-btn' + (isTicked ? ' ticked' : '') + '" title="Mark with tick to keep">' +
 
               '<span class="stat-tick-box">' + (isTicked ? '✓' : '') + '</span> ' + (isTicked ? 'Ticked' : 'Tick') +
@@ -5758,6 +6125,16 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
     function wireCardActions(rowEl, k) {
+
+      var convBtn = rowEl.querySelector('.stat-conviction-btn');
+      var convDrawer = rowEl.querySelector('.stat-conviction-drawer');
+      if (convBtn && convDrawer) {
+        convBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var isOpen = convDrawer.classList.toggle('open');
+          convBtn.classList.toggle('active', isOpen);
+        });
+      }
 
       if (!k || k === '__portfolio__') return;
 
@@ -5819,6 +6196,37 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
+      var recStr = '—';
+      if (s.recoveryMonths != null) {
+        recStr = s.recoveryMonths >= 12 ? (s.recoveryMonths / 12).toFixed(1) + ' Yrs' : s.recoveryMonths + ' mos';
+      }
+      var lossStr = s.lossProb != null ? s.lossProb.toFixed(1) + '% of windows' : '— (< ' + horizon + 'Y data)';
+      var epsStr = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : 'N/A (Commodity)';
+      var pStr = s.decompPriceCagr != null ? (s.decompPriceCagr >= 0 ? '+' : '') + s.decompPriceCagr.toFixed(1) + '%/yr' : '—';
+      var peStr = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : '—';
+
+      var drawerHtmlInsuf =
+        '<div class="stat-conviction-drawer">' +
+          '<div class="conviction-grid">' +
+            '<div class="conviction-tile" style="border-left:3px solid #f87171;">' +
+              '<div class="conviction-tile-title" style="color:#f87171;">💥 Worst Crash &amp; Recovery</div>' +
+              '<div class="conviction-tile-stat"><span>Max Drawdown:</span> <strong style="color:#f87171;">' + (s.maxDrawdown != null ? s.maxDrawdown.toFixed(1) + '%' : '—') + '</strong></div>' +
+              '<div class="conviction-tile-stat"><span>Recovery:</span> <strong>' + recStr + '</strong></div>' +
+            '</div>' +
+            '<div class="conviction-tile" style="border-left:3px solid #38bdf8;">' +
+              '<div class="conviction-tile-title" style="color:#38bdf8;">🛡️ Loss Probability</div>' +
+              '<div class="conviction-tile-stat"><span>Loss Risk:</span> <strong style="color:var(--muted);">' + lossStr + '</strong></div>' +
+              '<div class="conviction-tile-stat"><span>Negative Windows:</span> <strong>' + (s.negCount || 0) + ' of ' + (s.n || 0) + '</strong></div>' +
+            '</div>' +
+            '<div class="conviction-tile" style="border-left:3px solid #a855f7;">' +
+              '<div class="conviction-tile-title" style="color:#a855f7;">🔬 Real Growth vs Hype</div>' +
+              '<div class="conviction-tile-stat"><span>EPS CAGR:</span> <strong style="' + ((s.epsCagr || 0) >= 0 ? 'color:#22d3a0;' : 'color:#f87171;') + '">' + epsStr + '</strong></div>' +
+              '<div class="conviction-tile-stat"><span>Price CAGR:</span> <strong>' + pStr + '</strong></div>' +
+              '<div class="conviction-tile-stat"><span>P/E Change:</span> <strong>' + peStr + '</strong></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
       div.innerHTML =
 
         headerHtml +
@@ -5839,7 +6247,9 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
           '<span class="datapts-label" style="color:#ff4d6a;font-weight:600">&lt; ' + horizon + 'Y</span>' +
 
-        '</div>';
+        '</div>' +
+
+        drawerHtmlInsuf;
 
       wireCardActions(div, s.key);
 
@@ -5897,6 +6307,37 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
+    var recStrNorm = '—';
+    if (s.recoveryMonths != null) {
+      recStrNorm = s.recoveryMonths >= 12 ? (s.recoveryMonths / 12).toFixed(1) + ' Yrs' : s.recoveryMonths + ' mos';
+    }
+    var lossStrNorm = s.lossProb != null ? s.lossProb.toFixed(1) + '% of windows' : '—';
+    var epsStrNorm = s.epsCagr != null ? (s.epsCagr >= 0 ? '+' : '') + s.epsCagr.toFixed(1) + '%/yr' : (s.isPortfolio ? 'N/A (Portfolio)' : 'N/A (Commodity)');
+    var pStrNorm = s.decompPriceCagr != null ? (s.decompPriceCagr >= 0 ? '+' : '') + s.decompPriceCagr.toFixed(1) + '%/yr' : '—';
+    var peStrNorm = s.decompPeCagr != null ? (s.decompPeCagr >= 0 ? '+' : '') + s.decompPeCagr.toFixed(1) + '%/yr' : '—';
+
+    var drawerHtmlNorm =
+      '<div class="stat-conviction-drawer">' +
+        '<div class="conviction-grid">' +
+          '<div class="conviction-tile" style="border-left:3px solid #f87171;">' +
+            '<div class="conviction-tile-title" style="color:#f87171;">💥 Worst Crash &amp; Recovery</div>' +
+            '<div class="conviction-tile-stat"><span>Max Drawdown:</span> <strong style="color:#f87171;">' + (s.maxDrawdown != null ? s.maxDrawdown.toFixed(1) + '%' : '—') + '</strong></div>' +
+            '<div class="conviction-tile-stat"><span>Recovery:</span> <strong>' + recStrNorm + '</strong></div>' +
+          '</div>' +
+          '<div class="conviction-tile" style="border-left:3px solid #38bdf8;">' +
+            '<div class="conviction-tile-title" style="color:#38bdf8;">🛡️ Loss Probability</div>' +
+            '<div class="conviction-tile-stat"><span>Loss Risk:</span> <strong style="' + ((s.lossProb || 0) > 0 ? 'color:#f87171;' : 'color:#22d3a0;') + '">' + lossStrNorm + '</strong></div>' +
+            '<div class="conviction-tile-stat"><span>Negative Windows:</span> <strong>' + (s.negCount || 0) + ' of ' + (s.n || 0) + '</strong></div>' +
+          '</div>' +
+          '<div class="conviction-tile" style="border-left:3px solid #a855f7;">' +
+            '<div class="conviction-tile-title" style="color:#a855f7;">🔬 Real Growth vs Hype</div>' +
+            '<div class="conviction-tile-stat"><span>EPS CAGR:</span> <strong style="' + ((s.epsCagr || 0) >= 0 ? 'color:#22d3a0;' : 'color:#f87171;') + '">' + epsStrNorm + '</strong></div>' +
+            '<div class="conviction-tile-stat"><span>Price CAGR:</span> <strong>' + pStrNorm + '</strong></div>' +
+            '<div class="conviction-tile-stat"><span>P/E Change:</span> <strong>' + peStrNorm + '</strong></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
     div.innerHTML =
 
       headerHtml +
@@ -5919,7 +6360,9 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
         '<span class="datapts-label" style="color:var(--muted);font-weight:600">' + conf + '</span>' +
 
-      '</div>';
+      '</div>' +
+
+      drawerHtmlNorm;
 
 
 
@@ -8256,6 +8699,8 @@ function updateSortBarUI() {
     {col:'p5',             label:'P5',         numeric:true},
     {col:'stddev',         label:'Std Dev',    numeric:true},
     {col:'coverageMonths', label:'Coverage',   numeric:true},
+    {col:'maxDrawdown',    label:'Max Crash 💥',numeric:true},
+    {col:'epsCagr',        label:'EPS Growth 🔬',numeric:true},
   ];
 
   var label = document.createElement('span');
@@ -10773,6 +11218,10 @@ function switchTab(idx) {
   } else if (idx === 8) {
     setTimeout(function() {
       renderCapeTab();
+    }, 50);
+  } else if (idx === 9) {
+    setTimeout(function() {
+      renderFundamentalsTab();
     }, 50);
   }
 }
@@ -13656,6 +14105,480 @@ function renderCapeTab() {
   updateHud(fDates.length - 1);
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// TAB 9: FUNDAMENTALS (PRICE VS EPS DECOMPOSITION)
+// ═════════════════════════════════════════════════════════════════════════════
+var fundamentalsChartInstance = null;
+var fundHorizon = 5;
+var fundTimeframe = 'MAX';
+
+function setFundHorizon(h) {
+  fundHorizon = h;
+  [1, 3, 5, 10].forEach(function(x) {
+    var b = document.getElementById('fundHoriz' + x + 'Y');
+    if (b) b.classList.toggle('active', x === h);
+  });
+  var lbl = document.getElementById('chkFundRollingLabel');
+  if (lbl) lbl.textContent = h + 'Y Rolling CAGR %';
+  renderFundamentalsTab();
+}
+
+function setFundTimeframe(tf) {
+  fundTimeframe = tf;
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('fundTf' + t);
+    if (b) b.classList.toggle('active', t === tf);
+  });
+  renderFundamentalsTab();
+}
+
+function resetFundZoom() {
+  fundTimeframe = 'MAX';
+  ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
+    var b = document.getElementById('fundTf' + t);
+    if (b) b.classList.toggle('active', t === 'MAX');
+  });
+  renderFundamentalsTab();
+}
+
+function updateFundSeriesVisibility() {
+  if (!fundamentalsChartInstance) return;
+  var chkPrice = document.getElementById('chkFundPrice');
+  var chkEps = document.getElementById('chkFundEps');
+  var chkPe = document.getElementById('chkFundPe');
+  var chkRolling = document.getElementById('chkFundRolling');
+
+  fundamentalsChartInstance.setDatasetVisibility(0, chkPrice ? chkPrice.checked : true);
+  fundamentalsChartInstance.setDatasetVisibility(1, chkEps ? chkEps.checked : true);
+  fundamentalsChartInstance.setDatasetVisibility(2, chkPe ? chkPe.checked : true);
+  fundamentalsChartInstance.setDatasetVisibility(3, chkRolling ? chkRolling.checked : true);
+  fundamentalsChartInstance.update();
+}
+
+function renderFundamentalsTab() {
+  var canvas = document.getElementById('fundamentalsChart');
+  var hud = document.getElementById('fundHoverHud');
+  var select = document.getElementById('fundIndexSelect');
+  var tbody = document.getElementById('fundDecompTbody');
+  if (!canvas) return;
+
+  var peDict = (typeof RAW_PE !== 'undefined' ? RAW_PE : window.RAW_PE) || {};
+  var availableIndices = Object.keys(peDict).filter(function(k) {
+    return peDict[k] && Object.keys(peDict[k]).length > 0;
+  }).sort();
+
+  if (availableIndices.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No fundamentals data available</span>';
+    return;
+  }
+
+  if (select) {
+    var curVal = select.value;
+    if (!curVal || !availableIndices.includes(curVal)) {
+      curVal = availableIndices.includes('Nifty 50') ? 'Nifty 50' : availableIndices[0];
+    }
+    if (select.options.length === 0) {
+      select.innerHTML = availableIndices.map(function(k) {
+        return '<option value="' + k + '"' + (k === curVal ? ' selected' : '') + '>' + k + '</option>';
+      }).join('');
+    } else {
+      select.value = curVal;
+    }
+  }
+
+  var chosenKey = select ? select.value : 'Nifty 50';
+  if (!peDict[chosenKey]) chosenKey = availableIndices[0];
+
+  var peData = typeof getHarmonizedPeSeries === 'function' ? getHarmonizedPeSeries(chosenKey) : { dates: Object.keys(peDict[chosenKey] || {}).sort(), values: peDict[chosenKey] || {} };
+  var rawPriceDict = (typeof RAW !== 'undefined' ? RAW : window.RAW) || {};
+  var priceMap = rawPriceDict[chosenKey] || {};
+
+  var commonDates = peData.dates.filter(function(d) {
+    return priceMap[d] && priceMap[d] > 0 && peData.values[d] && peData.values[d] > 0;
+  }).sort();
+
+  if (commonDates.length === 0) {
+    if (hud) hud.innerHTML = '<span style="color:var(--muted);">No common price &amp; P/E data available for ' + chosenKey + '</span>';
+    return;
+  }
+
+  // 1. Compute monthly EPS: EPS(t) = Price(t) / PE(t)
+  var epsMap = {};
+  commonDates.forEach(function(d) {
+    epsMap[d] = priceMap[d] / peData.values[d];
+  });
+
+  // 2. Rolling CAGR % overlay
+  var rollingCagrMap = {};
+  for (var i = 0; i < commonDates.length; i++) {
+    var curDate = commonDates[i];
+    var parts = curDate.split('-');
+    var targetPrev = (parseInt(parts[0], 10) - fundHorizon) + '-' + parts[1];
+    var prevPrice = priceMap[targetPrev];
+    if (prevPrice && prevPrice > 0) {
+      var cagr = (Math.pow(priceMap[curDate] / prevPrice, 1 / fundHorizon) - 1) * 100;
+      rollingCagrMap[curDate] = parseFloat(cagr.toFixed(1));
+    } else {
+      // Find closest earlier date within +/- 2 months if exact not found
+      var cand = null;
+      for (var ci = i - 1; ci >= 0; ci--) {
+        var cd = commonDates[ci];
+        if (cd <= targetPrev) {
+          cand = cd;
+          break;
+        }
+      }
+      if (cand && priceMap[cand]) {
+        var cParts = cand.split('-');
+        var mDiff = (parseInt(parts[0], 10) - parseInt(cParts[0], 10)) * 12 + (parseInt(parts[1], 10) - parseInt(cParts[1], 10));
+        var yDiff = mDiff / 12;
+        if (yDiff >= fundHorizon * 0.85 && yDiff <= fundHorizon * 1.15) {
+          var cagrApp = (Math.pow(priceMap[curDate] / priceMap[cand], 1 / yDiff) - 1) * 100;
+          rollingCagrMap[curDate] = parseFloat(cagrApp.toFixed(1));
+        } else {
+          rollingCagrMap[curDate] = null;
+        }
+      } else {
+        rollingCagrMap[curDate] = null;
+      }
+    }
+  }
+
+  // 3. Timeframe Filtering
+  var fDates = commonDates;
+  if (fundTimeframe !== 'MAX' && fDates.length > 0) {
+    var latestD = fDates[fDates.length - 1];
+    var lParts = latestD.split('-');
+    var yBack = fundTimeframe === '3Y' ? 3 : (fundTimeframe === '5Y' ? 5 : 10);
+    var startD = (parseInt(lParts[0], 10) - yBack) + '-' + lParts[1];
+    var sIdx = 0;
+    for (var di = 0; di < fDates.length; di++) {
+      if (fDates[di] >= startD) { sIdx = di; break; }
+    }
+    fDates = fDates.slice(sIdx);
+  }
+
+  if (fDates.length === 0) fDates = commonDates;
+
+  // 4. Rebase Price and EPS to 100 at the earliest date in displayed timeframe
+  var baseDate = fDates[0];
+  var basePrice = priceMap[baseDate] || 1;
+  var baseEps = epsMap[baseDate] || 1;
+
+  var rebasedPrice = [];
+  var rebasedEps = [];
+  var peSeries = [];
+  var rollingSeries = [];
+
+  for (var fi = 0; fi < fDates.length; fi++) {
+    var fd = fDates[fi];
+    var pReb = parseFloat(((priceMap[fd] / basePrice) * 100).toFixed(2));
+    var eReb = parseFloat(((epsMap[fd] / baseEps) * 100).toFixed(2));
+    var peVal = parseFloat(peData.values[fd].toFixed(2));
+    var rollVal = rollingCagrMap[fd];
+
+    rebasedPrice.push(pReb);
+    rebasedEps.push(eReb);
+    peSeries.push(peVal);
+    rollingSeries.push(rollVal);
+  }
+
+  // 5. Update Diagnostic HUD
+  function updateHud(idx) {
+    if (!hud) return;
+    var d = fDates[idx];
+    if (!d) return;
+
+    var pRebVal = rebasedPrice[idx];
+    var eRebVal = rebasedEps[idx];
+    var peVal = peSeries[idx];
+    var rollVal = rollingSeries[idx];
+    var actualP = priceMap[d] || 0;
+    var actualE = epsMap[d] || 0;
+
+    // Valuation / Hype Gap = (Price Rebased / EPS Rebased - 1) * 100
+    var valGap = ((pRebVal / eRebVal) - 1) * 100;
+    var gapSign = valGap >= 0 ? '+' : '';
+    var gapBadge = '';
+    if (valGap > 25) {
+      gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">🎈 High Valuation Froth (' + gapSign + valGap.toFixed(1) + '%)</span>';
+    } else if (valGap < -15) {
+      gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">💎 Deep Earnings Bargain (' + valGap.toFixed(1) + '%)</span>';
+    } else {
+      gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:2px 8px;border-radius:4px;font-weight:600;">⚖️ Fundamentals Aligned (' + gapSign + valGap.toFixed(1) + '%)</span>';
+    }
+
+    hud.innerHTML =
+      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
+      '<span>Price: <strong style="color:#f5c842;">' + pRebVal.toFixed(1) + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
+      '<span>Real EPS: <strong style="color:#22d3a0;">' + eRebVal.toFixed(1) + '</strong> <small style="color:var(--muted);">(₹' + actualE.toFixed(1) + ')</small></span>' +
+      '<span>P/E: <strong style="color:#a855f7;">' + peVal.toFixed(1) + 'x</strong></span>' +
+      '<span>' + fundHorizon + 'Y Rolling: <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
+      gapBadge;
+  }
+
+  // 6. Build Multi-Axis Chart.js
+  var chkPrice = document.getElementById('chkFundPrice');
+  var chkEps = document.getElementById('chkFundEps');
+  var chkPe = document.getElementById('chkFundPe');
+  var chkRolling = document.getElementById('chkFundRolling');
+
+  var datasets = [
+    {
+      label: 'Price (Rebased 100)',
+      data: rebasedPrice,
+      borderColor: '#f5c842',
+      backgroundColor: '#f5c842',
+      borderWidth: 2.5,
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 6,
+      tension: 0.1,
+      yAxisID: 'y',
+      order: 1,
+      hidden: chkPrice ? !chkPrice.checked : false
+    },
+    {
+      label: 'Real EPS Profits (Rebased 100)',
+      data: rebasedEps,
+      borderColor: '#22d3a0',
+      backgroundColor: '#22d3a0',
+      borderWidth: 2.5,
+      pointRadius: fDates.length > 80 ? 0 : 2,
+      pointHoverRadius: 6,
+      tension: 0.1,
+      yAxisID: 'y',
+      order: 2,
+      hidden: chkEps ? !chkEps.checked : false
+    },
+    {
+      label: 'P/E Ratio',
+      data: peSeries,
+      borderColor: '#a855f7',
+      backgroundColor: '#a855f7',
+      borderWidth: 1.8,
+      borderDash: [4, 4],
+      pointRadius: 0,
+      tension: 0.1,
+      yAxisID: 'yPe',
+      order: 3,
+      hidden: chkPe ? !chkPe.checked : false
+    },
+    {
+      label: fundHorizon + 'Y Rolling CAGR %',
+      data: rollingSeries,
+      borderColor: '#38bdf8',
+      backgroundColor: '#38bdf8',
+      borderWidth: 1.8,
+      borderDash: [2, 2],
+      pointRadius: 0,
+      tension: 0.1,
+      yAxisID: 'yCagr',
+      order: 4,
+      hidden: chkRolling ? !chkRolling.checked : false
+    }
+  ];
+
+  if (fundamentalsChartInstance) {
+    fundamentalsChartInstance.destroy();
+    fundamentalsChartInstance = null;
+  }
+
+  fundamentalsChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: fDates, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            title: function(items) {
+              return items && items.length ? '📅 ' + items[0].label : '';
+            },
+            afterTitle: function(items) {
+              if (!items || !items.length) return '';
+              var idx = items[0].dataIndex;
+              updateHud(idx);
+              return '';
+            },
+            label: function(ctx) {
+              var idx = ctx.dataIndex;
+              var d = fDates[idx];
+              if (ctx.datasetIndex === 0) {
+                return 'Price (Rebased): ' + ctx.raw.toFixed(1) + ' (₹' + (priceMap[d]||0).toLocaleString('en-IN', {maximumFractionDigits:1}) + ')';
+              } else if (ctx.datasetIndex === 1) {
+                return 'Real EPS (Rebased): ' + ctx.raw.toFixed(1) + ' (₹' + (epsMap[d]||0).toFixed(1) + ')';
+              } else if (ctx.datasetIndex === 2) {
+                return 'P/E Ratio: ' + ctx.raw.toFixed(1) + 'x';
+              } else if (ctx.datasetIndex === 3) {
+                return fundHorizon + 'Y Rolling CAGR: ' + (ctx.raw != null ? (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(1) + '%' : 'N/A');
+              }
+              return ctx.dataset.label + ': ' + ctx.raw;
+            },
+            afterBody: function(items) {
+              if (!items || !items.length) return '';
+              var idx = items[0].dataIndex;
+              var pReb = rebasedPrice[idx];
+              var eReb = rebasedEps[idx];
+              var gap = ((pReb / eReb) - 1) * 100;
+              var gapTxt = (gap >= 0 ? '+' : '') + gap.toFixed(1) + '%';
+              return ['--------------------------------', 'Valuation / Hype Gap: ' + gapTxt + (gap > 0 ? ' (Price ahead of earnings)' : ' (Earnings ahead of price)')];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c6480',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            callback: function(val, index) {
+              var d = fDates[index];
+              return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
+            }
+          },
+          grid: { display: false },
+          border: { color: '#252a38' }
+        },
+        y: {
+          position: 'left',
+          grid: { color: '#1c2030' },
+          border: { color: '#252a38' },
+          title: {
+            display: true,
+            text: 'Rebased (100 = Start)',
+            color: '#8e98b0',
+            font: { family: 'DM Mono', size: 10 }
+          },
+          ticks: {
+            color: '#8e98b0',
+            font: { family: 'DM Mono', size: 10 }
+          }
+        },
+        yPe: {
+          position: 'right',
+          grid: { display: false },
+          border: { color: '#a855f7' },
+          title: {
+            display: true,
+            text: 'P/E Multiple',
+            color: '#a855f7',
+            font: { family: 'DM Mono', size: 10 }
+          },
+          ticks: {
+            color: '#a855f7',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + 'x'; }
+          }
+        },
+        yCagr: {
+          position: 'right',
+          grid: { display: false },
+          border: { color: '#38bdf8' },
+          title: {
+            display: true,
+            text: 'Rolling CAGR %',
+            color: '#38bdf8',
+            font: { family: 'DM Mono', size: 10 }
+          },
+          ticks: {
+            color: '#38bdf8',
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) { return val + '%'; }
+          }
+        }
+      }
+    }
+  });
+
+  window.fundamentalsChartInstance = fundamentalsChartInstance;
+  updateHud(fDates.length - 1);
+
+  // 7. Render 3-Engine Return Decomposition Table
+  if (tbody) {
+    tbody.innerHTML = '';
+    var lastDate = commonDates[commonDates.length - 1];
+    var horizons = [
+      { label: '3-Year Horizon', years: 3 },
+      { label: '5-Year Horizon', years: 5 },
+      { label: '10-Year Horizon', years: 10 }
+    ];
+
+    horizons.forEach(function(hz) {
+      var lParts = lastDate.split('-');
+      var startY = parseInt(lParts[0], 10) - hz.years;
+      var targetStart = startY + '-' + lParts[1];
+
+      // Find closest date <= targetStart
+      var sDate = null;
+      for (var ci = commonDates.length - 1; ci >= 0; ci--) {
+        if (commonDates[ci] <= targetStart) {
+          sDate = commonDates[ci];
+          break;
+        }
+      }
+
+      if (!sDate) {
+        var trEmpty = document.createElement('tr');
+        trEmpty.innerHTML =
+          '<td><strong>' + hz.label + '</strong></td>' +
+          '<td colspan="4" style="color:var(--muted);font-style:italic;">Insufficient history for ' + hz.years + 'Y decomposition</td>';
+        tbody.appendChild(trEmpty);
+        return;
+      }
+
+      var sP = sDate.split('-'), eP = lastDate.split('-');
+      var mSpan = (parseInt(eP[0], 10) - parseInt(sP[0], 10)) * 12 + (parseInt(eP[1], 10) - parseInt(sP[1], 10));
+      var actualY = mSpan / 12;
+      if (actualY < hz.years * 0.8) {
+        var trShort = document.createElement('tr');
+        trShort.innerHTML =
+          '<td><strong>' + hz.label + '</strong></td>' +
+          '<td colspan="4" style="color:var(--muted);font-style:italic;">History available: ' + actualY.toFixed(1) + 'Y (< ' + hz.years + 'Y)</td>';
+        tbody.appendChild(trShort);
+        return;
+      }
+
+      var p0 = priceMap[sDate], p1 = priceMap[lastDate];
+      var pe0 = peData.values[sDate], pe1 = peData.values[lastDate];
+      var eps0 = p0 / pe0, eps1 = p1 / pe1;
+
+      var pCagr = ((Math.pow(p1 / p0, 1 / actualY) - 1) * 100);
+      var eCagr = ((Math.pow(eps1 / eps0, 1 / actualY) - 1) * 100);
+      var peMultCagr = ((Math.pow(pe1 / pe0, 1 / actualY) - 1) * 100);
+
+      var driverBadge = '';
+      if (eCagr >= pCagr && pCagr > 0) {
+        driverBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">💼 Real Earnings Compounding (Value Safe)</span>';
+      } else if (peMultCagr > eCagr && peMultCagr > 0) {
+        driverBadge = '<span style="background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">🎈 Speculative Multiple Expansion (Hype Driven)</span>';
+      } else if (eCagr > 0 && pCagr <= 0) {
+        driverBadge = '<span style="background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">🛡️ Earnings Resilient (Multiple Compressed)</span>';
+      } else {
+        driverBadge = '<span style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;">⚖️ Balanced Compounding</span>';
+      }
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><strong>' + hz.label + '</strong> <small style="color:var(--muted);">(' + sDate + ' → ' + lastDate + ')</small></td>' +
+        '<td style="color:' + (pCagr >= 0 ? '#f5c842' : '#f87171') + ';font-weight:700;">' + (pCagr >= 0 ? '+' : '') + pCagr.toFixed(1) + '%/yr</td>' +
+        '<td style="color:' + (eCagr >= 0 ? '#22d3a0' : '#f87171') + ';font-weight:700;">' + (eCagr >= 0 ? '+' : '') + eCagr.toFixed(1) + '%/yr</td>' +
+        '<td style="color:' + (peMultCagr >= 0 ? '#a855f7' : '#94a3b8') + ';">' + (peMultCagr >= 0 ? '+' : '') + peMultCagr.toFixed(1) + '%/yr</td>' +
+        '<td>' + driverBadge + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Global Exports
 window.renderYieldGapTab = renderYieldGapTab;
@@ -13666,6 +14589,12 @@ window.renderCapeTab = renderCapeTab;
 window.setCapeWindow = setCapeWindow;
 window.setCapeTimeframe = setCapeTimeframe;
 window.resetCapeZoom = resetCapeZoom;
+
+window.renderFundamentalsTab = renderFundamentalsTab;
+window.setFundHorizon = setFundHorizon;
+window.setFundTimeframe = setFundTimeframe;
+window.resetFundZoom = resetFundZoom;
+window.updateFundSeriesVisibility = updateFundSeriesVisibility;
 </script>
 
 </body>
