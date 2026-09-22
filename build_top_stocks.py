@@ -74,27 +74,35 @@ def process_chart_data(raw_data, sym_info):
     # Group price by month (last price in month)
     price_by_month = {}
     for dt_str, p in price_raw:
-        if p is None: continue
+        if p is None:
+            continue
         ym = dt_str[:7]
         try:
-            price_by_month[ym] = round(float(p), 2)
-        except:
+            val = float(p)
+            if val > 0:
+                price_by_month[ym] = round(val, 2)
+        except Exception:
             pass
 
     # Sort EPS points
     eps_points = []
     for dt_str, e in eps_raw:
-        if e is None: continue
+        if e is None:
+            continue
         try:
             val = float(e)
             eps_points.append((dt_str[:7], val))
-        except:
+        except Exception:
             pass
     eps_points.sort(key=lambda x: x[0])
     if not eps_points:
         return None
 
-    all_months = sorted(price_by_month.keys())
+    first_eps = eps_points[0][0]
+    all_months = sorted([m for m in price_by_month.keys() if m >= first_eps])
+    if len(all_months) < 12:
+        return None
+
     eps_by_month = {}
     pe_by_month = {}
 
@@ -105,78 +113,78 @@ def process_chart_data(raw_data, sym_info):
         while eps_idx < len(eps_points) and eps_points[eps_idx][0] <= ym:
             cur_eps = eps_points[eps_idx][1]
             eps_idx += 1
-        if cur_eps is not None and cur_eps > 0:
-            eps_by_month[ym] = round(cur_eps, 2)
+        eps_by_month[ym] = round(cur_eps, 2)
+        if cur_eps is not None and cur_eps > 0 and price_by_month[ym] > 0:
             pe_by_month[ym] = round(price_by_month[ym] / cur_eps, 2)
-
-    # Filter common valid dates
-    common_dates = sorted([m for m in all_months if m in eps_by_month and eps_by_month[m] > 0 and m in price_by_month and price_by_month[m] > 0])
-    if len(common_dates) < 12: # At least 1 year
-        return None
-
-    final_price = {m: price_by_month[m] for m in common_dates}
-    final_eps = {m: eps_by_month[m] for m in common_dates}
-    final_pe = {m: pe_by_month[m] for m in common_dates}
+        else:
+            pe_by_month[ym] = None
 
     return {
         "symbol": sym_info["symbol"],
         "name": sym_info["name"],
         "id": sym_info["id"],
-        "dates": common_dates,
-        "price": final_price,
-        "eps": final_eps,
-        "pe": final_pe
+        "dates": all_months,
+        "price": {m: price_by_month[m] for m in all_months},
+        "eps": eps_by_month,
+        "pe": pe_by_month
     }
 
 def main():
-    cache_file = "top_stocks_cache.json"
-    all_stocks = {}
-    if os.path.exists(cache_file):
+    raw_cache_file = "raw_screener_cache.json"
+    raw_cache = {}
+    if os.path.exists(raw_cache_file):
         try:
-            with open(cache_file, "r", encoding="utf-8") as f:
-                all_stocks = json.load(f)
-            print(f"Loaded {len(all_stocks)} existing cached stocks.")
+            with open(raw_cache_file, "r", encoding="utf-8") as f:
+                raw_cache = json.load(f)
+            print(f"Loaded {len(raw_cache)} raw screener cache responses.")
         except Exception as e:
-            print("Could not load cache:", e)
+            print("Could not load raw cache:", e)
 
-    missing = [s for s in STOCKS_CATALOG if s["symbol"] not in all_stocks]
-    print(f"Need to fetch {len(missing)} stocks...")
+    all_stocks = {}
 
-    for i, stock in enumerate(missing):
+    for i, stock in enumerate(STOCKS_CATALOG):
         sym = stock["symbol"]
         wid = stock["id"]
-        print(f"[{i+1}/{len(missing)}] Fetching {sym} (ID: {wid})...")
-        processed = None
-        for attempt in range(3):
-            try:
-                # 1. Try consolidated
-                raw = fetch_stock_chart(wid, consolidated=True)
-                processed = process_chart_data(raw, stock)
-                # If consolidated has few dates (e.g. standalone company like Nestle), try standalone
-                if not processed or len(processed['dates']) < 50:
-                    time.sleep(1.0)
-                    raw_sa = fetch_stock_chart(wid, consolidated=False)
-                    processed_sa = process_chart_data(raw_sa, stock)
-                    if processed_sa and (not processed or len(processed_sa['dates']) > len(processed['dates'])):
-                        processed = processed_sa
-                if processed:
-                    all_stocks[sym] = processed
-                    print(f"  ✓ {sym}: {len(processed['dates'])} months ({processed['dates'][0]} to {processed['dates'][-1]})")
+        raw = raw_cache.get(sym)
+
+        if not raw:
+            print(f"[{i+1}/{len(STOCKS_CATALOG)}] Fetching {sym} (ID: {wid})...")
+            for attempt in range(3):
+                try:
+                    raw = fetch_stock_chart(wid, consolidated=True)
+                    eps_ds = next((x for x in raw.get('datasets', []) if x.get('metric') == 'EPS'), None)
+                    eps_len = len(eps_ds.get('values', [])) if eps_ds else 0
+                    if eps_len < 30:
+                        time.sleep(1.0)
+                        raw_sa = fetch_stock_chart(wid, consolidated=False)
+                        eps_sa = next((x for x in raw_sa.get('datasets', []) if x.get('metric') == 'EPS'), None)
+                        sa_len = len(eps_sa.get('values', [])) if eps_sa else 0
+                        if sa_len > eps_len:
+                            raw = raw_sa
+                    raw_cache[sym] = raw
+                    time.sleep(0.5)
                     break
-                else:
-                    print(f"  ✗ {sym}: processing returned None")
+                except urllib.error.HTTPError as he:
+                    if he.code == 429:
+                        print(f"  ⚠️ Rate limit 429 for {sym}. Waiting 5 seconds before retry {attempt+1}...")
+                        time.sleep(5)
+                    else:
+                        print(f"  ✗ {sym} HTTP error {he.code}: {he}")
+                        break
+                except Exception as e:
+                    print(f"  ✗ {sym} failed: {e}")
                     break
-            except urllib.error.HTTPError as he:
-                if he.code == 429:
-                    print(f"  ⚠️ Rate limit 429 for {sym}. Waiting 5 seconds before retry {attempt+1}...")
-                    time.sleep(5)
-                else:
-                    print(f"  ✗ {sym} HTTP error {he.code}: {he}")
-                    break
-            except Exception as e:
-                print(f"  ✗ {sym} failed: {e}")
-                break
-        time.sleep(1.5)
+
+        processed = process_chart_data(raw, stock) if raw else None
+        if processed:
+            all_stocks[sym] = processed
+            print(f"  ✓ {sym}: {len(processed['dates'])} months ({processed['dates'][0]} to {processed['dates'][-1]})")
+        else:
+            print(f"  ✗ {sym}: processing returned None")
+
+    # Save raw cache
+    with open(raw_cache_file, "w", encoding="utf-8") as f:
+        json.dump(raw_cache, f)
 
     print(f"\nFinal count: {len(all_stocks)} / {len(STOCKS_CATALOG)} stocks.")
     
