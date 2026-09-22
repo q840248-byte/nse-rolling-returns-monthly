@@ -2444,13 +2444,21 @@
 
             <div class="chart-title">Latest Stats</div>
 
-            <div class="chart-subtitle">Most recent rolling CAGR stats for the selected indices and horizon</div>
+            <div class="chart-subtitle" id="statsSubtitle">Most recent rolling CAGR stats for the selected indices and horizon</div>
 
           </div>
 
           <!-- Selection & Keep Action Toolbar -->
 
           <div id="statsSelectionToolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+
+            <div class="stats-scope-toggle" style="display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9999px;padding:2px;gap:2px;">
+
+              <button id="statsScopeSelectedBtn" onclick="setStatsScope('selected')" class="stat-sort-btn sort-active" title="Show only indices selected in sidebar" style="border:none;border-radius:9999px;font-size:0.65rem;font-weight:600;">Selected (<span id="statsSelectedCount">0</span>)</button>
+
+              <button id="statsScopeAllBtn" onclick="setStatsScope('all')" class="stat-sort-btn" title="Show all 58 available indices and commodities" style="border:none;border-radius:9999px;font-size:0.65rem;font-weight:600;">All Indices (58)</button>
+
+            </div>
 
             <button id="keepTickedBtn" onclick="keepOnlyTickedStats()" title="Keep only the ticked indices and deselect all others" style="padding:6px 14px;background:rgba(34,211,160,0.14);border:1.5px solid #22d3a0;border-radius:6px;color:#22d3a0;font-family:Syne,sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;opacity:0.6;">
 
@@ -3746,7 +3754,15 @@ var _lastStatArgs = null;
 
 function renderMainStats() {
 
-  if (_lastStatArgs) renderStats.apply(null, _lastStatArgs);
+  if (_lastStatArgs) {
+
+    renderStats.apply(null, _lastStatArgs);
+
+  } else {
+
+    renderMain();
+
+  }
 
 }
 
@@ -4932,6 +4948,66 @@ function removeStatSymbol(key) {
 
 
 
+function addStatSymbol(key) {
+
+  selected.add(key);
+
+  if (!weights[key]) weights[key] = 1;
+
+  redistributeWeights();
+
+  snapTimelineToSelection();
+
+  buildCards();
+
+  buildCommodityCards(); 
+
+  renderMain();
+
+  updateTickedCountUI();
+
+}
+
+window.addStatSymbol = addStatSymbol;
+
+
+
+var _statsScope = 'selected'; // 'selected' | 'all'
+
+
+
+function setStatsScope(scope) {
+
+  _statsScope = scope;
+
+  var selBtn = document.getElementById('statsScopeSelectedBtn');
+
+  var allBtn = document.getElementById('statsScopeAllBtn');
+
+  if (selBtn) selBtn.classList.toggle('sort-active', _statsScope === 'selected');
+
+  if (allBtn) allBtn.classList.toggle('sort-active', _statsScope === 'all');
+
+  var sub = document.getElementById('statsSubtitle');
+
+  if (sub) {
+
+    sub.textContent = _statsScope === 'all'
+
+      ? 'Most recent rolling CAGR stats for all available market indices & commodities'
+
+      : 'Most recent rolling CAGR stats for the selected indices and horizon';
+
+  }
+
+  renderMainStats();
+
+}
+
+window.setStatsScope = setStatsScope;
+
+
+
 function keepOnlyTickedStats() {
 
   if (!tickedStatKeys || tickedStatKeys.size === 0) {
@@ -4953,6 +5029,20 @@ function keepOnlyTickedStats() {
   });
 
   tickedStatKeys.clear();
+
+  _statsScope = 'selected';
+
+  var selBtn = document.getElementById('statsScopeSelectedBtn');
+
+  var allBtn = document.getElementById('statsScopeAllBtn');
+
+  if (selBtn) selBtn.classList.add('sort-active');
+
+  if (allBtn) allBtn.classList.remove('sort-active');
+
+  var sub = document.getElementById('statsSubtitle');
+
+  if (sub) sub.textContent = 'Most recent rolling CAGR stats for the selected indices and horizon';
 
   redistributeWeights();
 
@@ -5052,7 +5142,18 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
   grid.innerHTML = '';
 
-  if (!selKeys || selKeys.length === 0) {
+  const allAvailableKeys = INDICES.map(function(i){ return i.key; }).concat(COMMODITIES.map(function(c){ return c.key; }));
+
+  const selCountBadge = document.getElementById('statsSelectedCount');
+  if (selCountBadge) selCountBadge.textContent = selKeys ? selKeys.length : 0;
+  var selBtn = document.getElementById('statsScopeSelectedBtn');
+  var allBtn = document.getElementById('statsScopeAllBtn');
+  if (selBtn) selBtn.classList.toggle('sort-active', _statsScope === 'selected');
+  if (allBtn) allBtn.classList.toggle('sort-active', _statsScope === 'all');
+
+  const keysToRender = (_statsScope === 'all') ? allAvailableKeys : (selKeys || []);
+
+  if (!keysToRender || keysToRender.length === 0) {
 
     _lastStatArgs = null;
 
@@ -5060,7 +5161,10 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
     if (filterBar) filterBar.style.display = 'none';
 
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:16px">Select indices from the sidebar to view stats</div>';
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:24px">' +
+      'No indices currently selected in the sidebar.<br>' +
+      '<button class="stat-sort-btn sort-active" style="display:inline-flex;margin-top:10px;padding:4px 12px;font-size:0.72rem;cursor:pointer;" onclick="setStatsScope(\'all\')">📊 View All Available Indices</button>' +
+      '</div>';
 
     return;
 
@@ -5100,7 +5204,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
-  selKeys.forEach(function(k) {
+  keysToRender.forEach(function(k) {
 
     const idx = findSeries(k);
 
@@ -5128,7 +5232,10 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
-    const map = cagrMaps ? cagrMaps[k] : null;
+    let map = (cagrMaps && cagrMaps[k]) ? cagrMaps[k] : null;
+    if (!map && typeof computeRollingCAGR === 'function') {
+      map = computeRollingCAGR(k, horizon, 'close');
+    }
 
     const fullEntries = map ? Object.entries(map).sort(function(a, b){ return a[0] < b[0] ? -1 : 1; }) : [];
 
@@ -5307,7 +5414,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
 
-  if (selKeys.length > 1 && portfolioMap) {
+  if (selKeys && selKeys.length > 1 && portfolioMap) {
 
     const fullPentries = Object.entries(portfolioMap).sort(function(a, b){ return a[0] < b[0] ? -1 : 1; });
 
@@ -5339,6 +5446,18 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
       const latest = vals[vals.length - 1];
 
+      const pavg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
+
+      const pstddev = vals.length > 1 ? +Math.sqrt(vals.reduce(function(s,v){return s+(v-pavg)*(v-pavg);},0)/(vals.length-1)).toFixed(2) : 0;
+
+      const pmedian = nthPercentile(vals, 50);
+
+      const pp25 = nthPercentile(vals, 25), pp75 = nthPercentile(vals, 75);
+
+      const pmidVals = vals.filter(function(v){ return v >= pp25 && v <= pp75; });
+
+      const pmidAvg = pmidVals.length ? +(pmidVals.reduce(function(a,b){return a+b;},0)/pmidVals.length).toFixed(2) : pavg;
+
       const p5 = nthPercentile(vals, 5);
       const minVal = vals.length ? Math.min.apply(null, vals) : null;
       const recencyGap = (latest != null && pmedian != null) ? +(latest - pmedian).toFixed(1) : null;
@@ -5361,20 +5480,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
           beatNifty = +(beatCount / overlapCount * 100).toFixed(1);
         }
       }
-
-      const pavg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
-
-      const pstddev = vals.length > 1 ? +Math.sqrt(vals.reduce(function(s,v){return s+(v-pavg)*(v-pavg);},0)/(vals.length-1)).toFixed(2) : 0;
-
-      const pmedian = nthPercentile(vals, 50);
-
-      const pp25 = nthPercentile(vals, 25), pp75 = nthPercentile(vals, 75);
-
-      const pmidVals = vals.filter(function(v){ return v >= pp25 && v <= pp75; });
-
-      const pmidAvg = pmidVals.length ? +(pmidVals.reduce(function(a,b){return a+b;},0)/pmidVals.length).toFixed(2) : pavg;
-
-
 
       all.push({
 
@@ -5399,6 +5504,12 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
         stddev: pstddev,
 
         p5: p5,
+
+        min: minVal,
+
+        recencyGap: recencyGap,
+
+        beatNifty: beatNifty,
 
         max: Math.max.apply(null, vals),
 
@@ -5462,13 +5573,15 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
   if (covStatus) {
 
+    var scopeLabel = _statsScope === 'all' ? 'series' : 'selected series';
+
     if (minCoverageMonths > 0) {
 
-      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' (≥ ' + threshStr + ')';
+      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' ' + scopeLabel + ' (≥ ' + threshStr + ')';
 
     } else {
 
-      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' series' : '';
+      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' ' + scopeLabel : '';
 
     }
 
@@ -5607,6 +5720,14 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
     } else {
 
+      var isIndexSelected = selected.has(s.key);
+
+      var actionBtnHtml = isIndexSelected
+
+        ? '<button class="stat-remove-btn" title="Remove ' + s.name + ' from selection instantly">&#x2715; Remove</button>'
+
+        : '<button class="stat-add-btn" title="Add ' + s.name + ' to portfolio selection" style="padding:4px 9px;background:rgba(79,158,248,0.12);border:1px solid rgba(79,158,248,0.3);border-radius:6px;color:#4f9ef8;font-family:monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s;">+ Select</button>';
+
       headerHtml =
 
         '<div class="stat-card-header">' +
@@ -5616,6 +5737,8 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
             '<span class="stat-card-dot" style="background:' + (s.color || '#5E9CFF') + ';box-shadow:0 0 6px ' + (s.color || '#5E9CFF') + '80;"></span>' +
 
             '<span class="stat-card-name">' + s.name + '</span>' +
+
+            (isIndexSelected ? '<span style="font-size:0.55rem;color:#22d3a0;background:rgba(34,211,160,0.12);border:1px solid rgba(34,211,160,0.3);padding:1px 6px;border-radius:4px;font-weight:600;">ACTIVE</span>' : '') +
 
           '</div>' +
 
@@ -5627,7 +5750,7 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
             '</button>' +
 
-            '<button class="stat-remove-btn" title="Remove ' + s.name + ' from selection instantly">&#x2715; Remove</button>' +
+            actionBtnHtml +
 
           '</div>' +
 
@@ -5664,6 +5787,20 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
           e.stopPropagation();
 
           removeStatSymbol(k);
+
+        });
+
+      }
+
+      var addBtn = rowEl.querySelector('.stat-add-btn');
+
+      if (addBtn) {
+
+        addBtn.addEventListener('click', function(e) {
+
+          e.stopPropagation();
+
+          addStatSymbol(k);
 
         });
 
