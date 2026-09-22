@@ -2456,7 +2456,7 @@
 
               <button id="statsScopeSelectedBtn" onclick="setStatsScope('selected')" class="stat-sort-btn sort-active" title="Show only indices selected in sidebar" style="border:none;border-radius:9999px;font-size:0.65rem;font-weight:600;">Selected (<span id="statsSelectedCount">0</span>)</button>
 
-              <button id="statsScopeAllBtn" onclick="setStatsScope('all')" class="stat-sort-btn" title="Show all 58 available indices and commodities" style="border:none;border-radius:9999px;font-size:0.65rem;font-weight:600;">All Indices (58)</button>
+              <button id="statsScopeAllBtn" onclick="setStatsScope('all')" class="stat-sort-btn" title="Show all available indices and commodities" style="border:none;border-radius:9999px;font-size:0.65rem;font-weight:600;">All Indices (<span id="statsTotalCount">58</span>)</button>
 
             </div>
 
@@ -5146,6 +5146,8 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
   const selCountBadge = document.getElementById('statsSelectedCount');
   if (selCountBadge) selCountBadge.textContent = selKeys ? selKeys.length : 0;
+  const totalCountBadge = document.getElementById('statsTotalCount');
+  if (totalCountBadge) totalCountBadge.textContent = allAvailableKeys.length;
   var selBtn = document.getElementById('statsScopeSelectedBtn');
   var allBtn = document.getElementById('statsScopeAllBtn');
   if (selBtn) selBtn.classList.toggle('sort-active', _statsScope === 'selected');
@@ -5201,6 +5203,11 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
   const _tlEnd   = (TL_DATES && TL_DATES[tlEndIdx])   || '2099-12';
 
   const all = [];
+
+  let niftyMapForStats = (cagrMaps && cagrMaps['Nifty 50']) ? cagrMaps['Nifty 50'] : null;
+  if (!niftyMapForStats && typeof computeRollingCAGR === 'function') {
+    niftyMapForStats = computeRollingCAGR('Nifty 50', horizon, 'close');
+  }
 
 
 
@@ -5337,10 +5344,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
     
     // Calculate Beat Rate vs Nifty 50
     let beatNifty = null;
-    let niftyMapForStats = cagrMaps ? cagrMaps['Nifty 50'] : null;
-    if (!niftyMapForStats && typeof computeRollingCAGR === 'function') {
-      niftyMapForStats = computeRollingCAGR('Nifty 50', horizon, 'close');
-    }
     if (k === 'Nifty 50') {
       beatNifty = 100.0;
     } else if (niftyMapForStats) {
@@ -5462,10 +5465,6 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
       const minVal = vals.length ? Math.min.apply(null, vals) : null;
       const recencyGap = (latest != null && pmedian != null) ? +(latest - pmedian).toFixed(1) : null;
       let beatNifty = null;
-      let niftyMapForStats = cagrMaps ? cagrMaps['Nifty 50'] : null;
-      if (!niftyMapForStats && typeof computeRollingCAGR === 'function') {
-        niftyMapForStats = computeRollingCAGR('Nifty 50', horizon, 'close');
-      }
       if (niftyMapForStats) {
         let beatCount = 0, overlapCount = 0;
         filteredPEntries.forEach(function(e) {
@@ -5572,19 +5571,17 @@ function renderStats(selKeys, cagrMaps, portfolioMap) {
 
 
   if (covStatus) {
-
+    var hasPortfolioCard = all.some(function(s){ return s.isPortfolio; });
+    var pSuffix = hasPortfolioCard ? ' (+ Portfolio)' : '';
+    var baseTotal = hasPortfolioCard ? (totalCount - 1) : totalCount;
+    var baseFiltered = (hasPortfolioCard && filtered.some(function(s){ return s.isPortfolio; })) ? (filtered.length - 1) : filtered.length;
     var scopeLabel = _statsScope === 'all' ? 'series' : 'selected series';
 
     if (minCoverageMonths > 0) {
-
-      covStatus.textContent = 'Showing ' + filtered.length + ' of ' + totalCount + ' ' + scopeLabel + ' (≥ ' + threshStr + ')';
-
+      covStatus.textContent = 'Showing ' + baseFiltered + ' of ' + baseTotal + ' ' + scopeLabel + ' (≥ ' + threshStr + ')' + pSuffix;
     } else {
-
-      covStatus.textContent = totalCount > 0 ? 'Showing all ' + totalCount + ' ' + scopeLabel : '';
-
+      covStatus.textContent = baseTotal > 0 ? 'Showing all ' + baseTotal + ' ' + scopeLabel + pSuffix : '';
     }
-
   }
 
 
