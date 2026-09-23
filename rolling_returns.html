@@ -2036,6 +2036,13 @@
   }
 
   /* Tab 9 Fundamentals Styles */
+  #fundamentalsChart {
+    cursor: grab;
+    touch-action: none;
+  }
+  #fundamentalsChart:active {
+    cursor: grabbing !important;
+  }
   .fund-checkbox-group {
     display: inline-flex;
     align-items: center;
@@ -3223,6 +3230,11 @@
               <button class="tv-tool-btn" id="fundTf10Y" onclick="setFundTimeframe('10Y')">10Y</button>
               <button class="tv-tool-btn active" id="fundTfMAX" onclick="setFundTimeframe('MAX')">MAX</button>
             </div>
+            <!-- Scale Toggle: Log / Linear -->
+            <div class="tv-btn-group" title="Scale for Rebased Price &amp; Real EPS">
+              <button type="button" class="tv-tool-btn active" id="fundScaleLogBtn" onclick="setFundScaleType('logarithmic')" title="Logarithmic Scale (compounding trajectory)">LOG</button>
+              <button type="button" class="tv-tool-btn" id="fundScaleLinBtn" onclick="setFundScaleType('linear')" title="Linear Scale">LIN</button>
+            </div>
             <div class="tv-btn-group">
               <button class="tv-tool-btn" onclick="resetFundZoom()" title="Reset Zoom">↺ Reset</button>
             </div>
@@ -3273,7 +3285,7 @@
 
         <!-- Chart Canvas -->
         <div style="position:relative;height:520px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
-          <canvas id="fundamentalsChart"></canvas>
+          <canvas id="fundamentalsChart" style="cursor:grab;touch-action:none;"></canvas>
         </div>
 
         <!-- 3-Engine Return Decomposition Table -->
@@ -14297,11 +14309,26 @@ function renderCapeTab() {
 // TAB 9: FUNDAMENTALS (PRICE VS EPS DECOMPOSITION)
 // ═════════════════════════════════════════════════════════════════════════════
 var fundamentalsChartInstance = null;
+var fundChart = null;
+var fundScaleType = 'logarithmic'; // 'logarithmic' (default) or 'linear'
 var fundHorizon = 5;
 var fundTimeframe = 'MAX';
 var fundAssetMode = 'index'; // 'index' or 'stock'
 var fundSelectedStock = 'RELIANCE';
 var fundCustomStockData = {}; // In-memory cache for live-fetched custom stocks
+
+function setFundScaleType(type) {
+  fundScaleType = (type === 'linear' || type === 'lin') ? 'linear' : 'logarithmic';
+  var logBtn = document.getElementById('fundScaleLogBtn');
+  var linBtn = document.getElementById('fundScaleLinBtn');
+  if (logBtn) logBtn.classList.toggle('active', fundScaleType === 'logarithmic');
+  if (linBtn) linBtn.classList.toggle('active', fundScaleType === 'linear');
+  renderFundamentalsTab();
+}
+
+function toggleFundScale() {
+  setFundScaleType(fundScaleType === 'logarithmic' ? 'linear' : 'logarithmic');
+}
 
 function setFundHorizon(h) {
   fundHorizon = h;
@@ -14320,6 +14347,11 @@ function setFundTimeframe(tf) {
     var b = document.getElementById('fundTf' + t);
     if (b) b.classList.toggle('active', t === tf);
   });
+  if (fundamentalsChartInstance && typeof fundamentalsChartInstance.resetZoom === 'function') {
+    try {
+      fundamentalsChartInstance.resetZoom();
+    } catch (e) {}
+  }
   renderFundamentalsTab();
 }
 
@@ -14329,6 +14361,11 @@ function resetFundZoom() {
     var b = document.getElementById('fundTf' + t);
     if (b) b.classList.toggle('active', t === 'MAX');
   });
+  if (fundamentalsChartInstance && typeof fundamentalsChartInstance.resetZoom === 'function') {
+    try {
+      fundamentalsChartInstance.resetZoom();
+    } catch (e) {}
+  }
   renderFundamentalsTab();
 }
 
@@ -14829,6 +14866,15 @@ function renderFundamentalsTab() {
     rollingSeries.push(rollVal);
   }
 
+  // Edge case protection for Chart.js log scale:
+  // Chart.js logarithmic scale fails if values <= 0.
+  // In logarithmic mode, non-positive values are mapped to null with spanGaps: true.
+  // In linear mode, the full numeric rebasedEps (including negatives) is plotted.
+  var chartPriceData = rebasedPrice;
+  var chartEpsData = fundScaleType === 'logarithmic'
+    ? rebasedEps.map(function(v) { return (v != null && v > 0) ? v : null; })
+    : rebasedEps;
+
   // 5. Update Diagnostic HUD
   function updateHud(idx) {
     if (!hud) return;
@@ -14870,6 +14916,20 @@ function renderFundamentalsTab() {
       gapBadge;
   }
 
+  function syncFundHudAfterZoomPan(chart) {
+    if (!chart || !chart.scales || !chart.scales.x) return;
+    var xScale = chart.scales.x;
+    var maxVal = xScale.max;
+    var targetIdx = fDates.length - 1;
+    if (typeof maxVal === 'number') {
+      targetIdx = Math.min(fDates.length - 1, Math.max(0, Math.round(maxVal)));
+    } else if (typeof maxVal === 'string') {
+      var found = fDates.indexOf(maxVal);
+      if (found !== -1) targetIdx = found;
+    }
+    updateHud(targetIdx);
+  }
+
   // 6. Build Multi-Axis Chart.js
   var chkPrice = document.getElementById('chkFundPrice');
   var chkEps = document.getElementById('chkFundEps');
@@ -14879,7 +14939,7 @@ function renderFundamentalsTab() {
   var datasets = [
     {
       label: 'Price (Rebased 100)',
-      data: rebasedPrice,
+      data: chartPriceData,
       borderColor: '#f5c842',
       backgroundColor: '#f5c842',
       borderWidth: 2.5,
@@ -14888,11 +14948,12 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'y',
       order: 1,
+      spanGaps: true,
       hidden: chkPrice ? !chkPrice.checked : false
     },
     {
       label: 'Real EPS Profits (Rebased 100)',
-      data: rebasedEps,
+      data: chartEpsData,
       borderColor: '#22d3a0',
       backgroundColor: '#22d3a0',
       borderWidth: 2.5,
@@ -14901,6 +14962,7 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'y',
       order: 2,
+      spanGaps: true,
       hidden: chkEps ? !chkEps.checked : false
     },
     {
@@ -14914,6 +14976,7 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'yPe',
       order: 3,
+      spanGaps: true,
       hidden: chkPe ? !chkPe.checked : false
     },
     {
@@ -14927,6 +14990,7 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'yCagr',
       order: 4,
+      spanGaps: true,
       hidden: chkRolling ? !chkRolling.checked : false
     }
   ];
@@ -14934,6 +14998,7 @@ function renderFundamentalsTab() {
   if (fundamentalsChartInstance) {
     fundamentalsChartInstance.destroy();
     fundamentalsChartInstance = null;
+    fundChart = null;
   }
 
   fundamentalsChartInstance = new Chart(canvas.getContext('2d'), {
@@ -14943,6 +15008,10 @@ function renderFundamentalsTab() {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
+      onHover: function(evt) {
+        var isMouseDown = evt.native && evt.native.buttons === 1;
+        canvas.style.cursor = isMouseDown ? 'grabbing' : 'grab';
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -14963,13 +15032,17 @@ function renderFundamentalsTab() {
               var idx = ctx.dataIndex;
               var d = fDates[idx];
               if (ctx.datasetIndex === 0) {
-                return 'Price (Rebased): ' + (ctx.raw != null ? ctx.raw.toFixed(1) : 'N/A') + ' (₹' + (priceMap[d]||0).toLocaleString('en-IN', {maximumFractionDigits:1}) + ')';
+                var pReb = rebasedPrice[idx];
+                return 'Price (Rebased): ' + (pReb != null ? pReb.toFixed(1) : 'N/A') + ' (₹' + (priceMap[d]||0).toLocaleString('en-IN', {maximumFractionDigits:1}) + ')';
               } else if (ctx.datasetIndex === 1) {
-                return 'Real EPS (Rebased): ' + (ctx.raw != null ? ctx.raw.toFixed(1) : 'N/A') + ' (₹' + (epsMap[d] != null ? epsMap[d].toFixed(1) : 'N/A') + ')';
+                var eReb = rebasedEps[idx];
+                return 'Real EPS (Rebased): ' + (eReb != null ? eReb.toFixed(1) : 'N/A') + ' (₹' + (epsMap[d] != null ? epsMap[d].toFixed(1) : 'N/A') + ')';
               } else if (ctx.datasetIndex === 2) {
-                return 'P/E Ratio: ' + (ctx.raw != null ? ctx.raw.toFixed(1) + 'x' : 'N/A (Loss)');
+                var pe = peSeries[idx];
+                return 'P/E Ratio: ' + (pe != null ? pe.toFixed(1) + 'x' : 'N/A (Loss)');
               } else if (ctx.datasetIndex === 3) {
-                return fundHorizon + 'Y Rolling CAGR: ' + (ctx.raw != null ? (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(1) + '%' : 'N/A');
+                var r = rollingSeries[idx];
+                return fundHorizon + 'Y Rolling CAGR: ' + (r != null ? (r >= 0 ? '+' : '') + r.toFixed(1) + '%' : 'N/A');
               }
               return ctx.dataset.label + ': ' + ctx.raw;
             },
@@ -14986,6 +15059,38 @@ function renderFundamentalsTab() {
                 return ['--------------------------------', 'Valuation / Hype Gap: N/A (Net operating loss)'];
               }
               return [];
+            }
+          }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x',
+            modifierKey: null,
+            onPanStart: function({chart}) {
+              chart.canvas.style.cursor = 'grabbing';
+            },
+            onPan: function({chart}) {
+              syncFundHudAfterZoomPan(chart);
+            },
+            onPanComplete: function({chart}) {
+              chart.canvas.style.cursor = 'grab';
+              syncFundHudAfterZoomPan(chart);
+            }
+          },
+          zoom: {
+            wheel: {
+              enabled: true
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'x',
+            onZoom: function({chart}) {
+              syncFundHudAfterZoomPan(chart);
+            },
+            onZoomComplete: function({chart}) {
+              syncFundHudAfterZoomPan(chart);
             }
           }
         }
@@ -15007,19 +15112,45 @@ function renderFundamentalsTab() {
           border: { color: '#252a38' }
         },
         y: {
+          type: fundScaleType,
           display: (chkPrice ? chkPrice.checked : true) || (chkEps ? chkEps.checked : true),
           position: 'left',
-          grid: { color: '#1c2030' },
+          grid: {
+            color: function(ctx) {
+              if (ctx.tick && Math.abs(ctx.tick.value - 100) < 0.2) {
+                return 'rgba(255, 255, 255, 0.18)'; // 100 baseline accent
+              }
+              return '#1c2030';
+            }
+          },
           border: { color: '#252a38' },
           title: {
             display: true,
-            text: 'Rebased (100 = Start)',
+            text: fundScaleType === 'logarithmic' ? 'Rebased (100 = Start) • LOG' : 'Rebased (100 = Start) • LIN',
             color: '#8e98b0',
             font: { family: 'DM Mono', size: 10 }
           },
           ticks: {
             color: '#8e98b0',
-            font: { family: 'DM Mono', size: 10 }
+            font: { family: 'DM Mono', size: 10 },
+            callback: function(val) {
+              if (val == null) return '';
+              if (fundScaleType === 'logarithmic') {
+                if (val <= 0) return '';
+                if (val >= 1000) return Math.round(val).toLocaleString('en-IN');
+                if (val >= 10) return Math.round(val);
+                if (val >= 1) return val.toFixed(1);
+                return val.toFixed(2);
+              } else {
+                if (Math.abs(val) >= 1000) return Math.round(val).toLocaleString('en-IN');
+                return Number.isInteger(val) ? val : val.toFixed(1);
+              }
+            }
+          },
+          afterBuildTicks: function(scale) {
+            if (fundScaleType === 'logarithmic' && scale.ticks) {
+              scale.ticks = scale.ticks.filter(function(t) { return t.value > 0; });
+            }
           }
         },
         yPe: {
@@ -15061,10 +15192,31 @@ function renderFundamentalsTab() {
   });
 
   window.fundamentalsChartInstance = fundamentalsChartInstance;
+  window.fundChart = fundamentalsChartInstance;
+  fundChart = fundamentalsChartInstance;
   updateHud(fDates.length - 1);
 
   canvas.onmouseleave = function() {
-    updateHud(fDates.length - 1);
+    if (fundamentalsChartInstance && fundamentalsChartInstance.scales && fundamentalsChartInstance.scales.x) {
+      var maxVal = fundamentalsChartInstance.scales.x.max;
+      var targetIdx = fDates.length - 1;
+      if (typeof maxVal === 'number') {
+        targetIdx = Math.min(fDates.length - 1, Math.max(0, Math.round(maxVal)));
+      } else if (typeof maxVal === 'string') {
+        var found = fDates.indexOf(maxVal);
+        if (found !== -1) targetIdx = found;
+      }
+      updateHud(targetIdx);
+    } else {
+      updateHud(fDates.length - 1);
+    }
+  };
+
+  canvas.onmousedown = function() {
+    canvas.style.cursor = 'grabbing';
+  };
+  window.onmouseup = function() {
+    if (canvas) canvas.style.cursor = 'grab';
   };
 
   // 7. Render 3-Engine Return Decomposition Table
@@ -15151,6 +15303,8 @@ function renderFundamentalsTab() {
 window.renderFundamentalsTab = renderFundamentalsTab;
 window.setFundHorizon = setFundHorizon;
 window.setFundTimeframe = setFundTimeframe;
+window.setFundScaleType = setFundScaleType;
+window.toggleFundScale = toggleFundScale;
 window.resetFundZoom = resetFundZoom;
 window.updateFundSeriesVisibility = updateFundSeriesVisibility;
 window.switchFundAssetMode = switchFundAssetMode;
