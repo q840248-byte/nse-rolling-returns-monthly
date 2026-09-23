@@ -14688,6 +14688,43 @@ async function fetchAndSelectStock() {
   }
 }
 
+function computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, showEps, scaleType) {
+  if (scaleType !== 'logarithmic') {
+    return { suggestedMin: undefined, suggestedMax: undefined };
+  }
+  var minPos = Infinity;
+  var maxPos = -Infinity;
+
+  function scanSeries(series) {
+    if (!series || !Array.isArray(series)) return;
+    for (var i = 0; i < series.length; i++) {
+      var v = series[i];
+      if (typeof v === 'number' && !isNaN(v) && v > 0) {
+        if (v < minPos) minPos = v;
+        if (v > maxPos) maxPos = v;
+      }
+    }
+  }
+
+  if (showPrice) scanSeries(chartPriceData);
+  if (showEps) scanSeries(chartEpsData);
+
+  if (minPos === Infinity || maxPos === -Infinity) {
+    return { suggestedMin: 80, suggestedMax: 120 };
+  }
+
+  var dynMin = parseFloat(Math.max(0.1, minPos * 0.85).toFixed(4));
+  var dynMax = parseFloat((maxPos * 1.15).toFixed(4));
+  if (dynMin >= dynMax) {
+    dynMax = parseFloat((dynMin * 1.3).toFixed(4));
+  }
+  return {
+    suggestedMin: dynMin,
+    suggestedMax: dynMax
+  };
+}
+window.computeFundDynamicYBounds = computeFundDynamicYBounds;
+
 function updateFundSeriesVisibility() {
   if (!fundamentalsChartInstance) return;
   var chkPrice = document.getElementById('chkFundPrice');
@@ -14708,6 +14745,11 @@ function updateFundSeriesVisibility() {
   if (fundamentalsChartInstance.options && fundamentalsChartInstance.options.scales) {
     if (fundamentalsChartInstance.options.scales.y) {
       fundamentalsChartInstance.options.scales.y.display = (showPrice || showEps);
+      var pData = fundamentalsChartInstance.data.datasets[0] ? fundamentalsChartInstance.data.datasets[0].data : null;
+      var eData = fundamentalsChartInstance.data.datasets[1] ? fundamentalsChartInstance.data.datasets[1].data : null;
+      var bounds = computeFundDynamicYBounds(pData, eData, showPrice, showEps, fundScaleType);
+      fundamentalsChartInstance.options.scales.y.suggestedMin = bounds.suggestedMin;
+      fundamentalsChartInstance.options.scales.y.suggestedMax = bounds.suggestedMax;
     }
     if (fundamentalsChartInstance.options.scales.yPe) {
       fundamentalsChartInstance.options.scales.yPe.display = showPe;
@@ -14963,6 +15005,13 @@ function renderFundamentalsTab() {
   var chkPe = document.getElementById('chkFundPe');
   var chkRolling = document.getElementById('chkFundRolling');
 
+  var showPrice = chkPrice ? chkPrice.checked : true;
+  var showEps = chkEps ? chkEps.checked : true;
+  var showPe = chkPe ? chkPe.checked : true;
+  var showRolling = chkRolling ? chkRolling.checked : true;
+
+  var yBounds = computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, showEps, fundScaleType);
+
   var datasets = [
     {
       label: 'Price (Rebased 100)',
@@ -14976,7 +15025,7 @@ function renderFundamentalsTab() {
       yAxisID: 'y',
       order: 1,
       spanGaps: true,
-      hidden: chkPrice ? !chkPrice.checked : false
+      hidden: !showPrice
     },
     {
       label: 'Real EPS Profits (Rebased 100)',
@@ -14990,7 +15039,7 @@ function renderFundamentalsTab() {
       yAxisID: 'y',
       order: 2,
       spanGaps: true,
-      hidden: chkEps ? !chkEps.checked : false
+      hidden: !showEps
     },
     {
       label: 'P/E Ratio',
@@ -15004,7 +15053,7 @@ function renderFundamentalsTab() {
       yAxisID: 'yPe',
       order: 3,
       spanGaps: true,
-      hidden: chkPe ? !chkPe.checked : false
+      hidden: !showPe
     },
     {
       label: fundHorizon + 'Y Rolling CAGR %',
@@ -15018,7 +15067,7 @@ function renderFundamentalsTab() {
       yAxisID: 'yCagr',
       order: 4,
       spanGaps: true,
-      hidden: chkRolling ? !chkRolling.checked : false
+      hidden: !showRolling
     }
   ];
 
@@ -15113,10 +15162,10 @@ function renderFundamentalsTab() {
         },
         y: {
           type: fundScaleType,
-          display: (chkPrice ? chkPrice.checked : true) || (chkEps ? chkEps.checked : true),
+          display: showPrice || showEps,
           position: 'left',
-          suggestedMin: fundScaleType === 'logarithmic' ? 1 : undefined,
-          suggestedMax: fundScaleType === 'logarithmic' ? 100 : undefined,
+          suggestedMin: yBounds.suggestedMin,
+          suggestedMax: yBounds.suggestedMax,
           grid: {
             color: function(ctx) {
               if (ctx.tick && Math.abs(ctx.tick.value - 100) < 0.2) {

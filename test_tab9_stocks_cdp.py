@@ -178,6 +178,13 @@ async def run_tests():
             print(f"✓ Latest 5Y Rolling CAGR: {cagr_latest}%")
             assert cagr_latest is not None, "Rolling CAGR should not be null"
 
+            # Check dynamic Y-scale bounds on RELIANCE (anchored at 80, no dead space 1-80)
+            rel_y_min = await eval_js("window.fundamentalsChartInstance.scales.y.min")
+            rel_y_max = await eval_js("window.fundamentalsChartInstance.scales.y.max")
+            print(f"✓ RELIANCE dynamic Y-axis bounds: min={rel_y_min}, max={rel_y_max}")
+            assert rel_y_min == 80, f"Expected RELIANCE scale min=80, got {rel_y_min}"
+            assert rel_y_max >= 1000, f"Expected RELIANCE scale max >= 1000, got {rel_y_max}"
+
             # Diagnostic HUD
             hud_text = await eval_js("document.getElementById('fundHoverHud').innerText")
             print("✓ Diagnostic HUD:", hud_text)
@@ -220,6 +227,16 @@ async def run_tests():
             hud_text_tm = await eval_js("document.getElementById('fundHoverHud').innerText")
             print("✓ TATA MOTORS HUD:", hud_text_tm)
             assert "[TATAMOTORS]" in hud_text_tm, "HUD failed to update to [TATAMOTORS]"
+            tm_y_min = await eval_js("window.fundamentalsChartInstance.scales.y.min")
+            print(f"✓ TATA MOTORS dynamic Y-scale min: {tm_y_min}")
+            assert tm_y_min == 1, f"Expected TATAMOTORS min=1 to accommodate EPS drop to 1.51, got {tm_y_min}"
+
+            # Switch to HDFCBANK
+            await eval_js("selectStockChip('HDFCBANK')")
+            await asyncio.sleep(0.3)
+            hdfc_y_min = await eval_js("window.fundamentalsChartInstance.scales.y.min")
+            print(f"✓ HDFCBANK dynamic Y-scale min: {hdfc_y_min}")
+            assert hdfc_y_min == 80, f"Expected HDFCBANK min=80, got {hdfc_y_min}"
 
             # Switch to STATE BANK
             await eval_js("selectStockChip('SBIN', 'STATE BANK')")
@@ -299,6 +316,10 @@ async def run_tests():
             print("✓ Indices HUD:", hud_idx)
             assert "[RELIANCE]" not in hud_idx, "HUD should no longer have stock tag"
             assert "Price:" in hud_idx and "Real EPS:" in hud_idx, "Indices HUD rendered correctly"
+
+            nifty_y_min = await eval_js("window.fundamentalsChartInstance.scales.y.min")
+            print(f"✓ Indices Nifty 50 dynamic Y-scale min: {nifty_y_min}")
+            assert nifty_y_min == 50, f"Expected Nifty 50 min=50, got {nifty_y_min}"
 
             print("\n=======================================================")
             print("TEST 8: CONSOLE ERRORS AUDIT")

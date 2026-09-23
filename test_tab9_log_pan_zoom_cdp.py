@@ -115,6 +115,14 @@ async def run_tests():
             print(f"✓ Primary Y-axis scale type: '{y_scale}'")
             assert y_scale == "logarithmic", f"Expected 'logarithmic', got '{y_scale}'"
 
+            # Verify Dynamic Logarithmic Anchoring on Nifty 50 (dead space below 50 eliminated)
+            nifty_y_min = await eval_js("window.fundChart.scales.y.min")
+            nifty_y_max = await eval_js("window.fundChart.scales.y.max")
+            nifty_sug_min = await eval_js("window.fundChart.options.scales.y.suggestedMin")
+            print(f"✓ Nifty 50 dynamic Y-axis bounds: min={nifty_y_min}, max={nifty_y_max}, suggestedMin={nifty_sug_min}")
+            assert nifty_y_min == 50, f"Expected Nifty 50 scale min=50, got {nifty_y_min}"
+            assert nifty_y_min > 1, f"Nifty 50 scale must not anchor at hardcoded 1 (got {nifty_y_min})"
+
             # Verify Tooltip is strictly disabled
             tooltip_enabled = await eval_js("window.fundChart.options.plugins.tooltip.enabled")
             print(f"✓ Tooltip enabled: {tooltip_enabled}")
@@ -133,22 +141,26 @@ async def run_tests():
             await asyncio.sleep(0.2)
             cur_scale = await eval_js("fundScaleType")
             y_scale = await eval_js("window.fundChart.options.scales.y.type")
+            lin_sug_min = await eval_js("window.fundChart.options.scales.y.suggestedMin")
             log_active = await eval_js("document.getElementById('fundScaleLogBtn').classList.contains('active')")
             lin_active = await eval_js("document.getElementById('fundScaleLinBtn').classList.contains('active')")
             assert cur_scale == "linear" and y_scale == "linear", "Failed to switch to linear scale"
             assert lin_active and not log_active, "Lin button should be active"
-            print(f"✓ Linear mode: fundScaleType={cur_scale}, y.type={y_scale}, Log active={log_active}, Lin active={lin_active}")
+            assert lin_sug_min is None, f"Expected undefined suggestedMin in linear mode, got {lin_sug_min}"
+            print(f"✓ Linear mode: fundScaleType={cur_scale}, y.type={y_scale}, Log active={log_active}, Lin active={lin_active}, suggestedMin={lin_sug_min}")
 
             # Switch back to log
             await eval_js("setFundScaleType('logarithmic')")
             await asyncio.sleep(0.2)
             cur_scale = await eval_js("fundScaleType")
             y_scale = await eval_js("window.fundChart.options.scales.y.type")
+            log_sug_min = await eval_js("window.fundChart.options.scales.y.suggestedMin")
             log_active = await eval_js("document.getElementById('fundScaleLogBtn').classList.contains('active')")
             lin_active = await eval_js("document.getElementById('fundScaleLinBtn').classList.contains('active')")
             assert cur_scale == "logarithmic" and y_scale == "logarithmic", "Failed to switch back to log scale"
             assert log_active and not lin_active, "Log button should be active"
-            print(f"✓ Log mode: fundScaleType={cur_scale}, y.type={y_scale}, Log active={log_active}, Lin active={lin_active}")
+            assert log_sug_min is not None and log_sug_min > 1, f"Expected dynamic suggestedMin > 1, got {log_sug_min}"
+            print(f"✓ Log mode: fundScaleType={cur_scale}, y.type={y_scale}, Log active={log_active}, Lin active={lin_active}, suggestedMin={log_sug_min}")
 
             # Test toggleFundScale()
             await eval_js("toggleFundScale()")
@@ -264,6 +276,55 @@ async def run_tests():
                 document.getElementById('chkFundPrice').checked = true;
                 updateFundSeriesVisibility();
             """)
+
+            # Verify Dynamic Scale Anchoring on Key Stocks (RELIANCE, HDFCBANK, TATAMOTORS)
+            print("\n--- Testing Dynamic Logarithmic Anchoring on Key Stocks ---")
+            await eval_js("selectStockChip('RELIANCE')")
+            await asyncio.sleep(0.3)
+            rel_min = await eval_js("window.fundChart.scales.y.min")
+            print(f"✓ RELIANCE dynamic Y-scale min: {rel_min}")
+            assert rel_min == 80, f"Expected RELIANCE min=80, got {rel_min}"
+
+            await eval_js("selectStockChip('HDFCBANK')")
+            await asyncio.sleep(0.3)
+            hdfc_min = await eval_js("window.fundChart.scales.y.min")
+            print(f"✓ HDFCBANK dynamic Y-scale min: {hdfc_min}")
+            assert hdfc_min == 80, f"Expected HDFCBANK min=80, got {hdfc_min}"
+
+            await eval_js("selectStockChip('TATAMOTORS')")
+            await asyncio.sleep(0.3)
+            tm_min = await eval_js("window.fundChart.scales.y.min")
+            print(f"✓ TATAMOTORS dynamic Y-scale min (both series): {tm_min}")
+            assert tm_min == 1, f"Expected TATAMOTORS min=1, got {tm_min}"
+
+            # Toggle EPS off on TATAMOTORS: dynamic bounds should adjust to Price-only (min=30)
+            await eval_js("""
+                document.getElementById('chkFundEps').checked = false;
+                updateFundSeriesVisibility();
+            """)
+            await asyncio.sleep(0.2)
+            tm_price_only_min = await eval_js("window.fundChart.scales.y.min")
+            print(f"✓ TATAMOTORS Price-only dynamic Y-scale min: {tm_price_only_min}")
+            assert tm_price_only_min == 30, f"Expected TATAMOTORS Price-only min=30, got {tm_price_only_min}"
+
+            # Restore EPS checkbox
+            await eval_js("""
+                document.getElementById('chkFundEps').checked = true;
+                updateFundSeriesVisibility();
+            """)
+            await asyncio.sleep(0.2)
+
+            # Direct Unit Tests on computeFundDynamicYBounds
+            print("\n--- Unit Testing computeFundDynamicYBounds Edge Cases ---")
+            edge_null = await eval_js("window.computeFundDynamicYBounds([null, null], [null], true, true, 'logarithmic')")
+            assert edge_null == {'suggestedMin': 80, 'suggestedMax': 120}, f"Failed on all-null: {edge_null}"
+            edge_empty = await eval_js("window.computeFundDynamicYBounds([], [], true, true, 'logarithmic')")
+            assert edge_empty == {'suggestedMin': 80, 'suggestedMax': 120}, f"Failed on empty: {edge_empty}"
+            edge_single = await eval_js("window.computeFundDynamicYBounds([100], [], true, false, 'logarithmic')")
+            assert edge_single == {'suggestedMin': 85, 'suggestedMax': 115}, f"Failed on single point: {edge_single}"
+            edge_neg = await eval_js("window.computeFundDynamicYBounds([-10, -5], [0], true, true, 'logarithmic')")
+            assert edge_neg == {'suggestedMin': 80, 'suggestedMax': 120}, f"Failed on all-negative: {edge_neg}"
+            print("✓ computeFundDynamicYBounds edge cases (all-null, empty, single point, negative) verified!")
 
             print("\n=======================================================")
             print("TEST 4: MOVABLE / PAN & ZOOM LIKE TRADINGVIEW")
