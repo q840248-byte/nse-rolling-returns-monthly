@@ -324,7 +324,14 @@ async def run_tests():
             assert edge_single == {'suggestedMin': 85, 'suggestedMax': 115}, f"Failed on single point: {edge_single}"
             edge_neg = await eval_js("window.computeFundDynamicYBounds([-10, -5], [0], true, true, 'logarithmic')")
             assert edge_neg == {'suggestedMin': 80, 'suggestedMax': 120}, f"Failed on all-negative: {edge_neg}"
-            print("✓ computeFundDynamicYBounds edge cases (all-null, empty, single point, negative) verified!")
+            edge_sub_tenth = await eval_js("window.computeFundDynamicYBounds([0.05], [], true, false, 'logarithmic')")
+            assert edge_sub_tenth['suggestedMin'] < 0.05, f"Expected suggestedMin < 0.05, got {edge_sub_tenth['suggestedMin']}"
+            assert edge_sub_tenth['suggestedMin'] == 0.0425, f"Expected 0.0425, got {edge_sub_tenth['suggestedMin']}"
+            edge_obj = await eval_js("window.computeFundDynamicYBounds([{y: 100}], [{y: 200}], true, true, 'logarithmic')")
+            assert edge_obj == {'suggestedMin': 85, 'suggestedMax': 230}, f"Failed on object points: {edge_obj}"
+            edge_inf = await eval_js("window.computeFundDynamicYBounds([Infinity, 100], [], true, false, 'logarithmic')")
+            assert edge_inf == {'suggestedMin': 85, 'suggestedMax': 115}, f"Failed on Infinity handling: {edge_inf}"
+            print("✓ computeFundDynamicYBounds edge cases (all-null, empty, single point, negative, sub-0.1, objects, infinity) verified!")
 
             print("\n=======================================================")
             print("TEST 4: MOVABLE / PAN & ZOOM LIKE TRADINGVIEW")

@@ -14699,9 +14699,10 @@ function computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, show
     if (!series || !Array.isArray(series)) return;
     for (var i = 0; i < series.length; i++) {
       var v = series[i];
-      if (typeof v === 'number' && !isNaN(v) && v > 0) {
-        if (v < minPos) minPos = v;
-        if (v > maxPos) maxPos = v;
+      var num = typeof v === 'number' ? v : (v && typeof v.y === 'number' ? v.y : null);
+      if (typeof num === 'number' && !isNaN(num) && isFinite(num) && num > 0) {
+        if (num < minPos) minPos = num;
+        if (num > maxPos) maxPos = num;
       }
     }
   }
@@ -14713,7 +14714,10 @@ function computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, show
     return { suggestedMin: 80, suggestedMax: 120 };
   }
 
-  var dynMin = parseFloat(Math.max(0.1, minPos * 0.85).toFixed(4));
+  var rawMin = minPos * 0.85;
+  var dynMin = minPos >= 0.1
+    ? parseFloat(Math.max(0.1, rawMin).toFixed(4))
+    : parseFloat(Math.max(0.0001, rawMin).toFixed(4));
   var dynMax = parseFloat((maxPos * 1.15).toFixed(4));
   if (dynMin >= dynMax) {
     dynMax = parseFloat((dynMin * 1.3).toFixed(4));
@@ -15191,7 +15195,8 @@ function renderFundamentalsTab() {
                 if (val >= 1000) return Math.round(val).toLocaleString('en-IN');
                 if (val >= 10) return Math.round(val);
                 if (val >= 1) return val.toFixed(1);
-                return val.toFixed(2);
+                if (val >= 0.01) return val.toFixed(2);
+                return val.toPrecision(2);
               } else {
                 if (Math.abs(val) >= 1000) return Math.round(val).toLocaleString('en-IN');
                 return Number.isInteger(val) ? val : val.toFixed(1);
