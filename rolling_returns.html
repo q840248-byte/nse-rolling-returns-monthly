@@ -15035,58 +15035,23 @@ function renderFundamentalsTab() {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      onHover: function(evt) {
+      onHover: function(evt, activeElements) {
         var isMouseDown = evt.native && evt.native.buttons === 1;
         canvas.style.cursor = isMouseDown ? 'grabbing' : 'grab';
+        if (!isMouseDown && activeElements && activeElements.length > 0) {
+          var idx = activeElements[0].index;
+          if (idx !== undefined && idx !== null) {
+            updateHud(idx);
+          }
+        }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          enabled: true,
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            title: function(items) {
-              return items && items.length ? '📅 ' + items[0].label : '';
-            },
-            afterTitle: function(items) {
-              if (!items || !items.length) return '';
-              var idx = items[0].dataIndex;
-              updateHud(idx);
-              return '';
-            },
-            label: function(ctx) {
-              var idx = ctx.dataIndex;
-              var d = fDates[idx];
-              if (ctx.datasetIndex === 0) {
-                var pReb = rebasedPrice[idx];
-                return 'Price (Rebased): ' + (pReb != null ? pReb.toFixed(1) : 'N/A') + ' (₹' + (priceMap[d]||0).toLocaleString('en-IN', {maximumFractionDigits:1}) + ')';
-              } else if (ctx.datasetIndex === 1) {
-                var eReb = rebasedEps[idx];
-                return 'Real EPS (Rebased): ' + (eReb != null ? eReb.toFixed(1) : 'N/A') + ' (₹' + (epsMap[d] != null ? epsMap[d].toFixed(1) : 'N/A') + ')';
-              } else if (ctx.datasetIndex === 2) {
-                var pe = peSeries[idx];
-                return 'P/E Ratio: ' + (pe != null ? pe.toFixed(1) + 'x' : 'N/A (Loss)');
-              } else if (ctx.datasetIndex === 3) {
-                var r = rollingSeries[idx];
-                return fundHorizon + 'Y Rolling CAGR: ' + (r != null ? (r >= 0 ? '+' : '') + r.toFixed(1) + '%' : 'N/A');
-              }
-              return ctx.dataset.label + ': ' + ctx.raw;
-            },
-            afterBody: function(items) {
-              if (!items || !items.length) return '';
-              var idx = items[0].dataIndex;
-              var pReb = rebasedPrice[idx];
-              var eReb = rebasedEps[idx];
-              if (eReb != null && eReb > 0 && pReb != null) {
-                var gap = ((pReb / eReb) - 1) * 100;
-                var gapTxt = (gap >= 0 ? '+' : '') + gap.toFixed(1) + '%';
-                return ['--------------------------------', 'Valuation / Hype Gap: ' + gapTxt + (gap > 0 ? ' (Price ahead of earnings)' : ' (Earnings ahead of price)')];
-              } else if (eReb != null && eReb <= 0) {
-                return ['--------------------------------', 'Valuation / Hype Gap: N/A (Net operating loss)'];
-              }
-              return [];
-            }
+          enabled: false,
+          external: function(ctx) {
+            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            updateHud(ctx.tooltip.dataPoints[0].dataIndex);
           }
         },
         zoom: {

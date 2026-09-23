@@ -115,6 +115,11 @@ async def run_tests():
             print(f"✓ Primary Y-axis scale type: '{y_scale}'")
             assert y_scale == "logarithmic", f"Expected 'logarithmic', got '{y_scale}'"
 
+            # Verify Tooltip is strictly disabled
+            tooltip_enabled = await eval_js("window.fundChart.options.plugins.tooltip.enabled")
+            print(f"✓ Tooltip enabled: {tooltip_enabled}")
+            assert tooltip_enabled is False, f"Expected tooltip.enabled to be False, got {tooltip_enabled}"
+
             # Verify TradingView cursor style
             canvas_cursor = await eval_js("document.getElementById('fundamentalsChart').style.cursor")
             print(f"✓ Canvas cursor style: '{canvas_cursor}'")
@@ -151,6 +156,37 @@ async def run_tests():
             await eval_js("toggleFundScale()")
             assert await eval_js("fundScaleType") == "logarithmic", "toggleFundScale back to log failed"
             print("✓ toggleFundScale() works smoothly back and forth")
+
+            print("\n=======================================================")
+            print("TEST 2B: FLOATING TOOLTIP DISABLED & FIXED HUD ACTIVE")
+            print("=======================================================")
+            t_enabled = await eval_js("window.fundChart.options.plugins.tooltip.enabled")
+            assert t_enabled is False, f"Expected tooltip.enabled to be False, got {t_enabled}"
+            print("✓ window.fundChart.options.plugins.tooltip.enabled is False")
+
+            # Dispatch mousemove over canvas
+            await eval_js("document.getElementById('fundamentalsChart').scrollIntoView({block: 'center'})")
+            await asyncio.sleep(0.1)
+            c_pos = await eval_js("""
+                (function() {
+                    var r = document.getElementById('fundamentalsChart').getBoundingClientRect();
+                    return { x: r.left + r.width * 0.4, y: r.top + r.height * 0.5 };
+                })()
+            """)
+            msg_id += 1
+            await ws.send(json.dumps({"id": msg_id, "method": "Input.dispatchMouseEvent", "params": {"type": "mouseMoved", "x": c_pos['x'], "y": c_pos['y']}}))
+            await asyncio.sleep(0.15)
+
+            # Verify Chart.js internal tooltip has enabled: false (not drawn to canvas)
+            t_chart_enabled = await eval_js("(window.fundChart.tooltip && window.fundChart.tooltip.options ? window.fundChart.tooltip.options.enabled : false)")
+            print(f"✓ Chart.js internal tooltip options.enabled: {t_chart_enabled}")
+            assert t_chart_enabled is False, f"Expected tooltip options.enabled to be False, got {t_chart_enabled}"
+
+            # Verify HUD is populated and active
+            hud_text = await eval_js("document.getElementById('fundHoverHud').innerText")
+            print(f"✓ Fixed diagnostic HUD text: {hud_text}")
+            assert len(hud_text) > 15, "HUD should have updated with date and fundamental metrics"
+            assert "Price:" in hud_text and "Real EPS:" in hud_text, "HUD missing fundamental metrics"
 
             print("\n=======================================================")
             print("TEST 3: NEGATIVE EPS STOCKS ON LOG SCALE (TATA MOTORS & OTHERS)")
@@ -207,7 +243,7 @@ async def run_tests():
                 })()
             """)
             if neg_idx != -1:
-                await eval_js(f"window.fundChart.options.plugins.tooltip.callbacks.afterTitle([{{dataIndex: {neg_idx}}}])")
+                await eval_js(f"window.fundChart.options.plugins.tooltip.external({{tooltip: {{dataPoints: [{{dataIndex: {neg_idx}}}]}}}})")
                 hud_content = await eval_js("document.getElementById('fundHoverHud').innerHTML")
                 print("✓ Tata Motors 2019-07 Loss HUD:", hud_content[:150], "...")
                 assert "Net Losses" in hud_content or "Loss" in hud_content, "Expected loss warning badge in HUD"
