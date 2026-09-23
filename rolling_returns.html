@@ -3186,11 +3186,11 @@
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🔬</span> Fundamentals: Real EPS Profits vs Price Hype
+              <span>🔬</span> Fundamentals: Intrinsic Value vs Market Price
               <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">3-ENGINE DECOMPOSITION</span>
             </div>
             <div class="chart-subtitle">
-              Decoupling corporate earnings power from speculative P/E multiple expansion • Graham &amp; Dodd Weighing Machine
+              Intrinsic Value = EPS × Long-Term Median P/E • P/E percentile heatmap shows cheap/expensive zones • Graham &amp; Dodd Weighing Machine
             </div>
           </div>
           <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -3231,7 +3231,7 @@
               <button class="tv-tool-btn active" id="fundTfMAX" onclick="setFundTimeframe('MAX')">MAX</button>
             </div>
             <!-- Scale Toggle: Log / Linear -->
-            <div class="tv-btn-group" title="Scale for Rebased Price &amp; Real EPS">
+            <div class="tv-btn-group" title="Scale for Price &amp; Intrinsic Value">
               <button type="button" class="tv-tool-btn active" id="fundScaleLogBtn" onclick="setFundScaleType('logarithmic')" title="Logarithmic Scale (compounding trajectory)">LOG</button>
               <button type="button" class="tv-tool-btn" id="fundScaleLinBtn" onclick="setFundScaleType('linear')" title="Linear Scale">LIN</button>
             </div>
@@ -3265,7 +3265,7 @@
             </label>
             <label class="fund-checkbox-label" style="color:#22d3a0;">
               <input type="checkbox" id="chkFundEps" checked onchange="updateFundSeriesVisibility()">
-              <span>Real EPS Profits (Rebased 100)</span>
+              <span>Intrinsic Value (EPS × Median P/E)</span>
             </label>
             <label class="fund-checkbox-label" style="color:#a855f7;">
               <input type="checkbox" id="chkFundPe" checked onchange="updateFundSeriesVisibility()">
@@ -3274,6 +3274,10 @@
             <label class="fund-checkbox-label" style="color:#38bdf8;">
               <input type="checkbox" id="chkFundRolling" checked onchange="updateFundSeriesVisibility()">
               <span id="chkFundRollingLabel">5Y Rolling CAGR %</span>
+            </label>
+            <label class="fund-checkbox-label" style="color:rgba(255,255,255,0.5);">
+              <input type="checkbox" id="chkFundHeatmap" checked onchange="updateFundSeriesVisibility()">
+              <span>P/E Percentile Heatmap</span>
             </label>
           </div>
         </div>
@@ -3314,7 +3318,7 @@
           </div>
           <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);line-height:1.6;">
             <strong style="color:#06b6d4;display:inline-flex;align-items:center;gap:4px;">💡 Institutional Takeaway:</strong>
-            When <strong>Real EPS CAGR &gt; Price CAGR</strong>, corporate earnings grew faster than the index price (P/E multiple compressed), making current market valuation safer and backed by tangible profits. When <strong>Price CAGR &gt;&gt; EPS CAGR</strong>, returns were driven primarily by speculative P/E multiple expansion (hype), increasing downside fragility.
+            When <strong>Real EPS CAGR &gt; Price CAGR</strong>, corporate earnings grew faster than the index price (P/E multiple compressed) — the price is converging toward intrinsic value. When <strong>Price CAGR &gt;&gt; EPS CAGR</strong>, returns were driven primarily by speculative P/E multiple expansion, and price has moved away from intrinsic value (increasing downside fragility). The <strong>P/E Percentile Heatmap</strong> shows whether the market is historically cheap (🟢 bottom 25th percentile) or expensive (🔴 top 25th percentile) at any point.
           </div>
         </div>
 
@@ -14729,17 +14733,21 @@ function computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, show
 }
 window.computeFundDynamicYBounds = computeFundDynamicYBounds;
 
+var fundShowHeatmap = true; // Module-level state for heatmap plugin to read
+
 function updateFundSeriesVisibility() {
   if (!fundamentalsChartInstance) return;
   var chkPrice = document.getElementById('chkFundPrice');
   var chkEps = document.getElementById('chkFundEps');
   var chkPe = document.getElementById('chkFundPe');
   var chkRolling = document.getElementById('chkFundRolling');
+  var chkHeatmap = document.getElementById('chkFundHeatmap');
 
   var showPrice = chkPrice ? chkPrice.checked : true;
   var showEps = chkEps ? chkEps.checked : true;
   var showPe = chkPe ? chkPe.checked : true;
   var showRolling = chkRolling ? chkRolling.checked : true;
+  fundShowHeatmap = chkHeatmap ? chkHeatmap.checked : true;
 
   fundamentalsChartInstance.setDatasetVisibility(0, showPrice);
   fundamentalsChartInstance.setDatasetVisibility(1, showEps);
@@ -14905,36 +14913,83 @@ function renderFundamentalsTab() {
 
   if (fDates.length === 0) fDates = commonDates;
 
-  // 4. Rebase Price and EPS to 100 at the earliest date in displayed timeframe
-  var baseDate = fDates[0];
-  var basePrice = (priceMap[baseDate] && priceMap[baseDate] > 0) ? priceMap[baseDate] : 1;
-  
-  // For EPS, find the earliest date in displayed window with positive EPS for a clean 100 baseline
-  var baseEps = 1;
-  for (var bi = 0; bi < fDates.length; bi++) {
-    var bVal = epsMap[fDates[bi]];
-    if (bVal && bVal > 0) {
-      baseEps = bVal;
-      break;
+  // 4. Compute Intrinsic Value = EPS × Median P/E  (Solution 2)
+  //    and P/E Percentile for Heatmap Bands          (Solution 3)
+
+  // 4a. Compute long-term median P/E from ALL commonDates (not just displayed window)
+  var allPeValues = [];
+  for (var ai = 0; ai < commonDates.length; ai++) {
+    var peV = (peData.values && peData.values[commonDates[ai]] != null) ? peData.values[commonDates[ai]] : null;
+    if (peV != null && peV > 0 && isFinite(peV)) allPeValues.push(peV);
+  }
+  allPeValues.sort(function(a, b) { return a - b; });
+  var medianPe = 20; // fallback
+  if (allPeValues.length > 0) {
+    var mid = Math.floor(allPeValues.length / 2);
+    medianPe = (allPeValues.length % 2 === 0) ? ((allPeValues[mid - 1] + allPeValues[mid]) / 2) : allPeValues[mid];
+  }
+
+  // 4b. Compute Intrinsic Value = EPS(t) × Median P/E for each date
+  var intrinsicValueMap = {};
+  for (var iv = 0; iv < commonDates.length; iv++) {
+    var ivDate = commonDates[iv];
+    var ivEps = epsMap[ivDate];
+    if (ivEps != null && ivEps > 0) {
+      intrinsicValueMap[ivDate] = ivEps * medianPe;
+    } else {
+      intrinsicValueMap[ivDate] = null;
     }
   }
 
+  // 4c. P/E Percentile computation (Solution 3)
+  //     For each date, compute: what percentile is the current P/E within all history up to that date
+  var pePercentileMap = {};
+  var peHistorySoFar = [];
+  for (var pi = 0; pi < commonDates.length; pi++) {
+    var pDate = commonDates[pi];
+    var curPe = (peData.values && peData.values[pDate] != null) ? peData.values[pDate] : null;
+    if (curPe != null && curPe > 0 && isFinite(curPe)) {
+      peHistorySoFar.push(curPe);
+      // Count how many historical P/E values are <= current
+      var countBelow = 0;
+      for (var ph = 0; ph < peHistorySoFar.length; ph++) {
+        if (peHistorySoFar[ph] <= curPe) countBelow++;
+      }
+      pePercentileMap[pDate] = (countBelow / peHistorySoFar.length) * 100;
+    } else {
+      pePercentileMap[pDate] = null;
+    }
+  }
+
+  // 4d. Rebase: Price rebased to 100 at start. Intrinsic Value scaled proportionally.
+  //     The key insight: we DON'T rebase IV to 100. We scale it relative to Price
+  //     so the gap between them reveals over/under valuation at any point.
+  var baseDate = fDates[0];
+  var basePrice = (priceMap[baseDate] && priceMap[baseDate] > 0) ? priceMap[baseDate] : 1;
+
   var rebasedPrice = [];
-  var rebasedEps = [];
+  var rebasedIntrinsicValue = [];
   var peSeries = [];
   var rollingSeries = [];
+  var pePercentileSeries = [];
 
   for (var fi = 0; fi < fDates.length; fi++) {
     var fd = fDates[fi];
     var pReb = priceMap[fd] != null ? parseFloat(((priceMap[fd] / basePrice) * 100).toFixed(2)) : null;
-    var eReb = (epsMap[fd] != null && baseEps > 0) ? parseFloat(((epsMap[fd] / baseEps) * 100).toFixed(2)) : null;
+
+    // Intrinsic Value: scale by same basePrice factor so Price and IV are directly comparable
+    var ivRaw = intrinsicValueMap[fd];
+    var ivReb = (ivRaw != null && basePrice > 0) ? parseFloat(((ivRaw / basePrice) * 100).toFixed(2)) : null;
+
     var peVal = (peData.values && peData.values[fd] != null) ? parseFloat(peData.values[fd].toFixed(2)) : null;
     var rollVal = rollingCagrMap[fd];
+    var pePctVal = pePercentileMap[fd] != null ? parseFloat(pePercentileMap[fd].toFixed(1)) : null;
 
     rebasedPrice.push(pReb);
-    rebasedEps.push(eReb);
+    rebasedIntrinsicValue.push(ivReb);
     peSeries.push(peVal);
     rollingSeries.push(rollVal);
+    pePercentileSeries.push(pePctVal);
   }
 
   // Edge case protection for Chart.js log scale:
@@ -14944,9 +14999,9 @@ function renderFundamentalsTab() {
   var chartPriceData = fundScaleType === 'logarithmic'
     ? rebasedPrice.map(function(v) { return (v != null && v > 0) ? v : null; })
     : rebasedPrice;
-  var chartEpsData = fundScaleType === 'logarithmic'
-    ? rebasedEps.map(function(v) { return (v != null && v > 0) ? v : null; })
-    : rebasedEps;
+  var chartIVData = fundScaleType === 'logarithmic'
+    ? rebasedIntrinsicValue.map(function(v) { return (v != null && v > 0) ? v : null; })
+    : rebasedIntrinsicValue;
 
   // 5. Update Diagnostic HUD
   function updateHud(idx) {
@@ -14955,26 +15010,39 @@ function renderFundamentalsTab() {
     if (!d) return;
 
     var pRebVal = rebasedPrice[idx];
-    var eRebVal = rebasedEps[idx];
+    var ivRebVal = rebasedIntrinsicValue[idx];
     var peVal = peSeries[idx];
     var rollVal = rollingSeries[idx];
+    var pePctVal = pePercentileSeries[idx];
     var actualP = priceMap[d] || 0;
     var actualE = epsMap[d] || 0;
 
-    // Valuation / Hype Gap = (Price Rebased / EPS Rebased - 1) * 100
-    var valGap = (eRebVal != null && eRebVal > 0 && pRebVal != null) ? (((pRebVal / eRebVal) - 1) * 100) : null;
+    // Valuation Gap = (Price / Intrinsic Value - 1) * 100
+    var valGap = (ivRebVal != null && ivRebVal > 0 && pRebVal != null) ? (((pRebVal / ivRebVal) - 1) * 100) : null;
     var gapSign = (valGap != null && valGap >= 0) ? '+' : '';
     var gapBadge = '';
-    if (eRebVal != null && eRebVal <= 0) {
+    if (ivRebVal != null && ivRebVal <= 0) {
       gapBadge = '<span style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">⚠️ Net Losses (Valuation Undefined)</span>';
     } else if (valGap == null) {
       gapBadge = '<span style="color:var(--muted);">—</span>';
     } else if (valGap > 25) {
-      gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">🎈 High Valuation Froth (' + gapSign + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">🎈 Overvalued vs Intrinsic (' + gapSign + valGap.toFixed(1) + '%)</span>';
     } else if (valGap < -15) {
-      gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">💎 Deep Earnings Bargain (' + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">💎 Undervalued vs Intrinsic (' + valGap.toFixed(1) + '%)</span>';
     } else {
-      gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:2px 8px;border-radius:4px;font-weight:600;">⚖️ Fundamentals Aligned (' + gapSign + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:2px 8px;border-radius:4px;font-weight:600;">⚖️ Near Fair Value (' + gapSign + valGap.toFixed(1) + '%)</span>';
+    }
+
+    // P/E Percentile zone badge
+    var pePctBadge = '';
+    if (pePctVal != null) {
+      if (pePctVal <= 25) {
+        pePctBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:2px 6px;border-radius:4px;font-size:0.68rem;">🟢 P' + pePctVal.toFixed(0) + '</span>';
+      } else if (pePctVal >= 75) {
+        pePctBadge = '<span style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25);padding:2px 6px;border-radius:4px;font-size:0.68rem;">🔴 P' + pePctVal.toFixed(0) + '</span>';
+      } else {
+        pePctBadge = '<span style="background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.68rem;">⚪ P' + pePctVal.toFixed(0) + '</span>';
+      }
     }
 
     var assetTag = (fundAssetMode === 'stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;">[' + chosenKey + ']</span> ' : '';
@@ -14983,8 +15051,8 @@ function renderFundamentalsTab() {
       assetTag +
       '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
       '<span>Price: <strong style="color:#f5c842;">' + (pRebVal != null ? pRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
-      '<span>Real EPS: <strong style="color:#22d3a0;">' + (eRebVal != null ? eRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + (actualE != null ? actualE.toFixed(1) : '—') + ')</small></span>' +
-      '<span>P/E: <strong style="color:#a855f7;">' + (peVal != null ? peVal.toFixed(1) + 'x' : 'N/A (Loss)') + '</strong></span>' +
+      '<span>Intrinsic: <strong style="color:#22d3a0;">' + (ivRebVal != null ? ivRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(Med P/E: ' + medianPe.toFixed(1) + 'x)</small></span>' +
+      '<span>P/E: <strong style="color:#a855f7;">' + (peVal != null ? peVal.toFixed(1) + 'x' : 'N/A (Loss)') + '</strong> ' + pePctBadge + '</span>' +
       '<span>' + fundHorizon + 'Y Rolling: <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
       gapBadge;
   }
@@ -15014,7 +15082,10 @@ function renderFundamentalsTab() {
   var showPe = chkPe ? chkPe.checked : true;
   var showRolling = chkRolling ? chkRolling.checked : true;
 
-  var yBounds = computeFundDynamicYBounds(chartPriceData, chartEpsData, showPrice, showEps, fundScaleType);
+  var yBounds = computeFundDynamicYBounds(chartPriceData, chartIVData, showPrice, showEps, fundScaleType);
+
+  var chkHeatmap = document.getElementById('chkFundHeatmap');
+  fundShowHeatmap = chkHeatmap ? chkHeatmap.checked : true;
 
   var datasets = [
     {
@@ -15032,8 +15103,8 @@ function renderFundamentalsTab() {
       hidden: !showPrice
     },
     {
-      label: 'Real EPS Profits (Rebased 100)',
-      data: chartEpsData,
+      label: 'Intrinsic Value (EPS × Med P/E ' + medianPe.toFixed(1) + 'x)',
+      data: chartIVData,
       borderColor: '#22d3a0',
       backgroundColor: '#22d3a0',
       borderWidth: 2.5,
@@ -15075,6 +15146,51 @@ function renderFundamentalsTab() {
     }
   ];
 
+  // P/E Percentile Heatmap Plugin (Solution 3)
+  // Draws subtle background column shading behind the chart lines based on P/E percentile
+  var peHeatmapPlugin = {
+    id: 'pePercentileHeatmap',
+    beforeDraw: function(chart) {
+      if (!fundShowHeatmap) return;
+      var ctx = chart.ctx;
+      var xScale = chart.scales.x;
+      var yScale = chart.scales.y;
+      if (!xScale || !yScale) return;
+
+      var top = yScale.top;
+      var bottom = yScale.bottom;
+
+      ctx.save();
+      for (var hi = 0; hi < pePercentileSeries.length; hi++) {
+        var pctVal = pePercentileSeries[hi];
+        if (pctVal == null) continue;
+
+        var x = xScale.getPixelForValue(hi);
+        // Compute column width: use gap between adjacent data points
+        var xNext = (hi < pePercentileSeries.length - 1) ? xScale.getPixelForValue(hi + 1) : x + 2;
+        var colWidth = Math.max(1, xNext - x);
+
+        var fillColor;
+        if (pctVal <= 25) {
+          // Green zone: historically cheap  (more opaque as cheaper)
+          var greenAlpha = 0.04 + (1 - pctVal / 25) * 0.06; // 0.04 to 0.10
+          fillColor = 'rgba(34, 211, 160, ' + greenAlpha.toFixed(3) + ')';
+        } else if (pctVal >= 75) {
+          // Red zone: historically expensive (more opaque as more expensive)
+          var redAlpha = 0.04 + ((pctVal - 75) / 25) * 0.06; // 0.04 to 0.10
+          fillColor = 'rgba(248, 113, 113, ' + redAlpha.toFixed(3) + ')';
+        } else {
+          // Neutral zone: transparent
+          continue;
+        }
+
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(x, top, colWidth, bottom - top);
+      }
+      ctx.restore();
+    }
+  };
+
   if (fundamentalsChartInstance) {
     fundamentalsChartInstance.destroy();
     fundamentalsChartInstance = null;
@@ -15084,6 +15200,7 @@ function renderFundamentalsTab() {
   fundamentalsChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: { labels: fDates, datasets: datasets },
+    plugins: [peHeatmapPlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -15181,7 +15298,7 @@ function renderFundamentalsTab() {
           border: { color: '#252a38' },
           title: {
             display: true,
-            text: fundScaleType === 'logarithmic' ? 'Rebased (100 = Start) • LOG' : 'Rebased (100 = Start) • LIN',
+            text: fundScaleType === 'logarithmic' ? 'Price & Intrinsic Value • LOG' : 'Price & Intrinsic Value • LIN',
             color: '#8e98b0',
             font: { family: 'DM Mono', size: 10 }
           },

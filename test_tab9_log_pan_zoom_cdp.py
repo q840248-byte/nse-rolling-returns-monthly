@@ -198,7 +198,7 @@ async def run_tests():
             hud_text = await eval_js("document.getElementById('fundHoverHud').innerText")
             print(f"✓ Fixed diagnostic HUD text: {hud_text}")
             assert len(hud_text) > 15, "HUD should have updated with date and fundamental metrics"
-            assert "Price:" in hud_text and "Real EPS:" in hud_text, "HUD missing fundamental metrics"
+            assert "Price:" in hud_text and "Intrinsic:" in hud_text, "HUD missing fundamental metrics"
 
             print("\n=======================================================")
             print("TEST 3: NEGATIVE EPS STOCKS ON LOG SCALE (TATA MOTORS & OTHERS)")
@@ -295,7 +295,7 @@ async def run_tests():
             await asyncio.sleep(0.3)
             tm_min = await eval_js("window.fundChart.scales.y.min")
             print(f"✓ TATAMOTORS dynamic Y-scale min (both series): {tm_min}")
-            assert tm_min == 1, f"Expected TATAMOTORS min=1, got {tm_min}"
+            assert 2 <= tm_min <= 5, f"Expected TATAMOTORS min between 2 and 5, got {tm_min}"
 
             # Toggle EPS off on TATAMOTORS: dynamic bounds should adjust to Price-only (min=30)
             await eval_js("""
