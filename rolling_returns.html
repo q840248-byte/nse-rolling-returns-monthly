@@ -15050,7 +15050,8 @@ function renderFundamentalsTab() {
         tooltip: {
           enabled: false,
           external: function(ctx) {
-            if (!ctx || !ctx.tooltip || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            if (!ctx || !ctx.tooltip || ctx.tooltip.opacity === 0 || !ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) return;
+            if (ctx.chart && ctx.chart.canvas && ctx.chart.canvas.style.cursor === 'grabbing') return;
             updateHud(ctx.tooltip.dataPoints[0].dataIndex);
           }
         },
