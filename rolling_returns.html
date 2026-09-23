@@ -14323,7 +14323,24 @@ function setFundScaleType(type) {
   var linBtn = document.getElementById('fundScaleLinBtn');
   if (logBtn) logBtn.classList.toggle('active', fundScaleType === 'logarithmic');
   if (linBtn) linBtn.classList.toggle('active', fundScaleType === 'linear');
+
+  var savedMin = null;
+  var savedMax = null;
+  if (fundamentalsChartInstance && fundamentalsChartInstance.scales && fundamentalsChartInstance.scales.x) {
+    if (typeof fundamentalsChartInstance.isZoomedOrPanned === 'function' && fundamentalsChartInstance.isZoomedOrPanned()) {
+      savedMin = fundamentalsChartInstance.scales.x.min;
+      savedMax = fundamentalsChartInstance.scales.x.max;
+    }
+  }
+
   renderFundamentalsTab();
+
+  if (savedMin !== null && savedMax !== null && fundamentalsChartInstance && typeof fundamentalsChartInstance.zoomScale === 'function') {
+    try {
+      fundamentalsChartInstance.zoomScale('x', { min: savedMin, max: savedMax });
+      syncFundHudAfterZoomPan(fundamentalsChartInstance);
+    } catch (e) {}
+  }
 }
 
 function toggleFundScale() {
@@ -14356,6 +14373,14 @@ function setFundTimeframe(tf) {
 }
 
 function resetFundZoom() {
+  var wasZoomed = fundamentalsChartInstance && typeof fundamentalsChartInstance.isZoomedOrPanned === 'function' && fundamentalsChartInstance.isZoomedOrPanned();
+  if (wasZoomed && fundamentalsChartInstance && typeof fundamentalsChartInstance.resetZoom === 'function') {
+    try {
+      fundamentalsChartInstance.resetZoom();
+      syncFundHudAfterZoomPan(fundamentalsChartInstance);
+      return;
+    } catch (e) {}
+  }
   fundTimeframe = 'MAX';
   ['3Y', '5Y', '10Y', 'MAX'].forEach(function(t) {
     var b = document.getElementById('fundTf' + t);
@@ -14869,8 +14894,10 @@ function renderFundamentalsTab() {
   // Edge case protection for Chart.js log scale:
   // Chart.js logarithmic scale fails if values <= 0.
   // In logarithmic mode, non-positive values are mapped to null with spanGaps: true.
-  // In linear mode, the full numeric rebasedEps (including negatives) is plotted.
-  var chartPriceData = rebasedPrice;
+  // In linear mode, the full numeric series (including negatives) is plotted.
+  var chartPriceData = fundScaleType === 'logarithmic'
+    ? rebasedPrice.map(function(v) { return (v != null && v > 0) ? v : null; })
+    : rebasedPrice;
   var chartEpsData = fundScaleType === 'logarithmic'
     ? rebasedEps.map(function(v) { return (v != null && v > 0) ? v : null; })
     : rebasedEps;
@@ -15063,6 +15090,13 @@ function renderFundamentalsTab() {
           }
         },
         zoom: {
+          limits: {
+            x: {
+              min: 'original',
+              max: 'original',
+              minRange: 3
+            }
+          },
           pan: {
             enabled: true,
             mode: 'x',
@@ -15115,6 +15149,8 @@ function renderFundamentalsTab() {
           type: fundScaleType,
           display: (chkPrice ? chkPrice.checked : true) || (chkEps ? chkEps.checked : true),
           position: 'left',
+          suggestedMin: fundScaleType === 'logarithmic' ? 1 : undefined,
+          suggestedMax: fundScaleType === 'logarithmic' ? 100 : undefined,
           grid: {
             color: function(ctx) {
               if (ctx.tick && Math.abs(ctx.tick.value - 100) < 0.2) {
@@ -15197,6 +15233,7 @@ function renderFundamentalsTab() {
   updateHud(fDates.length - 1);
 
   canvas.onmouseleave = function() {
+    canvas.style.cursor = 'grab';
     if (fundamentalsChartInstance && fundamentalsChartInstance.scales && fundamentalsChartInstance.scales.x) {
       var maxVal = fundamentalsChartInstance.scales.x.max;
       var targetIdx = fDates.length - 1;
@@ -15215,9 +15252,14 @@ function renderFundamentalsTab() {
   canvas.onmousedown = function() {
     canvas.style.cursor = 'grabbing';
   };
-  window.onmouseup = function() {
-    if (canvas) canvas.style.cursor = 'grab';
+  if (window._fundMouseUpHandler) {
+    window.removeEventListener('mouseup', window._fundMouseUpHandler);
+  }
+  window._fundMouseUpHandler = function() {
+    var c = document.getElementById('fundamentalsChart');
+    if (c) c.style.cursor = 'grab';
   };
+  window.addEventListener('mouseup', window._fundMouseUpHandler);
 
   // 7. Render 3-Engine Return Decomposition Table
   if (tbody) {
