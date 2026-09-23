@@ -2036,6 +2036,27 @@
   }
 
   /* Tab 9 Fundamentals Styles */
+  #fundHoverHud {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  #fundHoverHud::-webkit-scrollbar {
+    display: none !important;
+  }
+  #fundHoverHud > * {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
   #fundamentalsChart {
     cursor: grab;
     touch-action: none;
@@ -3283,7 +3304,7 @@
         </div>
 
         <!-- Real-time Diagnostic HUD / Legend -->
-        <div id="fundHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:8px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:36px;">
+        <div id="fundHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:0 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:nowrap;gap:12px;align-items:center;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;-ms-overflow-style:none;">
           <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect fundamentals &amp; valuation gap</span>
         </div>
 
@@ -15022,38 +15043,38 @@ function renderFundamentalsTab() {
     var gapSign = (valGap != null && valGap >= 0) ? '+' : '';
     var gapBadge = '';
     if (ivRebVal != null && ivRebVal <= 0) {
-      gapBadge = '<span style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">⚠️ Net Losses (Valuation Undefined)</span>';
+      gapBadge = '<span style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);padding:0 8px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">⚠️ Net Losses (Valuation Undefined)</span>';
     } else if (valGap == null) {
-      gapBadge = '<span style="color:var(--muted);">—</span>';
+      gapBadge = '<span style="color:var(--muted);display:inline-flex;align-items:center;flex-shrink:0;">—</span>';
     } else if (valGap > 25) {
-      gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">🎈 Overvalued vs Intrinsic (' + gapSign + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);padding:0 8px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">🎈 Overvalued vs Intrinsic (' + gapSign + valGap.toFixed(1) + '%)</span>';
     } else if (valGap < -15) {
-      gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:2px 8px;border-radius:4px;font-weight:700;">💎 Undervalued vs Intrinsic (' + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;border:1px solid rgba(34,211,160,0.3);padding:0 8px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">💎 Undervalued vs Intrinsic (' + valGap.toFixed(1) + '%)</span>';
     } else {
-      gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:2px 8px;border-radius:4px;font-weight:600;">⚖️ Near Fair Value (' + gapSign + valGap.toFixed(1) + '%)</span>';
+      gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:0 8px;border-radius:4px;font-weight:600;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">⚖️ Near Fair Value (' + gapSign + valGap.toFixed(1) + '%)</span>';
     }
 
     // P/E Percentile zone badge
     var pePctBadge = '';
     if (pePctVal != null) {
       if (pePctVal <= 25) {
-        pePctBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:2px 6px;border-radius:4px;font-size:0.68rem;">🟢 P' + pePctVal.toFixed(0) + '</span>';
+        pePctBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:0 6px;border-radius:4px;font-size:0.68rem;display:inline-flex;align-items:center;height:18px;box-sizing:border-box;flex-shrink:0;">🟢 P' + pePctVal.toFixed(0) + '</span>';
       } else if (pePctVal >= 75) {
-        pePctBadge = '<span style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25);padding:2px 6px;border-radius:4px;font-size:0.68rem;">🔴 P' + pePctVal.toFixed(0) + '</span>';
+        pePctBadge = '<span style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25);padding:0 6px;border-radius:4px;font-size:0.68rem;display:inline-flex;align-items:center;height:18px;box-sizing:border-box;flex-shrink:0;">🔴 P' + pePctVal.toFixed(0) + '</span>';
       } else {
-        pePctBadge = '<span style="background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.68rem;">⚪ P' + pePctVal.toFixed(0) + '</span>';
+        pePctBadge = '<span style="background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.1);padding:0 6px;border-radius:4px;font-size:0.68rem;display:inline-flex;align-items:center;height:18px;box-sizing:border-box;flex-shrink:0;">⚪ P' + pePctVal.toFixed(0) + '</span>';
       }
     }
 
-    var assetTag = (fundAssetMode === 'stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;">[' + chosenKey + ']</span> ' : '';
+    var assetTag = (fundAssetMode === 'stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;display:inline-flex;align-items:center;flex-shrink:0;">[' + chosenKey + ']</span> ' : '';
 
     hud.innerHTML =
       assetTag +
-      '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
-      '<span>Price: <strong style="color:#f5c842;">' + (pRebVal != null ? pRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
-      '<span>Intrinsic: <strong style="color:#22d3a0;">' + (ivRebVal != null ? ivRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(Med P/E: ' + medianPe.toFixed(1) + 'x)</small></span>' +
-      '<span>P/E: <strong style="color:#a855f7;">' + (peVal != null ? peVal.toFixed(1) + 'x' : 'N/A (Loss)') + '</strong> ' + pePctBadge + '</span>' +
-      '<span>' + fundHorizon + 'Y Rolling: <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
+      '<span style="color:var(--text);font-weight:700;display:inline-flex;align-items:center;flex-shrink:0;">📅 ' + d + '</span>' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">Price: <strong style="color:#f5c842;">' + (pRebVal != null ? pRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(₹' + actualP.toLocaleString('en-IN', {maximumFractionDigits:1}) + ')</small></span>' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">Intrinsic: <strong style="color:#22d3a0;">' + (ivRebVal != null ? ivRebVal.toFixed(1) : '—') + '</strong> <small style="color:var(--muted);">(Med P/E: ' + medianPe.toFixed(1) + 'x)</small></span>' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">P/E: <strong style="color:#a855f7;">' + (peVal != null ? peVal.toFixed(1) + 'x' : 'N/A (Loss)') + '</strong> ' + pePctBadge + '</span>' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">' + fundHorizon + 'Y Rolling: <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
       gapBadge;
   }
 
