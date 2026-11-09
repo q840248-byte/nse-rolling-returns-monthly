@@ -3287,6 +3287,10 @@
               <input type="checkbox" id="chkFundHeatmap" checked onchange="updateFundSeriesVisibility()">
               <span>P/E Percentile Heatmap</span>
             </label>
+            <label class="fund-checkbox-label" id="fundTrimmedPeToggleWrap" style="color:#f97316;cursor:pointer;" title="Trim top 5% and bottom 5% outlier P/E spikes for Nifty 50">
+              <input type="checkbox" id="chkFundTrimmedPe" onchange="toggleFundTrimmedPe()">
+              <span id="chkFundTrimmedPeLabel">5% trimmed PE</span>
+            </label>
           </div>
         </div>
 
@@ -14777,6 +14781,14 @@ function updateFundSeriesVisibility() {
   fundamentalsChartInstance.update();
 }
 
+var fundTrimmedPe = false;
+
+function toggleFundTrimmedPe() {
+  var chk = document.getElementById('chkFundTrimmedPe');
+  fundTrimmedPe = chk ? chk.checked : false;
+  renderFundamentalsTab();
+}
+
 function renderFundamentalsTab() {
   var canvas = document.getElementById('fundamentalsChart');
   var hud = document.getElementById('fundHoverHud');
@@ -14844,6 +14856,36 @@ function renderFundamentalsTab() {
     if (commonDates.length === 0) {
       if (hud) hud.innerHTML = '<span style="color:var(--muted);">No common price &amp; P/E data available for ' + chosenKey + '</span>';
       return;
+    }
+
+    var rawPeMap = {};
+    commonDates.forEach(function(d) {
+      rawPeMap[d] = peData.values[d];
+    });
+
+    var isTrimmedNifty50 = fundTrimmedPe && (chosenKey === 'Nifty 50');
+    var trimP5 = null, trimP95 = null;
+    if (isTrimmedNifty50) {
+      var allSortedPe = [];
+      commonDates.forEach(function(d) {
+        var v = peData.values[d];
+        if (v != null && v > 0 && isFinite(v)) allSortedPe.push(v);
+      });
+      allSortedPe.sort(function(a, b) { return a - b; });
+      if (allSortedPe.length >= 20) {
+        trimP5 = allSortedPe[Math.floor(allSortedPe.length * 0.05)];
+        trimP95 = allSortedPe[Math.floor(allSortedPe.length * 0.95)];
+        var trimmedPeValues = {};
+        commonDates.forEach(function(d) {
+          var v = peData.values[d];
+          if (v != null) {
+            trimmedPeValues[d] = Math.min(Math.max(v, trimP5), trimP95);
+          } else {
+            trimmedPeValues[d] = null;
+          }
+        });
+        peData.values = trimmedPeValues;
+      }
     }
 
     epsMap = {};
@@ -15033,6 +15075,7 @@ function renderFundamentalsTab() {
     }
 
     var assetTag = (fundAssetMode === 'stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;display:inline-flex;align-items:center;flex-shrink:0;">[' + chosenKey + ']</span> ' : '';
+    var trimBadge = (isTrimmedNifty50 && trimP5 != null && trimP95 != null) ? '<span style="background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3);padding:0 6px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;">✂️ 5% Trimmed (' + trimP5.toFixed(1) + 'x - ' + trimP95.toFixed(1) + 'x)</span>' : '';
 
     hud.innerHTML =
       assetTag +
@@ -15042,10 +15085,10 @@ function renderFundamentalsTab() {
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:' + (isLoss ? '#f87171' : '#22d3a0') + ';"></span>' +
       '<span>EPS:</span> <strong style="color:' + (isLoss ? '#f87171' : '#22d3a0') + ';">' + (actualE != null ? '₹' + actualE.toFixed(2) + (isLoss ? ' (Loss)' : '') : '—') + '</strong></span>' +
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#a855f7;"></span>' +
-      '<span>P/E:</span> <strong style="color:' + (isLoss ? '#f87171' : '#a855f7') + ';">' + (isLoss ? 'Negative (N/A)' : (peVal != null ? peVal.toFixed(1) + 'x' : '—')) + (pePctVal != null && !isLoss ? ' <small style="color:var(--muted);font-weight:400;">(' + pePctVal.toFixed(0) + 'th %ile)</small>' : '') + '</strong></span>' +
+      '<span>P/E:</span> <strong style="color:' + (isLoss ? '#f87171' : '#a855f7') + ';">' + (isLoss ? 'Negative (N/A)' : (peVal != null ? peVal.toFixed(1) + 'x' : '—')) + (isTrimmedNifty50 && peVal != null && typeof rawPeMap !== 'undefined' && rawPeMap[d] != null && Math.abs(peVal - rawPeMap[d]) > 0.05 ? ' <span style="color:#f97316;font-size:0.65rem;" title="Raw NSE P/E was ' + rawPeMap[d].toFixed(1) + 'x">(✂️ ' + rawPeMap[d].toFixed(1) + 'x)</span>' : '') + (pePctVal != null && !isLoss ? ' <small style="color:var(--muted);font-weight:400;">(' + pePctVal.toFixed(0) + 'th %ile)</small>' : '') + '</strong></span>' +
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;"></span>' +
       '<span>' + fundHorizon + 'Y Roll:</span> <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
-      gapBadge;
+      gapBadge + trimBadge;
   }
 
   function syncFundHudAfterZoomPan(chart) {
@@ -15094,7 +15137,7 @@ function renderFundamentalsTab() {
       hidden: !showPrice
     },
     {
-      label: 'Intrinsic Value (EPS × Med P/E ' + medianPe.toFixed(1) + 'x)',
+      label: 'Intrinsic Value (EPS × Med P/E ' + medianPe.toFixed(1) + 'x' + (isTrimmedNifty50 ? ' • 5% Trimmed' : '') + ')',
       data: chartIVData,
       borderColor: '#22d3a0',
       backgroundColor: '#22d3a0',
@@ -15108,7 +15151,7 @@ function renderFundamentalsTab() {
       hidden: !showEps
     },
     {
-      label: 'P/E Ratio',
+      label: 'P/E Ratio' + (isTrimmedNifty50 ? ' (5% Trimmed)' : ''),
       data: peSeries,
       borderColor: '#a855f7',
       backgroundColor: '#a855f7',
