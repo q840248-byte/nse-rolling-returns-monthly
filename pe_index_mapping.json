@@ -101,8 +101,8 @@
   ],
   [
     "Nifty MidSmallcap400 50-50",
-    "NIFTY MIDSML 400",
-    "NIFTY MIDSMALLCAP 400"
+    "Nifty MidSmallcap400 50:50",
+    "Nifty MidSmallcap400 50:50"
   ],
   [
     "Nifty MidSmallcap400 Momentum Quality 100",
@@ -246,8 +246,8 @@
   ],
   [
     "Nifty500 Multicap 50-25-25",
-    "Nifty 50",
-    "Nifty 50"
+    "NIFTY500 MULTICAP",
+    "NIFTY500 MULTICAP 50:25:25"
   ],
   [
     "Nifty500 Multicap Momentum Quality 50",
@@ -351,8 +351,8 @@
   ],
   [
     "Nifty Financial Services 25-50",
-    "Nifty Fin Service",
-    "Nifty Financial Services"
+    "NIFTY FINSRV25 50",
+    "Nifty Financial Services 25/50"
   ],
   [
     "Nifty Financial Services Ex-Bank",
@@ -521,18 +521,18 @@
   ],
   [
     "Nifty500 Multicap India Manufacturing 50-30-20",
-    "Nifty 50",
-    "Nifty 50"
+    "NIFTY MULTI MFG",
+    "Nifty500 Multicap India Manufacturing 50:30:20"
   ],
   [
     "Nifty500 Multicap Infrastructure 50-30-20",
-    "Nifty 50",
-    "Nifty 50"
+    "NIFTY MULTI INFRA",
+    "Nifty500 Multicap Infrastructure 50:30:20"
   ],
   [
     "Nifty Tata Group 25% Cap",
-    "NIFTY TATA GROUP",
-    "Nifty Tata Group"
+    "NIFTY TATA 25 CAP",
+    "NIFTY INDIA CORPORATE GROUP INDEX - TATA GROUP 25% CAP"
   ],
   [
     "Nifty100 ESG",
@@ -613,5 +613,20 @@
     "Nifty India FPI 150",
     "NIFTY India FPI 150",
     "Nifty India FPI 150"
+  ],
+  [
+    "Nifty Quality Low Volatility 30",
+    "Nifty Qlty LV 30",
+    "NIFTY QUALITY LOW-VOLATILITY 30"
+  ],
+  [
+    "Nifty Alpha Quality Low Volatility 30",
+    "Nifty AQL 30",
+    "NIFTY ALPHA QUALITY LOW-VOLATILITY 30"
+  ],
+  [
+    "Nifty Alpha Quality Value Low Volatility 30",
+    "Nifty AQLV 30",
+    "NIFTY ALPHA QUALITY VALUE LOW-VOLATILITY 30"
   ]
 ]

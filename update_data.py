@@ -253,7 +253,7 @@ PE_HEADERS = {
 }
 
 def update_pe_data(html, today):
-    """Fetch latest 3 months of P/E data for all supported indices and update const RAW_PE in html."""
+    """Fetch historical P/E data for all supported indices and update const RAW_PE in html."""
     mapping_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pe_index_mapping.json")
     if not os.path.exists(mapping_file):
         print("  ⚠️ pe_index_mapping.json not found, skipping PE update.")
@@ -273,22 +273,25 @@ def update_pe_data(html, today):
         print(f"  ⚠️ Error parsing existing RAW_PE JSON: {e}")
         return html
 
-    from_date = (today - relativedelta(months=3)).replace(day=1)
+    inc_from_date = (today - relativedelta(months=3)).replace(day=1)
+    full_from_date = date(1995, 1, 1)
     fmt_date = lambda d: d.strftime("%d-%b-%Y")
 
     def fetch_one(item):
         disp_name, api_name, index_name = item
+        need_full = FULL_MODE or len(pe_dict.get(disp_name, {})) <= 6
+        start_dt = full_from_date if need_full else inc_from_date
         payload = {
             "cinfo": json.dumps({
                 "name": api_name.upper().strip(),
-                "startDate": fmt_date(from_date),
+                "startDate": fmt_date(start_dt),
                 "endDate": fmt_date(today),
                 "indexName": index_name
             })
         }
-        for attempt in range(2):
+        for attempt in range(3):
             try:
-                r = requests.post(PE_URL, headers=PE_HEADERS, json=payload, timeout=20)
+                r = requests.post(PE_URL, headers=PE_HEADERS, json=payload, timeout=30)
                 data = r.json()
                 rows = data if isinstance(data, list) else (json.loads(data.get("d", "[]")) if isinstance(data.get("d"), str) else data.get("d", []))
                 monthend = {}
@@ -308,14 +311,14 @@ def update_pe_data(html, today):
                         pe = round(float(str(pe_val).replace(",", "")), 2)
                     except Exception:
                         continue
-                    if pe <= 0 or pe > 600: continue
+                    if pe <= 0: continue
                     ym = dt.strftime("%Y-%m")
                     if ym not in monthend or dt > monthend[ym]["dt"]:
                         monthend[ym] = {"dt": dt, "pe": pe}
-                return disp_name, {ym: v["pe"] for ym, v in monthend.items()}
+                return disp_name, need_full, {ym: v["pe"] for ym, v in monthend.items()}
             except Exception:
                 time.sleep(0.5)
-        return disp_name, {}
+        return disp_name, need_full, {}
 
     print("\nUpdating historical P/E ratios for all indices...", flush=True)
     pe_updated_count = 0
@@ -323,17 +326,29 @@ def update_pe_data(html, today):
         results = list(ex.map(fetch_one, matched))
 
     this_month = today.strftime("%Y-%m")
-    for disp_name, new_pe in results:
+    for disp_name, was_full, new_pe in results:
         if not new_pe: continue
-        if disp_name not in pe_dict:
-            pe_dict[disp_name] = {}
-        changed = False
-        for ym, val in new_pe.items():
-            if ym <= this_month and pe_dict[disp_name].get(ym) != val:
-                pe_dict[disp_name][ym] = val
-                changed = True
-        if changed:
-            pe_updated_count += 1
+        filtered = {ym: val for ym, val in sorted(new_pe.items()) if ym <= this_month}
+        if was_full:
+            old_pe = pe_dict.get(disp_name, {})
+            if old_pe != filtered:
+                pe_dict[disp_name] = filtered
+                pe_updated_count += 1
+        else:
+            if disp_name not in pe_dict:
+                pe_dict[disp_name] = {}
+            changed = False
+            for ym, val in filtered.items():
+                if pe_dict[disp_name].get(ym) != val:
+                    pe_dict[disp_name][ym] = val
+                    changed = True
+            if changed:
+                pe_dict[disp_name] = dict(sorted(pe_dict[disp_name].items()))
+                pe_updated_count += 1
+
+    for k in list(pe_dict.keys()):
+        if isinstance(pe_dict[k], dict):
+            pe_dict[k] = dict(sorted(pe_dict[k].items()))
 
     print(f"  [PE Ratios] Updated {pe_updated_count}/{len(matched)} indices.")
     new_pe_json = json.dumps(pe_dict, separators=(",", ":"))
