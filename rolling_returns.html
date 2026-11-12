@@ -2035,6 +2035,22 @@
     color: var(--text);
   }
 
+  /* Contain Tab 9's intrinsic chart/table widths without changing other tabs. */
+  .layout[data-active-tab="9"] { grid-template-columns: 290px minmax(0, 1fr); }
+  .layout[data-active-tab="9"] > * { min-width: 0; }
+  #tabContent9 .chart-title-row > div { min-width: 0; max-width: 100%; }
+  #tabContent9 .chart-title { flex-wrap: wrap; }
+  #fundIndexSelectContainer, #fundStockControlsContainer { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  #fundIndexSelect { min-width: 0; max-width: 100%; }
+  #fundStockStatus { overflow-wrap: anywhere; max-width: 100%; }
+  @media (max-width: 900px) {
+    .layout[data-active-tab="9"] { grid-template-columns: minmax(0, 1fr); }
+    .layout[data-active-tab="9"] #tabContent9 { grid-row: 1; }
+    .layout[data-active-tab="9"] .sidebar { grid-row: 2; }
+    #tabContent9 .chart-card { padding: 14px; }
+    #fundHoverHud { scrollbar-width: thin !important; }
+  }
+
   /* Tab 9 Fundamentals Styles */
   #fundHoverHud {
     height: 42px !important;
@@ -2154,7 +2170,7 @@
 
     <h1>Rolling CAGR Visualizer</h1>
 
-    <span class="sub">All values in INR &middot; Monthly data</span>
+    <span class="sub">India: INR &middot; US: USD &middot; Monthly data</span>
 
   </header>
 
@@ -2195,7 +2211,7 @@
       <span class="tab-icon">🏦</span> Yield Gap (BEER)
     </button>
     <button class="tab-btn" onclick="switchTab(8)" id="tabBtn8">
-      <span class="tab-icon">🔬</span> Shiller CAPE
+      <span class="tab-icon">🔬</span> Smoothed P/E
     </button>
     <button class="tab-btn" onclick="switchTab(9)" id="tabBtn9">
       <span class="tab-icon">🔬</span> Fundamentals
@@ -3144,17 +3160,17 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 8: SHILLER CAPE (CYCLICALLY ADJUSTED P/E)                            -->
+    <!-- TAB 8: SHILLER CAPE (NOMINAL EARNINGS P/E)                            -->
     <!-- ════════════════════════════════════════════════════════════════════════ -->
     <div class="chart-area tab-content" id="tabContent8" style="display:none;">
       <div class="chart-card">
         <div class="chart-title-row" style="margin-bottom:12px;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="chart-title" style="display:flex;align-items:center;gap:8px;">
-              <span>🔬</span> Shiller CAPE Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">CYCLICALLY ADJUSTED</span>
+              <span>🔬</span> Smoothed P/E Ratio <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">NOMINAL EARNINGS</span>
             </div>
             <div class="chart-subtitle">
-              Price divided by multi-year smoothed average earnings • Filters out temporary recessions, write-downs, and margin booms
+              Price divided by 3- or 5-year average nominal earnings • Complete monthly window required • Not inflation-adjusted Shiller CAPE
             </div>
           </div>
           <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -3183,7 +3199,7 @@
         </div>
 
         <div id="capeHoverHud" style="background:var(--card-bg, #111420);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:6px 14px;margin-bottom:12px;font-family:monospace;font-size:0.72rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center;min-height:34px;">
-          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect Shiller CAPE vs Trailing P/E</span>
+          <span style="color:var(--muted);font-style:italic;">Hover over chart to inspect Smoothed P/E vs Trailing P/E</span>
         </div>
 
         <div style="position:relative;height:500px;width:100%;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px 8px 8px;">
@@ -3192,9 +3208,9 @@
 
         <div style="margin-top:14px;background:rgba(168,85,247,0.03);border:1px solid rgba(168,85,247,0.15);border-radius:8px;padding:12px 16px;font-size:0.74rem;color:var(--text);line-height:1.6;">
           <strong style="color:#a855f7;display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-            <span>🔬</span> Why Shiller CAPE removes false recession alarms:
+            <span>🔬</span> Method and limitations:
           </strong>
-          During the March 2020 COVID lockdowns, trailing 12-month earnings momentarily fell, pushing reported trailing P/E above 34x. A naive P/E investor would have avoided equities thinking the market was in a bubble. Shiller CAPE smooths multi-year earnings, proving that normalized valuation was actually in an attractive deep value zone.
+          This chart averages nominal monthly EPS inferred from price and harmonized P/E. It is not standard Shiller CAPE: no CPI adjustment or ten-year real-earnings series is available here. Incomplete or missing-month windows are omitted. Smoothing can reduce temporary earnings swings, but does not establish fair value or predict returns.
         </div>
       </div>
     </div>
@@ -3211,7 +3227,7 @@
               <span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.3);font-weight:700;font-family:monospace;letter-spacing:0.04em;">3-ENGINE DECOMPOSITION</span>
             </div>
             <div class="chart-subtitle">
-              Intrinsic Value = EPS × Long-Term Median P/E • P/E percentile heatmap shows cheap/expensive zones • Graham &amp; Dodd Weighing Machine
+              IV estimate = EPS × full-history median P/E • Heatmap percentile uses observations up to each date • Price-return decomposition excludes dividends
             </div>
           </div>
           <div class="tv-toolbar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -3231,7 +3247,7 @@
             <!-- Stocks Controls (Search + Fetch + Proxy Gear) -->
             <div id="fundStockControlsContainer" style="display:none;align-items:center;gap:6px;">
               <div style="position:relative;display:flex;align-items:center;gap:4px;">
-                <input type="text" id="fundStockInput" list="fundStockDatalist" placeholder="Stock (e.g. RELIANCE)..." style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;width:150px;text-transform:uppercase;" onfocus="populateStockDatalist()" onkeydown="if(event.key==='Enter') fetchAndSelectStock(true)" value="RELIANCE" />
+                <input type="text" id="fundStockInput" list="fundStockDatalist" placeholder="Stock (e.g. RELIANCE)..." style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;width:150px;text-transform:uppercase;" onfocus="fundAssetMode === 'us_stock' ? populateUsStockDatalist() : populateStockDatalist()" onkeydown="if(event.key==='Enter') fetchAndSelectStock(true)" value="RELIANCE" />
                 <datalist id="fundStockDatalist"></datalist>
                 <button type="button" class="tv-tool-btn" id="fundStockFetchBtn" onclick="fetchAndSelectStock(true)" style="background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);font-weight:600;padding:3px 8px;">Fetch ⚡</button>
                 <button type="button" class="tv-tool-btn" id="fundProxySettingsBtn" onclick="toggleProxySettingsModal()" style="padding:3px 6px;" title="CORS Proxy Settings">⚙️</button>
@@ -3265,6 +3281,8 @@
 
         
 
+        <div id="fundDataNote" style="font-size:0.7rem;line-height:1.5;color:var(--muted);margin-bottom:12px;" aria-live="polite"></div>
+
         <!-- Interactive Line Toggles -->
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
           <div class="fund-checkbox-group">
@@ -3274,7 +3292,7 @@
             </label>
             <label class="fund-checkbox-label" style="color:#22d3a0;">
               <input type="checkbox" id="chkFundEps" checked onchange="updateFundSeriesVisibility()">
-              <span id="chkFundEpsLabel">Raw Intrinsic Value (EPS × Med P/E)</span>
+              <span id="chkFundEpsLabel">Harmonized Intrinsic Value (EPS × Med P/E)</span>
             </label>
             <label class="fund-checkbox-label" style="color:#a855f7;">
               <input type="checkbox" id="chkFundPe" checked onchange="updateFundSeriesVisibility()">
@@ -3319,7 +3337,7 @@
                 <tr>
                   <th>Horizon</th>
                   <th>Price CAGR</th>
-                  <th>Real EPS CAGR</th>
+                  <th>EPS CAGR (nominal)</th>
                   <th>P/E Multiple CAGR</th>
                   <th>Primary Return Engine</th>
                 </tr>
@@ -3330,8 +3348,8 @@
             </table>
           </div>
           <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);line-height:1.6;">
-            <strong style="color:#06b6d4;display:inline-flex;align-items:center;gap:4px;">💡 Institutional Takeaway:</strong>
-            When <strong>Real EPS CAGR &gt; Price CAGR</strong>, corporate earnings grew faster than the index price (P/E multiple compressed) — the price is converging toward intrinsic value. When <strong>Price CAGR &gt;&gt; EPS CAGR</strong>, returns were driven primarily by speculative P/E multiple expansion, and price has moved away from intrinsic value (increasing downside fragility). The <strong>P/E Percentile Heatmap</strong> shows whether the market is historically cheap (🟢 bottom 25th percentile) or expensive (🔴 top 25th percentile) at any point.
+            <strong style="color:#06b6d4;display:inline-flex;align-items:center;gap:4px;">💡 How to read the decomposition:</strong>
+            For positive endpoint EPS, <strong>(1 + Price CAGR) = (1 + EPS CAGR) × (1 + P/E CAGR)</strong>: the components compound, not add. Earnings and multiple changes describe historical price returns, excluding dividends; neither establishes that an asset is safe or fairly valued. EPS is nominal, not inflation-adjusted. The <strong>P/E Percentile Heatmap</strong> compares each positive P/E with observations up to that date (including itself), while IV uses the full-history median and therefore includes later observations when viewing the past. Index EPS and P/E are harmonized; the orange trimmed series uses the same median multiple when available, not an independently fitted valuation.
           </div>
         </div>
 
@@ -3647,17 +3665,10 @@ COMMODITIES.forEach(i => weights[i.key] = 0);
 
 
 function addMonths(ym, n) {
-
-  let [y, m] = ym.split('-').map(Number);
-
-  m += n;
-
-  while (m > 12) { m -= 12; y++; }
-
-  while (m < 1)  { m += 12; y--; }
-
-  return y + '-' + String(m).padStart(2, '0');
-
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ym) || !Number.isFinite(n)) return null;
+  const [year, month] = ym.split('-').map(Number);
+  const total = year * 12 + month - 1 + Math.round(n);
+  return Math.floor(total / 12) + '-' + String(((total % 12) + 12) % 12 + 1).padStart(2, '0');
 }
 
 
@@ -3667,60 +3678,35 @@ function addMonths(ym, n) {
 
 
 function getMonthlyValue(raw, date, field) {
-
   const v = raw && raw[date];
-
   if (v === undefined || v === null) return undefined;
-
-  if (typeof v === 'number') return field === 'close' ? v : undefined;
-
-  return v[field] === null ? undefined : v[field];
-
+  const value = typeof v === 'number' ? (field === 'close' ? v : undefined) : v[field];
+  return Number.isFinite(value) ? value : undefined;
 }
 
 
 
 function computeRollingCAGR(key, years, field) {
-
   const raw = RAW[key];
-
-  if (!raw) return {};
-
-  const dates = Object.keys(raw).sort();
-
+  const n = Math.round(years * 12);
+  if (!raw || !Number.isFinite(years) || years <= 0 || n < 1) return {};
   const result = {};
-
-  const n = years * 12;
-
-  for (let i = n; i < dates.length; i++) {
-
-    const endDate   = dates[i];
-
-    const startDate = addMonths(endDate, -n);
-
-    const sv = getMonthlyValue(raw, startDate, field || 'close');
-
+  // A calendar horizon is not an observation count (older gold is quarterly).
+  for (const endDate of Object.keys(raw).sort()) {
+    const sv = getMonthlyValue(raw, addMonths(endDate, -n), field || 'close');
     const ev = getMonthlyValue(raw, endDate, field || 'close');
-
-    if (sv !== undefined && ev !== undefined) {
-
-      if (sv > 0 && ev > 0) {
-
-        result[endDate] = +((Math.pow(ev / sv, 1 / years) - 1) * 100).toFixed(2);
-
-      }
-
+    if (sv > 0 && ev > 0) {
+      const cagr = (Math.pow(ev / sv, 12 / n) - 1) * 100;
+      if (Number.isFinite(cagr)) result[endDate] = +cagr.toFixed(2);
     }
-
   }
-
   return result;
-
 }
 
 
 
 function computePortfolioCagr(endDate, years, selKeys, wts) {
+  if (!Number.isFinite(years) || years <= 0) return null;
 
   const startDate = addMonths(endDate, -years * 12);
 
@@ -3830,7 +3816,7 @@ function computeRecoveryForKey(key, cagrMap, p5val, horizonYears) {
 
       const ev = getMonthlyValue(raw, newEnd, 'close');
 
-      if (!ev) break;
+      if (!ev || ev <= 0) continue;
 
       const newHorizYears = horizonYears + extra / 12;
 
@@ -3874,8 +3860,6 @@ function computeRecoveryForPortfolio(portfolioMap, p5val, horizonYears, selKeys,
 
       const newHorizYears = horizonYears + extra / 12;
 
-      const newCagr = computePortfolioCagr(newEnd, newHorizYears, selKeys, wts);
-
       // We need to keep start date fixed - recompute differently
 
       // startDate = addMonths(endDate, -horizonYears*12)
@@ -3900,7 +3884,7 @@ function computeRecoveryForPortfolio(portfolioMap, p5val, horizonYears, selKeys,
 
       }
 
-      if (rawWtSum2 < 0.5) break;
+      if (rawWtSum2 < 0.5) continue;
 
       weightedReturn /= rawWtSum2;
 
@@ -11379,6 +11363,8 @@ var _activeTabIdx = 0;
 function switchTab(idx) {
 
   _activeTabIdx = idx;
+  var layout = document.querySelector('.layout');
+  if (layout) layout.dataset.activeTab = String(idx);
 
   var tabs = document.querySelectorAll('.tab-content');
 
@@ -11909,48 +11895,35 @@ function syncCfEndFromYears() {
 }
 
 function calculateXIRR(cashflows) {
-  if (!cashflows || cashflows.length < 2) return 0.0;
-  var hasPos = false, hasNeg = false;
-  for (var i = 0; i < cashflows.length; i++) {
-    if (cashflows[i].amount > 0) hasPos = true;
-    if (cashflows[i].amount < 0) hasNeg = true;
+  if (!cashflows || cashflows.length < 2 || cashflows.some(c => !Number.isFinite(c.amount) || !Number.isFinite(c.t))) return NaN;
+  if (!cashflows.some(c => c.amount > 0) || !cashflows.some(c => c.amount < 0)) return NaN;
+  const firstT = Math.min(...cashflows.map(c => c.t));
+  if (cashflows.every(c => c.t === firstT)) return NaN;
+  // Solve in log(1 + rate) space; scale the NPV to avoid overflow at -100%.
+  const duration = Math.max(...cashflows.map(c => c.t)) - firstT;
+  function npv(logRate) {
+    const scale = logRate < 0 ? -duration * logRate : 0;
+    let sum = 0;
+    for (const c of cashflows) sum += c.amount * Math.exp(-(c.t - firstT) * logRate - scale);
+    return sum;
   }
-  if (!hasPos || !hasNeg) return 0.0;
-
-  var low = -0.999;
-  var high = 10.0;
-  var npvLow = 0, npvHigh = 0;
-
-  for (var j = 0; j < cashflows.length; j++) {
-    var cf = cashflows[j];
-    npvLow += cf.amount / Math.pow(1.0 + low, cf.t);
-    npvHigh += cf.amount / Math.pow(1.0 + high, cf.t);
+  let low = -20, high = Math.log(11);
+  let fLow = npv(low), fHigh = npv(high);
+  while (Math.sign(fLow) === Math.sign(fHigh) && high < 40) {
+    high *= 2;
+    fHigh = npv(high);
   }
-  if (npvLow * npvHigh > 0) {
-    var totalIn = 0, totalOut = 0;
-    var maxT = 0;
-    cashflows.forEach(function(c) {
-      if (c.amount < 0) totalIn += -c.amount;
-      else totalOut += c.amount;
-      if (c.t > maxT) maxT = c.t;
-    });
-    if (totalIn > 0 && maxT > 0) {
-      return (Math.pow(totalOut / totalIn, 1 / maxT) - 1) * 100;
-    }
-    return 0.0;
-  }
-
-  for (var iter = 0; iter < 100; iter++) {
-    var mid = (low + high) / 2.0;
-    var npv = 0;
-    for (var k = 0; k < cashflows.length; k++) {
-      npv += cashflows[k].amount / Math.pow(1.0 + mid, cashflows[k].t);
-    }
-    if (Math.abs(npv) < 1e-4) return mid * 100;
-    if (npv > 0) low = mid;
+  if (fLow === 0) return Math.expm1(low) * 100;
+  if (fHigh === 0) return Math.expm1(high) * 100;
+  if (Math.sign(fLow) === Math.sign(fHigh)) return NaN;
+  for (let iter = 0; iter < 160; iter++) {
+    const mid = (low + high) / 2;
+    const value = npv(mid);
+    if (value === 0 || high - low < 1e-12) return Math.expm1(mid) * 100;
+    if (Math.sign(value) === Math.sign(fLow)) { low = mid; fLow = value; }
     else high = mid;
   }
-  return ((low + high) / 2.0) * 100;
+  return Math.expm1((low + high) / 2) * 100;
 }
 
 function formatINR(num) {
@@ -11963,185 +11936,80 @@ function formatINR(num) {
   return sign + '₹' + Math.round(abs).toLocaleString('en-IN');
 }
 
+// Shared monthly portfolio engine for cashflow journeys and stress tests.
+// Missing observations remain null: never compress several months into one,
+// silently substitute 0% returns, or redistribute a missing asset's weight.
+function getPortfolioMonthlyHistory(selKeys, wts, fromMonth, toMonth) {
+  const active = selKeys.filter(k => Number.isFinite(wts[k]) && wts[k] > 0);
+  const total = active.reduce((sum, k) => sum + wts[k], 0);
+  if (!active.length || total <= 0) return { dates: [], monthlyReturns: [] };
+  const ranges = active.map(k => Object.keys(RAW[k] || {}).filter(d => /^\d{4}-(0[1-9]|1[0-2])$/.test(d) && getMonthlyValue(RAW[k], d, 'close') > 0).sort());
+  if (ranges.some(d => !d.length)) return { dates: [], monthlyReturns: [] };
+  const start = [fromMonth || '', ...ranges.map(d => d[0])].sort().pop();
+  const end = [toMonth || '9999-12', ...ranges.map(d => d[d.length - 1])].sort()[0];
+  const dates = [], monthlyReturns = [];
+  for (let d = start; d <= end; d = addMonths(d, 1)) dates.push(d);
+  for (let i = 1; i < dates.length; i++) {
+    let r = 0;
+    for (const k of active) {
+      const p0 = getMonthlyValue(RAW[k], dates[i - 1], 'close');
+      const p1 = getMonthlyValue(RAW[k], dates[i], 'close');
+      if (!(p0 > 0 && p1 > 0)) { r = null; break; }
+      r += wts[k] / total * (p1 / p0 - 1);
+    }
+    monthlyReturns.push({ date: dates[i], r: Number.isFinite(r) ? r : null });
+  }
+  return { dates, monthlyReturns };
+}
+
+function hasValidCashflowWindow(monthlyReturns, start, months) {
+  return months > 0 && start + months <= monthlyReturns.length &&
+    monthlyReturns.slice(start, start + months).every(point => Number.isFinite(point.r));
+}
+
+function clearCashflowResults(message) {
+  const noData = document.getElementById('cfNoData');
+  if (noData) { noData.style.display = 'block'; noData.textContent = message; }
+  ['cfSummaryGrid', 'cfInsightsBox', 'cfHoverHud'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  const canvas = document.getElementById('cashflowChartCanvas');
+  if (canvas) canvas.style.display = 'none';
+  if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+}
+
 function runCashflowSim() {
   updateCfBadges();
-  var selKeys = [];
-  var weightsMap = {};
-  var totalWt = 0;
-  if (typeof selected !== 'undefined' && selected && selected.size > 0) {
-    selected.forEach(function(k) {
-      if (RAW[k]) {
-        selKeys.push(k);
-        var wt = (typeof weights !== 'undefined' && weights && weights[k] !== undefined) ? weights[k] : 100;
-        weightsMap[k] = wt;
-        totalWt += wt;
-      }
-    });
-  }
-
-  if (selKeys.length === 0) {
-    var noData = document.getElementById('cfNoData');
-    var summaryGrid = document.getElementById('cfSummaryGrid');
-    var insightsBox = document.getElementById('cfInsightsBox');
-    var canvas = document.getElementById('cashflowChartCanvas');
-    if (noData) noData.style.display = 'block';
-    if (summaryGrid) summaryGrid.innerHTML = '';
-    if (insightsBox) insightsBox.innerHTML = '';
-    if (canvas) canvas.style.display = 'none';
-    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+  const selKeys = [...selected].filter(k => RAW[k]);
+  const history = getPortfolioMonthlyHistory(selKeys, weights);
+  if (history.dates.length < 2) {
+    clearCashflowResults('Select a positive-weight portfolio with overlapping price history.');
     return;
   }
-
-  // Normalize weights
-  var normWeights = {};
-  if (totalWt > 0) {
-    selKeys.forEach(function(k) { normWeights[k] = weightsMap[k] / totalWt; });
-  } else {
-    selKeys.forEach(function(k) { normWeights[k] = 1.0 / selKeys.length; });
-  }
-
-  // ── Compute portfolio date INTERSECTION ──────────────────────────────────
-  // Portfolio is only valid where ALL selected indices have data.
-  // portfolioStart = max of each index's first date
-  // portfolioEnd   = min of each index's last date
-  var portfolioStart = null;
-  var portfolioEnd   = null;
-  selKeys.forEach(function(k) {
-    var kDates = Object.keys(RAW[k]).sort();
-    if (!kDates.length) return;
-    var kFirst = kDates[0];
-    var kLast  = kDates[kDates.length - 1];
-    if (!portfolioStart || kFirst > portfolioStart) portfolioStart = kFirst;
-    if (!portfolioEnd   || kLast  < portfolioEnd)   portfolioEnd   = kLast;
-  });
-  if (!portfolioStart) portfolioStart = '1973-01';
-  if (!portfolioEnd)   portfolioEnd   = '2099-12';
-
-  // Update Start Month input: clamp min and value to portfolio start
-  var startEl = document.getElementById('cfStartDate');
-  var endEl   = document.getElementById('cfEndDate');
-  if (startEl) {
-    startEl.min = portfolioStart;
-    // If current value is before portfolio start, snap it forward
-    if (!startEl.value || startEl.value < portfolioStart) {
-      startEl.value = portfolioStart;
-    }
-    // Show portfolio range hint in the label
-    var rangeHint = document.getElementById('cfPortfolioRange');
-    if (rangeHint) {
-      rangeHint.textContent = 'Portfolio: ' + portfolioStart + ' → ' + portfolioEnd;
-    }
-  }
-  if (endEl) {
-    endEl.max = portfolioEnd;
-    if (endEl.value && endEl.value > portfolioEnd) {
-      endEl.value = portfolioEnd;
-    }
-  }
-
+  const portfolioStart = history.dates[0], portfolioEnd = history.dates[history.dates.length - 1];
+  const startEl = document.getElementById('cfStartDate');
+  const endEl = document.getElementById('cfEndDate');
+  startEl.min = portfolioStart; startEl.max = portfolioEnd;
+  endEl.min = portfolioStart; endEl.max = portfolioEnd;
+  if (!startEl.value || startEl.value < portfolioStart) startEl.value = portfolioStart;
+  if (startEl.value > portfolioEnd) startEl.value = portfolioEnd;
+  if (endEl.value > portfolioEnd) endEl.value = portfolioEnd;
+  const hint = document.getElementById('cfPortfolioRange');
+  if (hint) hint.textContent = 'Portfolio: ' + portfolioStart + ' → ' + portfolioEnd;
   if (currentCashflowView === 'rolling') {
-    // Use intersection date range for rolling view too
-    var intersectSet = new Set();
-    selKeys.forEach(function(k) {
-      Object.keys(RAW[k]).forEach(function(d) {
-        if (d >= portfolioStart && d <= portfolioEnd) intersectSet.add(d);
-      });
-    });
-    var dates = Array.from(intersectSet).sort();
-
-    var monthlyReturns = [];
-    for (var m = 1; m < dates.length; m++) {
-      var dPrev = dates[m - 1];
-      var dCurr = dates[m];
-      var retSum = 0;
-      var validWt = 0;
-      selKeys.forEach(function(k) {
-        var raw = RAW[k];
-        var p0 = getMonthlyValue(raw, dPrev, 'close');
-        var p1 = getMonthlyValue(raw, dCurr, 'close');
-        if (p0 && p1 && p0 > 0 && p1 > 0) {
-          var wt = normWeights[k] || 0;
-          retSum += (wt * (p1 / p0 - 1));
-          validWt += wt;
-        }
-      });
-      var r = validWt > 0.01 ? (retSum / validWt) : 0;
-      monthlyReturns.push({ date: dCurr, r: r });
-    }
-
-    if (currentCashflowMode === 'sip') {
-      executeRollingSipSim(selKeys, dates, monthlyReturns);
-    } else if (currentCashflowMode === 'swp') {
-      executeRollingSwpSim(selKeys, dates, monthlyReturns);
-    } else {
-      executeRollingLumpsumSim(selKeys, dates, monthlyReturns);
-    }
+    const run = currentCashflowMode === 'sip' ? executeRollingSipSim : currentCashflowMode === 'swp' ? executeRollingSwpSim : executeRollingLumpsumSim;
+    run(selKeys, history.dates, history.monthlyReturns);
     return;
   }
-
-  // Single Journey View — use intersection + user's chosen start/end
-  var startMonth = (startEl && startEl.value) ? startEl.value : portfolioStart;
-  // Clamp startMonth to portfolio bounds
-  if (startMonth < portfolioStart) startMonth = portfolioStart;
-  if (startMonth > portfolioEnd)   startMonth = portfolioEnd;
-
-  var endMonth = (endEl && endEl.value) ? endEl.value : '';
-  if (endMonth && endMonth > portfolioEnd) endMonth = portfolioEnd;
-
-  var intersectSet2 = new Set();
-  selKeys.forEach(function(k) {
-    Object.keys(RAW[k]).forEach(function(d) {
-      if (d >= startMonth && d <= portfolioEnd && (!endMonth || d <= endMonth)) {
-        intersectSet2.add(d);
-      }
-    });
-  });
-
-  var dates = Array.from(intersectSet2).sort();
-  var noData = document.getElementById('cfNoData');
-  var summaryGrid = document.getElementById('cfSummaryGrid');
-  var insightsBox = document.getElementById('cfInsightsBox');
-  var canvas = document.getElementById('cashflowChartCanvas');
-
-  if (dates.length < 3) {
-    if (noData) noData.style.display = 'block';
-    if (summaryGrid) summaryGrid.innerHTML = '';
-    if (insightsBox) insightsBox.innerHTML = '';
-    if (canvas) canvas.style.display = 'none';
-    if (cashflowChart) { cashflowChart.destroy(); cashflowChart = null; }
+  const journey = getPortfolioMonthlyHistory(selKeys, weights, startEl.value, endEl.value);
+  if (!hasValidCashflowWindow(journey.monthlyReturns, 0, journey.monthlyReturns.length)) {
+    clearCashflowResults('This date range has missing monthly prices or no complete month. Choose a continuous range; no returns have been invented.');
     return;
   }
-
-  if (noData) noData.style.display = 'none';
-  if (canvas) canvas.style.display = 'block';
-
-  var monthlyReturns = [];
-  for (var m = 1; m < dates.length; m++) {
-    var dPrev = dates[m - 1];
-    var dCurr = dates[m];
-    var retSum = 0;
-    var validWt = 0;
-    selKeys.forEach(function(k) {
-      var raw = RAW[k];
-      var p0 = getMonthlyValue(raw, dPrev, 'close');
-      var p1 = getMonthlyValue(raw, dCurr, 'close');
-      if (p0 && p1 && p0 > 0 && p1 > 0) {
-        var wt = normWeights[k] || 0;
-        retSum += (wt * (p1 / p0 - 1));
-        validWt += wt;
-      }
-    });
-    var r = validWt > 0.01 ? (retSum / validWt) : 0;
-    monthlyReturns.push({ date: dCurr, r: r });
-  }
-
-  if (currentCashflowMode === 'sip') {
-    executeSipSim(selKeys, dates, monthlyReturns);
-  } else if (currentCashflowMode === 'swp') {
-    executeSwpSim(selKeys, dates, monthlyReturns);
-  } else {
-    executeLumpsumSim(selKeys, dates, monthlyReturns);
-  }
+  document.getElementById('cfNoData').style.display = 'none';
+  document.getElementById('cashflowChartCanvas').style.display = 'block';
+  const run = currentCashflowMode === 'sip' ? executeSipSim : currentCashflowMode === 'swp' ? executeSwpSim : executeLumpsumSim;
+  run(selKeys, journey.dates, journey.monthlyReturns);
 }
 
 function executeSipSim(selKeys, dates, monthlyReturns) {
@@ -12200,7 +12068,7 @@ function executeSipSim(selKeys, dates, monthlyReturns) {
       renderKpiCard('Total Invested', formatINR(totalInvested), (monthlyReturns.length + 1) + ' instalments (' + stepUpPct + '% step-up)') +
       renderKpiCard('Final Portfolio Value', formatINR(portfolioVal), multiple + 'x wealth multiple', '#5E9CFF') +
       renderKpiCard('Net Wealth Created', (netGain >= 0 ? '+' : '') + formatINR(netGain), (absReturn >= 0 ? '+' : '') + absReturn.toFixed(1) + '% absolute gain', netGain >= 0 ? '#22d3a0' : '#f87171') +
-      renderKpiCard('Exact SIP XIRR', (xirr > 0 ? '+' : '') + xirr.toFixed(2) + '%', 'Annualised money-weighted return', '#22d3a0') +
+      renderKpiCard('Exact SIP XIRR', (Number.isFinite(xirr) ? (xirr > 0 ? '+' : '') + xirr.toFixed(2) + '%' : 'N/A'), 'Annualised money-weighted return', '#22d3a0') +
       renderKpiCard('Max Drawdown During SIP', maxDd.toFixed(1) + '%', 'Deepest dip from peak', '#f87171');
   }
 
@@ -12254,7 +12122,7 @@ function executeSwpSim(selKeys, dates, monthlyReturns) {
     var r = monthlyReturns[i].r;
 
     if (isFixed) {
-      if ((i + 1) % 12 === 0 && inflationPct > 0) {
+      if (i > 0 && i % 12 === 0 && inflationPct > 0) {
         currentWithdrawal = Math.round(currentWithdrawal * (1 + inflationPct / 100));
       }
       corpus = corpus * (1 + r);
@@ -12354,8 +12222,8 @@ function executeLumpsumSim(selKeys, dates, monthlyReturns) {
 
     lumpVal = lumpVal * (1 + r);
 
+    liquidVal = liquidVal * (1 + liquidMonthlyRate);
     if (i < 12) {
-      liquidVal = liquidVal * (1 + liquidMonthlyRate);
       var transfer = Math.min(liquidVal, monthlyStpInstalment);
       liquidVal = Math.max(0, liquidVal - transfer);
       stpEquityVal = (stpEquityVal * (1 + r)) + transfer;
@@ -12431,7 +12299,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
   var noData = document.getElementById('cfNoData');
   var canvas = document.getElementById('cashflowChartCanvas');
 
-  if (monthlyReturns.length < horizonMonths + 1) {
+  if (monthlyReturns.length < horizonMonths) {
     if (noData) {
       noData.style.display = 'block';
       noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year retirement horizon.';
@@ -12454,6 +12322,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
   var maxTerminal = -1;
 
   for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
+    if (!hasValidCashflowWindow(monthlyReturns, i, horizonMonths)) continue;
     var startMonth = dates[i];
     var endMonth = dates[i + horizonMonths];
     var corpus = initCorpus;
@@ -12509,6 +12378,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
     }
   }
 
+  if (!cohorts.length) { clearCashflowResults('No complete monthly windows for this horizon. Missing prices are excluded, not estimated.'); return; }
   var totalCohorts = cohorts.length;
   var survivalRate = ((survivedCount / totalCohorts) * 100).toFixed(1);
   var sortedTerminals = cohorts.map(function(c){ return c.terminalWealth; }).sort(function(a,b){ return a - b; });
@@ -12525,7 +12395,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
 
     summaryGrid.innerHTML = 
       renderKpiCard('Empirical Survival Rate', survivalRate + '%', survivedCount + ' of ' + totalCohorts + ' historical cohorts survived', survColor) +
-      renderKpiCard('Median Remaining Wealth', formatINR(medianTerminal), (medianTerminal >= initCorpus ? 'Capital expanded above inflation' : 'Principal partially consumed'), '#5E9CFF') +
+      renderKpiCard('Median Remaining Wealth', formatINR(medianTerminal), (medianTerminal >= initCorpus ? 'Above starting capital (nominal)' : 'Principal partially consumed'), '#5E9CFF') +
       renderKpiCard('Worst Historical Timing', worstCohort && !worstCohort.survived ? '<span class="cf-status-pill depleted">DEPLETED</span>' : formatINR(minTerminal), worstDesc, '#f87171') +
       renderKpiCard('Best Historical Timing', formatINR(maxTerminal), bestDesc, '#22d3a0') +
       renderKpiCard('Tested Horizon', horizonYears + ' Years', totalCohorts + ' rolling cohorts (' + dates[0] + ' → ' + dates[dates.length - 1] + ')');
@@ -12590,7 +12460,7 @@ function executeRollingSwpSim(selKeys, dates, monthlyReturns) {
     insightsBox.innerHTML = 
       '<div class="cf-insights-title">🛡️ Multi-Decade Retirement Longevity Analysis (' + totalCohorts + ' Historical Cohorts Tested)</div>' +
       '<div>' +
-      '• Testing <strong>' + horizonYears + '-year</strong> retirements across all start dates from <strong>' + dates[0] + '</strong> to <strong>' + dates[dates.length - horizonMonths] + '</strong> with ' + strategyText + ' produced an empirical survival rate of <strong style="color:' + survColor + ';">' + survivalRate + '%</strong>.<br>' +
+      '• Testing <strong>' + horizonYears + '-year</strong> retirements across all start dates from <strong>' + dates[0] + '</strong> to <strong>' + dates[dates.length - horizonMonths - 1] + '</strong> with ' + strategyText + ' produced an empirical survival rate of <strong style="color:' + survColor + ';">' + survivalRate + '%</strong>.<br>' +
       '• <strong>Surviving Legacy:</strong> Retirees who survived finished with a median terminal wealth of <strong>' + formatINR(medianTerminal) + '</strong> (' + (medianTerminal >= initCorpus ? 'greater than their starting capital' : 'after consuming some principal') + ').<br>' +
       crashMsg +
       '</div>';
@@ -12608,7 +12478,7 @@ function executeRollingSipSim(selKeys, dates, monthlyReturns) {
   var noData = document.getElementById('cfNoData');
   var canvas = document.getElementById('cashflowChartCanvas');
 
-  if (monthlyReturns.length < horizonMonths + 1) {
+  if (monthlyReturns.length < horizonMonths) {
     if (noData) {
       noData.style.display = 'block';
       noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year SIP horizon.';
@@ -12639,6 +12509,7 @@ function executeRollingSipSim(selKeys, dates, monthlyReturns) {
   }
 
   for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
+    if (!hasValidCashflowWindow(monthlyReturns, i, horizonMonths)) continue;
     var startMonth = dates[i];
     var endMonth = dates[i + horizonMonths];
     var portVal = initMonthly;
@@ -12679,6 +12550,7 @@ function executeRollingSipSim(selKeys, dates, monthlyReturns) {
     }
   }
 
+  if (!cohorts.length) { clearCashflowResults('No complete monthly windows for this horizon. Missing prices are excluded, not estimated.'); return; }
   var totalCohorts = cohorts.length;
   var sortedXirrs = cohorts.map(function(c){ return c.xirr; }).sort(function(a,b){ return a - b; });
   var medianXirr = sortedXirrs[Math.floor(totalCohorts * 0.5)];
@@ -12752,7 +12624,7 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
   var noData = document.getElementById('cfNoData');
   var canvas = document.getElementById('cashflowChartCanvas');
 
-  if (monthlyReturns.length < horizonMonths + 1) {
+  if (monthlyReturns.length < horizonMonths) {
     if (noData) {
       noData.style.display = 'block';
       noData.textContent = 'Selected portfolio has ' + Math.floor(monthlyReturns.length / 12) + ' years of history, which is less than the requested ' + horizonYears + '-year horizon.';
@@ -12774,6 +12646,7 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
   var minWealth = Infinity;
 
   for (var i = 0; i <= monthlyReturns.length - horizonMonths; i++) {
+    if (!hasValidCashflowWindow(monthlyReturns, i, horizonMonths)) continue;
     var startMonth = dates[i];
     var endMonth = dates[i + horizonMonths];
     var portVal = lumpAmount;
@@ -12804,6 +12677,7 @@ function executeRollingLumpsumSim(selKeys, dates, monthlyReturns) {
     }
   }
 
+  if (!cohorts.length) { clearCashflowResults('No complete monthly windows for this horizon. Missing prices are excluded, not estimated.'); return; }
   var totalCohorts = cohorts.length;
   var sortedCagrs = cohorts.map(function(c){ return c.cagr; }).sort(function(a,b){ return a - b; });
   var medianCagr = sortedCagrs[Math.floor(totalCohorts * 0.5)];
@@ -13134,52 +13008,13 @@ function renderRollingSipInsights(selKeys) {
   var insightsBox = document.getElementById('cfInsightsBox');
   if (!insightsBox) return;
 
-  var commonStart = '2005-01';
-  var allDateSet = new Set();
-  selKeys.forEach(function(k) {
-    var raw = RAW[k];
-    Object.keys(raw).forEach(function(d) {
-      if (d >= commonStart) allDateSet.add(d);
-    });
-  });
-  var dates = Array.from(allDateSet).sort();
-  if (dates.length < 120) {
-    insightsBox.innerHTML = '';
-    return;
-  }
-
-  var weights = {};
-  var totalWt = 0;
-  selKeys.forEach(function(k) {
-    var s = document.querySelector('.idx-weight-slider[data-key="' + k + '"]');
-    var w = s ? parseFloat(s.value) : 100;
-    weights[k] = w;
-    totalWt += w;
-  });
-  selKeys.forEach(function(k) { weights[k] = totalWt > 0 ? (weights[k] / totalWt) : (1.0 / selKeys.length); });
-
-  var monthlyReturns = [];
-  for (var m = 1; m < dates.length; m++) {
-    var dPrev = dates[m - 1], dCurr = dates[m];
-    var retSum = 0, validWt = 0;
-    selKeys.forEach(function(k) {
-      var raw = RAW[k];
-      var p0 = getMonthlyValue(raw, dPrev, 'close');
-      var p1 = getMonthlyValue(raw, dCurr, 'close');
-      if (p0 && p1 && p0 > 0 && p1 > 0) {
-        var wt = weights[k] || 0;
-        retSum += (wt * (p1 / p0 - 1));
-        validWt += wt;
-      }
-    });
-    var r = validWt > 0.01 ? (retSum / validWt) : 0;
-    monthlyReturns.push({ date: dCurr, r: r });
-  }
-
+  var history = getPortfolioMonthlyHistory(selKeys, weights, '2005-01');
+  var dates = history.dates, monthlyReturns = history.monthlyReturns;
   var cohorts = 0, positiveCount = 0;
   var xirrs = [];
   var horizonMonths = 120;
   for (var i = 0; i <= monthlyReturns.length - horizonMonths; i += 3) {
+    if (!hasValidCashflowWindow(monthlyReturns, i, horizonMonths)) continue;
     cohorts++;
     var cfs = [{ amount: -10000, t: 0 }];
     var pVal = 10000;
@@ -13193,6 +13028,7 @@ function renderRollingSipInsights(selKeys) {
     if (x > 0) positiveCount++;
   }
 
+  if (!cohorts) { insightsBox.innerHTML = ''; return; }
   xirrs.sort(function(a,b){ return a - b; });
   var medXirr = xirrs[Math.floor(xirrs.length * 0.5)];
   var minXirr = xirrs[0];
@@ -13214,52 +13050,21 @@ function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflation
   var insightsBox = document.getElementById('cfInsightsBox');
   if (!insightsBox) return;
 
-  var commonStart = '2000-01';
-  var allDateSet = new Set();
-  selKeys.forEach(function(k) {
-    var raw = RAW[k];
-    Object.keys(raw).forEach(function(d) {
-      if (d >= commonStart) allDateSet.add(d);
-    });
-  });
-  var dates = Array.from(allDateSet).sort();
-  if (dates.length < 180) {
-    insightsBox.innerHTML = '';
-    return;
-  }
-
-  var weights = {};
-  var totalWt = 0;
-  selKeys.forEach(function(k) {
-    var s = document.querySelector('.idx-weight-slider[data-key="' + k + '"]');
-    var w = s ? parseFloat(s.value) : 100;
-    weights[k] = w;
-    totalWt += w;
-  });
-  selKeys.forEach(function(k) { weights[k] = totalWt > 0 ? (weights[k] / totalWt) : (1.0 / selKeys.length); });
-
+  // This panel describes the fixed-withdrawal strategy only.
+  if (currentSwpType !== 'fixed') { insightsBox.innerHTML = ''; return; }
+  var history = getPortfolioMonthlyHistory(selKeys, weights, '2000-01');
+  var dates = history.dates, monthlyReturns = history.monthlyReturns;
   var horizonMonths = 180;
   var cohorts = 0, survivedCount = 0;
-  for (var i = 0; i <= dates.length - horizonMonths; i += 6) {
+  for (var i = 0; i <= monthlyReturns.length - horizonMonths; i += 6) {
+    if (!hasValidCashflowWindow(monthlyReturns, i, horizonMonths)) continue;
     cohorts++;
     var c = initCorpus;
     var w = initWithdrawal;
     var ok = true;
-    for (var m = 1; m < horizonMonths; m++) {
-      if (m % 12 === 0 && inflationPct > 0) w *= (1 + inflationPct / 100);
-      var dPrev = dates[i + m - 1], dCurr = dates[i + m];
-      var retSum = 0, validWt = 0;
-      selKeys.forEach(function(k) {
-        var raw = RAW[k];
-        var p0 = getMonthlyValue(raw, dPrev, 'close');
-        var p1 = getMonthlyValue(raw, dCurr, 'close');
-        if (p0 && p1 && p0 > 0 && p1 > 0) {
-          var wt = weights[k] || 0;
-          retSum += (wt * (p1 / p0 - 1));
-          validWt += wt;
-        }
-      });
-      var r = validWt > 0.01 ? (retSum / validWt) : 0;
+    for (var m = 0; m < horizonMonths; m++) {
+      if (m > 0 && m % 12 === 0 && inflationPct > 0) w = Math.round(w * (1 + inflationPct / 100));
+      var r = monthlyReturns[i + m].r;
       c = c * (1 + r);
       var actW = Math.min(c, w);
       c = Math.max(0, c - actW);
@@ -13268,6 +13073,7 @@ function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflation
     if (ok) survivedCount++;
   }
 
+  if (!cohorts) { insightsBox.innerHTML = ''; return; }
   var survivalRate = ((survivedCount / cohorts) * 100).toFixed(0);
 
   insightsBox.innerHTML = 
@@ -13275,7 +13081,7 @@ function renderRollingSwpInsights(selKeys, initWithdrawal, initCorpus, inflation
     '<div style="display:flex;gap:14px;align-items:center;margin-bottom:4px;flex-wrap:wrap;">' +
       '<div style="font-family:Syne,sans-serif;font-size:1.35rem;font-weight:800;color:' + (survivalRate >= 85 ? '#22d3a0' : (survivalRate >= 70 ? '#f59e0b' : '#f87171')) + ';">' + survivalRate + '% Survival Rate</div>' +
       '<div style="font-size:0.72rem;color:var(--text);line-height:1.5;">' +
-        '• <strong>' + survivedCount + ' out of ' + cohorts + '</strong> retirement cohorts starting at different points in history (2000–2011) successfully survived 15 years without depleting capital.<br>' +
+        '• <strong>' + survivedCount + ' out of ' + cohorts + '</strong> retirement cohorts starting at different points in history (' + dates[0] + ' onward) successfully survived 15 years without depleting capital.<br>' +
         '• Initial withdrawal rate: <strong>' + ((initWithdrawal*12/initCorpus)*100).toFixed(1) + '%</strong> p.a. stepped up annually with <strong>' + inflationPct + '%</strong> inflation.' +
       '</div>' +
     '</div>';
@@ -14016,7 +13822,7 @@ function renderYieldGapTab() {
   allDates.forEach(function(d) {
     var pe = peData.values[d];
     var ey = (pe && pe > 0) ? parseFloat(((1 / pe) * 100).toFixed(2)) : null;
-    var gsec = GSEC_10Y[d] !== undefined ? GSEC_10Y[d] : 6.68;
+    var gsec = Number.isFinite(GSEC_10Y[d]) ? GSEC_10Y[d] : null;
     var spread = (ey !== null && gsec !== null) ? parseFloat((gsec - ey).toFixed(2)) : null;
 
     eySeries.push(ey);
@@ -14069,7 +13875,9 @@ function renderYieldGapTab() {
     var pe = peData.values[d];
 
     var regimeBadge = '';
-    if (spread <= 0.5) {
+    if (spread === null) {
+      regimeBadge = '<span style="color:var(--muted);">Yield spread unavailable: missing earnings or historical bond yield.</span>';
+    } else if (spread <= 0.5) {
       regimeBadge = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Equities Highly Attractive (Yield Spread: ' + spread + '%)</span>';
     } else if (spread <= 2.5) {
       regimeBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Normal Risk Premium (Spread: ' + spread + '%)</span>';
@@ -14139,7 +13947,7 @@ function renderYieldGapTab() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAB 8: SHILLER CAPE (CYCLICALLY ADJUSTED P/E)
+// TAB 8: SHILLER CAPE (NOMINAL EARNINGS P/E)
 // ─────────────────────────────────────────────────────────────────────────────
 var capeChartInstance = null;
 var capeWindowMonths = 60; // 5Y default
@@ -14170,6 +13978,25 @@ function resetCapeZoom() {
     if (b) b.classList.toggle('active', t === 'MAX');
   });
   renderCapeTab();
+}
+
+function computeNominalSmoothedPe(dates, priceMap, peMap, windowMonths) {
+  const eps = {}, smoothed = {}, values = {};
+  if (!Number.isInteger(windowMonths) || windowMonths < 1) return { smoothed, values };
+  dates.forEach(d => {
+    if (Number.isFinite(priceMap[d]) && priceMap[d] > 0 && Number.isFinite(peMap[d]) && peMap[d] > 0) eps[d] = priceMap[d] / peMap[d];
+  });
+  dates.forEach(d => {
+    let sum = 0, complete = true;
+    for (let offset = 0; offset < windowMonths; offset++) {
+      const e = eps[addMonths(d, -offset)];
+      if (!Number.isFinite(e) || e <= 0) { complete = false; break; }
+      sum += e;
+    }
+    smoothed[d] = complete ? sum / windowMonths : null;
+    values[d] = complete ? +(priceMap[d] / smoothed[d]).toFixed(2) : null;
+  });
+  return { smoothed, values };
 }
 
 function renderCapeTab() {
@@ -14210,32 +14037,11 @@ function renderCapeTab() {
     return;
   }
 
-  // Compute monthly EPS
-  var epsMap = {};
-  commonDates.forEach(function(d) {
-    epsMap[d] = priceMap[d] / peData.values[d];
-  });
-
-  // Compute Smoothed EPS and CAPE
-  var capeSeries = [];
-  var peSeries = [];
-  var smoothedEpsMap = {};
-
-  for (var i = 0; i < commonDates.length; i++) {
-    var d = commonDates[i];
-    var startIdx = Math.max(0, i - capeWindowMonths + 1);
-    var count = i - startIdx + 1;
-    var sum = 0;
-    for (var j = startIdx; j <= i; j++) {
-      sum += epsMap[commonDates[j]];
-    }
-    var smoothedEps = sum / count;
-    smoothedEpsMap[d] = smoothedEps;
-    var cape = priceMap[d] / smoothedEps;
-
-    capeSeries.push(parseFloat(cape.toFixed(2)));
-    peSeries.push(parseFloat(peData.values[d].toFixed(2)));
-  }
+  // Nominal earnings smoothing, not inflation-adjusted Shiller CAPE.
+  var computed = computeNominalSmoothedPe(commonDates, priceMap, peData.values, capeWindowMonths);
+  var smoothedEpsMap = computed.smoothed;
+  var capeSeries = commonDates.map(d => computed.values[d]);
+  var peSeries = commonDates.map(d => +peData.values[d].toFixed(2));
 
   // Filter timeframe
   var fDates = commonDates;
@@ -14261,12 +14067,12 @@ function renderCapeTab() {
   }
 
   // Compute median CAPE
-  var sortedCape = [...fCape].sort(function(a,b){ return a - b; });
-  var medianCape = sortedCape[Math.floor(sortedCape.length / 2)] || 20;
+  var sortedCape = fCape.filter(Number.isFinite).sort(function(a,b){ return a - b; });
+  var medianCape = sortedCape.length ? sortedCape[Math.floor(sortedCape.length / 2)] : null;
 
   var datasets = [
     {
-      label: chosenKey + ' Shiller CAPE (' + (capeWindowMonths/12) + 'Y Smooth)',
+      label: chosenKey + ' Smoothed P/E (' + (capeWindowMonths/12) + 'Y Smooth)',
       data: fCape,
       borderColor: '#a855f7',
       backgroundColor: '#a855f7',
@@ -14287,7 +14093,7 @@ function renderCapeTab() {
       order: 2
     },
     {
-      label: 'Median CAPE (' + medianCape.toFixed(1) + 'x)',
+      label: 'Median Smoothed P/E (' + (medianCape === null ? 'N/A' : medianCape.toFixed(1) + 'x') + ')',
       data: fDates.map(function(){ return medianCape; }),
       borderColor: 'rgba(245, 158, 11, 0.5)',
       borderWidth: 1.5,
@@ -14304,19 +14110,20 @@ function renderCapeTab() {
     if (!d) return;
     var cVal = fCape[idx];
     var pVal = fPe[idx];
-    var smEps = smoothedEpsMap[d] || 0;
+    var smEps = smoothedEpsMap[d];
     var price = priceMap[d] || 0;
 
     var tag = '';
-    if (cVal <= medianCape * 0.85) tag = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Cyclical Value Zone</span>';
+    if (cVal === null) tag = '<span style="color:var(--muted);">Incomplete monthly earnings window</span>';
+    else if (cVal <= medianCape * 0.85) tag = '<span style="background:rgba(34,211,160,0.15);color:#22d3a0;padding:2px 8px;border-radius:4px;font-weight:700;">🟢 Cyclical Value Zone</span>';
     else if (cVal >= medianCape * 1.25) tag = '<span style="background:rgba(248,113,113,0.15);color:#f87171;padding:2px 8px;border-radius:4px;font-weight:700;">🔴 Cyclical Froth Zone</span>';
     else tag = '<span style="background:rgba(255,255,255,0.06);color:var(--text);padding:2px 8px;border-radius:4px;font-weight:600;">⚪ Fair Value Range</span>';
 
     hud.innerHTML =
       '<span style="color:var(--text);font-weight:700;">📅 ' + d + '</span>' +
       '<span>Price: <strong style="color:#F5F5F7;">₹' + price.toLocaleString('en-IN', {maximumFractionDigits:1}) + '</strong></span>' +
-      '<span>Smoothed EPS: <strong style="color:#a855f7;">₹' + smEps.toFixed(1) + '</strong></span>' +
-      '<span>Shiller CAPE: <strong style="color:#a855f7;">' + cVal.toFixed(1) + 'x</strong></span>' +
+      '<span>Smoothed EPS: <strong style="color:#a855f7;">₹' + (smEps === null ? '—' : smEps.toFixed(1)) + '</strong></span>' +
+      '<span>Smoothed P/E: <strong style="color:#a855f7;">' + (cVal === null ? '—' : cVal.toFixed(1) + 'x') + '</strong></span>' +
       '<span>Trailing P/E: <strong style="color:#94a3b8;">' + pVal.toFixed(1) + 'x</strong></span>' +
       tag;
   }
@@ -14386,6 +14193,39 @@ var fundAssetMode = 'index'; // 'index' or 'stock'
 var fundSelectedStock = 'RELIANCE';
 var fundCustomStockData = {}; // In-memory cache for Indian stocks (₹)
 var fundCustomUsStockData = {}; // Separate cache for US stocks ($)
+var fundStockRequestId = 0;
+
+function invalidateFundStockRequest() {
+  fundStockRequestId++;
+  var btn = document.getElementById('fundStockFetchBtn');
+  if (btn) btn.disabled = false;
+  var status = document.getElementById('fundStockStatus');
+  if (status) status.textContent = '';
+  return fundStockRequestId;
+}
+
+function setFundStockStatus(message, color) {
+  var status = document.getElementById('fundStockStatus');
+  if (status) { status.textContent = message; status.style.color = color || 'var(--muted)'; }
+}
+
+function clearFundamentalsChart() {
+  if (fundamentalsChartInstance) fundamentalsChartInstance.destroy();
+  fundamentalsChartInstance = null;
+  fundChart = null;
+  window.fundChart = null;
+  window.fundamentalsChartInstance = null;
+  window._refreshFundPanels = null;
+  var canvas = document.getElementById('fundamentalsChart');
+  if (canvas) { canvas.onmouseleave = null; canvas.onmousedown = null; canvas.style.cursor = 'default'; }
+  if (window._fundMouseUpHandler) window.removeEventListener('mouseup', window._fundMouseUpHandler);
+  window._fundMouseUpHandler = null;
+  var note = document.getElementById('fundDataNote');
+  if (note) note.textContent = '';
+  var body = document.getElementById('fundDecompTbody');
+  if (body) body.innerHTML = '';
+}
+
 
 function setFundScaleType(type) {
   fundScaleType = (type === 'linear' || type === 'lin') ? 'linear' : 'logarithmic';
@@ -14408,7 +14248,7 @@ function setFundScaleType(type) {
   if (savedMin !== null && savedMax !== null && fundamentalsChartInstance && typeof fundamentalsChartInstance.zoomScale === 'function') {
     try {
       fundamentalsChartInstance.zoomScale('x', { min: savedMin, max: savedMax });
-      syncFundHudAfterZoomPan(fundamentalsChartInstance);
+      if (typeof fundamentalsChartInstance.$syncFundHud === 'function') fundamentalsChartInstance.$syncFundHud();
     } catch (e) {}
   }
 }
@@ -14447,7 +14287,7 @@ function resetFundZoom() {
   if (wasZoomed && fundamentalsChartInstance && typeof fundamentalsChartInstance.resetZoom === 'function') {
     try {
       fundamentalsChartInstance.resetZoom();
-      syncFundHudAfterZoomPan(fundamentalsChartInstance);
+      if (typeof fundamentalsChartInstance.$syncFundHud === 'function') fundamentalsChartInstance.$syncFundHud();
       return;
     } catch (e) {}
   }
@@ -14467,6 +14307,7 @@ function resetFundZoom() {
 var fundSelectedUsStock = 'AAPL';
 
 function switchFundAssetMode(mode) {
+  invalidateFundStockRequest();
   fundAssetMode = mode;
   var bIdx = document.getElementById('fundModeIndicesBtn');
   var bStk = document.getElementById('fundModeStocksBtn');
@@ -14538,6 +14379,7 @@ function updateStockChipsUI(selectedSym) {
 }
 
 function selectStockChip(sym, label) {
+  invalidateFundStockRequest();
   if (fundAssetMode === 'us_stock') {
     fundSelectedUsStock = sym;
     var readyUs = (typeof READY_US_STOCKS !== 'undefined') ? READY_US_STOCKS : (window.READY_US_STOCKS || {});
@@ -14672,26 +14514,42 @@ function cleanStockSymbol(inputStr) {
   return ALIASES[s] || s.replace(/[^A-Z0-9&-]/g, '');
 }
 
+function buildStockProxyUrl(proxyBase, symbol) {
+  const url = new URL(proxyBase);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Proxy URL must use HTTP or HTTPS');
+  const path = url.pathname.replace(/\/$/, '');
+  url.pathname = /\/(api\/)?stock$/.test(path) ? path : path + '/api/stock';
+  url.searchParams.set('symbol', symbol);
+  url.hash = '';
+  return url.toString();
+}
+
+function parseFundObservation(point) {
+  if (!Array.isArray(point) || typeof point[0] !== 'string' || !/^\d{4}-\d{2}-\d{2}(?:$|T| )/.test(point[0])) return null;
+  if (!['number', 'string'].includes(typeof point[1]) || String(point[1]).trim() === '') return null;
+  const date = point[0].slice(0, 10), value = Number(point[1]);
+  const parsed = new Date(date + 'T00:00:00Z');
+  if (!Number.isFinite(value) || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) return null;
+  return { date, value };
+}
+
 async function fetchCustomStock(symbol) {
   var proxyBase = localStorage.getItem('fund_stock_proxy_url') || 'https://restless-block-425c.q840248.workers.dev';
-  proxyBase = proxyBase.replace(/\/$/, '');
-  
-  var sep = proxyBase.includes('?') ? '&' : '?';
-  var targetUrl = proxyBase.includes('/api/stock') ? (proxyBase + sep + 'symbol=' + encodeURIComponent(symbol)) : (proxyBase + '/api/stock' + sep + 'symbol=' + encodeURIComponent(symbol));
-  
-  var resp = await fetch(targetUrl, { headers: { 'Accept': 'application/json' } });
+  var targetUrl = buildStockProxyUrl(proxyBase, symbol);
+
+  var resp = await fetch(targetUrl, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(30000) });
   if (!resp.ok) {
     throw new Error('Proxy responded with HTTP ' + resp.status);
   }
   var data = await resp.json();
-  if (data.error) {
-    throw new Error(data.error);
-  }
+  if (data && data.error) throw new Error(data.error);
+  if (!data || !Array.isArray(data.datasets)) throw new Error('Invalid fundamentals response: datasets must be an array');
 
   var priceRaw = [], epsRaw = [];
-  (data.datasets || []).forEach(function(ds) {
-    if (ds.metric === 'Price') priceRaw = ds.values || [];
-    else if (ds.metric === 'EPS') epsRaw = ds.values || [];
+  data.datasets.forEach(function(ds) {
+    if (!ds || !Array.isArray(ds.values)) return;
+    if (ds.metric === 'Price') priceRaw = ds.values;
+    else if (ds.metric === 'EPS') epsRaw = ds.values;
   });
 
   if (!priceRaw.length || !epsRaw.length) {
@@ -14699,20 +14557,12 @@ async function fetchCustomStock(symbol) {
   }
 
   var priceByMonth = {};
-  priceRaw.forEach(function(pt) {
-    if (!pt || pt[1] == null) return;
-    var ym = pt[0].slice(0, 7);
-    var p = parseFloat(pt[1]);
-    if (!isNaN(p) && p > 0) priceByMonth[ym] = parseFloat(p.toFixed(2));
+  priceRaw.map(parseFundObservation).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date)).forEach(function(point) {
+    if (point.value > 0) priceByMonth[point.date.slice(0, 7)] = +point.value.toFixed(2);
   });
 
-  var rawPts = [];
-  epsRaw.forEach(function(pt) {
-    if (!pt || pt[1] == null) return;
-    var dt = String(pt[0]).slice(0, 10);
-    var ym = dt.slice(0, 7);
-    var e = parseFloat(pt[1]);
-    if (!isNaN(e) && ym.length === 7) rawPts.push({ dt: dt, ym: ym, eps: e });
+  var rawPts = epsRaw.map(parseFundObservation).filter(Boolean).map(function(point) {
+    return { dt: point.date, ym: point.date.slice(0, 7), eps: point.value };
   });
   rawPts.sort(function(a, b) { return a.dt.localeCompare(b.dt); });
   var byYm = {};
@@ -14794,73 +14644,46 @@ async function fetchCustomStock(symbol) {
 
 async function fetchAndSelectStock(forceRefresh) {
   var inp = document.getElementById('fundStockInput');
-  var stat = document.getElementById('fundStockStatus');
-  if (!inp) return;
-  var rawVal = inp.value.trim();
-  if (!rawVal) return;
-  var sym = cleanStockSymbol(rawVal);
+  if (!inp || !inp.value.trim()) return;
+  var sym = cleanStockSymbol(inp.value);
+  if (!sym) return;
   inp.value = sym;
-
+  var requestId = invalidateFundStockRequest();
   if (fundAssetMode === 'us_stock') {
     fundSelectedUsStock = sym;
     var readyUs = (typeof READY_US_STOCKS !== 'undefined') ? READY_US_STOCKS : (window.READY_US_STOCKS || {});
     var usObj = readyUs[sym] || fundCustomUsStockData[sym];
-    if (usObj) {
-      fundCustomUsStockData[sym] = usObj;
-      if (stat) stat.innerHTML = '<span style="color:#22d3a0;">⚡ Loaded ' + (usObj.name || sym) + ' ($)</span>';
-      setTimeout(function() { if (stat) stat.textContent = ''; }, 2500);
-      renderFundamentalsTab();
-      return;
-    }
-    if (stat) {
-      stat.innerHTML = '<span style="color:#f87171;">❌ US ticker "' + sym + '" not in offline SEC EDGAR cache</span>';
-    }
+    if (usObj) fundCustomUsStockData[sym] = usObj;
+    setFundStockStatus(usObj ? '⚡ Loaded ' + (usObj.name || sym) + ' ($, offline cache)' : 'US ticker "' + sym + '" not in offline SEC EDGAR cache', usObj ? '#22d3a0' : '#f87171');
     renderFundamentalsTab();
     return;
   }
-
+  if (fundAssetMode !== 'stock') return;
   fundSelectedStock = sym;
   var topDict = (typeof TOP_STOCKS_DATA !== 'undefined' ? TOP_STOCKS_DATA : window.TOP_STOCKS_DATA) || {};
-  var preCached = topDict[sym] || (sym === 'TMPV' && topDict['TATAMOTORS'] ? Object.assign({}, topDict['TATAMOTORS'], { symbol: 'TMPV' }) : null);
-  var savedProxy = localStorage.getItem('fund_stock_proxy_url') || '';
-  var usingCustomProxy = savedProxy && savedProxy.indexOf('restless-block-425c') === -1;
-
-  if ((!forceRefresh && fundCustomStockData[sym]) || (preCached && (!forceRefresh || !usingCustomProxy))) {
-    if (!fundCustomStockData[sym] || (preCached && !usingCustomProxy)) {
-      fundCustomStockData[sym] = preCached || fundCustomStockData[sym];
-    }
-    if (stat) stat.innerHTML = '<span style="color:#22d3a0;">⚡ Loaded ' + (fundCustomStockData[sym].name || sym) + ' (₹)</span>';
-    setTimeout(function() { if (stat) stat.textContent = ''; }, 2500);
-    renderFundamentalsTab();
+  var cached = fundCustomStockData[sym] || topDict[sym] || (sym === 'TMPV' && topDict.TATAMOTORS ? Object.assign({}, topDict.TATAMOTORS, { symbol: 'TMPV' }) : null);
+  if (cached) fundCustomStockData[sym] = cached;
+  renderFundamentalsTab(); // Remove an unrelated stock's old chart while loading.
+  if (!forceRefresh && cached) {
+    setFundStockStatus('⚡ Loaded ' + (cached.name || sym) + ' (₹, cached)', '#22d3a0');
     return;
   }
-
-  // Fetch live via proxy for unlisted Indian stocks or when custom proxy + forceRefresh is requested
-  if (stat) {
-    stat.innerHTML = '<span style="color:#38bdf8;">⏳ Fetching ' + sym + ' live...</span>';
-  }
+  setFundStockStatus('⏳ Fetching ' + sym + ' live...', '#38bdf8');
   var fetchBtn = document.getElementById('fundStockFetchBtn');
   if (fetchBtn) fetchBtn.disabled = true;
-
   try {
     var stockObj = await fetchCustomStock(sym);
     fundCustomStockData[sym] = stockObj;
-    fundSelectedStock = sym;
-    if (stat) {
-      if (!stockObj.epsBasis) {
-        stat.innerHTML = '<span style="color:#f59e0b;">✓ Loaded ' + sym + ' (' + stockObj.dates.length + ' mos) — ⚠ Remote worker un-updated (may use Standalone EPS; deploy stock-proxy-worker.js for Consolidated)</span>';
-      } else {
-        stat.innerHTML = '<span style="color:#22d3a0;">✓ Loaded ' + sym + ' (' + stockObj.dates.length + ' mos live, ' + stockObj.epsBasis + ')</span>';
-        setTimeout(function() { if (stat) stat.textContent = ''; }, 3500);
-      }
-    }
+    // Cache a late response but never overwrite a newer selection or its UI.
+    if (requestId !== fundStockRequestId || fundAssetMode !== 'stock' || fundSelectedStock !== sym) return;
+    setFundStockStatus('✓ Loaded ' + sym + ' (' + stockObj.dates.length + ' months live, ' + (stockObj.epsBasis || 'EPS basis not supplied by proxy') + ')', '#22d3a0');
     renderFundamentalsTab();
   } catch (err) {
-    if (stat) {
-      stat.innerHTML = '<span style="color:#f87171;" title="' + err.message + '">❌ ' + (err.message.length > 35 ? err.message.slice(0, 35) + '...' : err.message) + '</span>';
-    }
+    if (requestId !== fundStockRequestId) return;
+    setFundStockStatus('❌ ' + String(err.message || err) + (cached ? ' — showing cached data, not a live refresh.' : ''), '#f87171');
+    renderFundamentalsTab();
   } finally {
-    if (fetchBtn) fetchBtn.disabled = false;
+    if (requestId === fundStockRequestId && fetchBtn) fetchBtn.disabled = false;
   }
 }
 
@@ -14923,7 +14746,7 @@ function updateFundSeriesVisibility() {
   fundShowHeatmap = chkHeatmap ? chkHeatmap.checked : true;
 
   var chkTrimmed = document.getElementById('chkFundTrimmedEps');
-  var showTrimmed = chkTrimmed ? chkTrimmed.checked : true;
+  var showTrimmed = fundAssetMode === 'index' && (chkTrimmed ? chkTrimmed.checked : true);
 
   fundamentalsChartInstance.setDatasetVisibility(0, showPrice);
   fundamentalsChartInstance.setDatasetVisibility(1, showEps);
@@ -14956,6 +14779,23 @@ function updateFundSeriesVisibility() {
 
 
 
+function normalizeFundamentalsStock(stock) {
+  const price = {}, eps = {}, pe = {};
+  const dates = Object.keys(stock.price || {}).filter(d => /^\d{4}-(0[1-9]|1[0-2])$/.test(d) && Number.isFinite(stock.price[d]) && stock.price[d] > 0).sort();
+  for (const d of dates) {
+    price[d] = stock.price[d];
+    const e = (stock.eps || {})[d];
+    eps[d] = Number.isFinite(e) ? e : null;
+    // Keep Price = EPS × P/E internally consistent; rounded cache P/E is display data.
+    pe[d] = e > 0 && Number.isFinite(e) && Number.isFinite(price[d] / e) ? price[d] / e : null;
+  }
+  return { dates, price, eps, pe };
+}
+
+function escapeFundText(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
+}
+
 function renderFundamentalsTab() {
   var canvas = document.getElementById('fundamentalsChart');
   var hud = document.getElementById('fundHoverHud');
@@ -14975,16 +14815,16 @@ function renderFundamentalsTab() {
   if (fundAssetMode === 'us_stock') {
     var stockObj = readyUs[fundSelectedUsStock] || fundCustomUsStockData[fundSelectedUsStock];
     if (!stockObj) {
-      if (hud) hud.innerHTML = '<span style="color:#f87171;font-family:monospace;">❌ US ticker "' + fundSelectedUsStock + '" not available (select AAPL, MSFT, NVDA, GOOGL, AMZN, META, TSLA, AMD, NFLX)</span>';
+      clearFundamentalsChart();
+      if (hud) hud.innerHTML = '<span style="color:#f87171;font-family:monospace;">❌ US ticker "' + escapeFundText(fundSelectedUsStock) + '" not available (select AAPL, MSFT, NVDA, GOOGL, AMZN, META, TSLA, AMD, NFLX)</span>';
       return;
     }
     chosenKey = stockObj.symbol || fundSelectedUsStock;
-    priceMap = stockObj.price || {};
-    epsMap = stockObj.eps || {};
-    peData = { dates: stockObj.dates || Object.keys(stockObj.pe || {}).sort(), values: stockObj.pe || {} };
-    commonDates = stockObj.dates ? [...stockObj.dates] : Object.keys(priceMap).filter(function(d) {
-      return priceMap[d] > 0 && epsMap[d] !== undefined;
-    }).sort();
+    var normalized = normalizeFundamentalsStock(stockObj);
+    priceMap = normalized.price;
+    epsMap = normalized.eps;
+    peData = { dates: normalized.dates, values: normalized.pe };
+    commonDates = normalized.dates;
 
   } else if (fundAssetMode === 'stock') {
     var topDict = (typeof TOP_STOCKS_DATA !== 'undefined' ? TOP_STOCKS_DATA : window.TOP_STOCKS_DATA) || {};
@@ -14993,17 +14833,17 @@ function renderFundamentalsTab() {
       fundCustomStockData[fundSelectedStock] = stockObj;
     }
     if (!stockObj) {
+      clearFundamentalsChart();
       if (hud) hud.innerHTML = '<span style="color:#38bdf8;font-family:monospace;">Enter any stock symbol above (e.g. RELIANCE, TCS, YESBANK, ZOMATO) and click Fetch ⚡</span>';
       return;
     }
 
     chosenKey = stockObj.symbol || fundSelectedStock;
-    priceMap = stockObj.price || {};
-    epsMap = stockObj.eps || {};
-    peData = { dates: stockObj.dates || Object.keys(stockObj.pe || {}).sort(), values: stockObj.pe || {} };
-    commonDates = stockObj.dates ? [...stockObj.dates] : Object.keys(priceMap).filter(function(d) {
-      return priceMap[d] > 0 && epsMap[d] !== undefined;
-    }).sort();
+    var normalized = normalizeFundamentalsStock(stockObj);
+    priceMap = normalized.price;
+    epsMap = normalized.eps;
+    peData = { dates: normalized.dates, values: normalized.pe };
+    commonDates = normalized.dates;
 
   } else {
     // Indices Mode
@@ -15017,6 +14857,7 @@ function renderFundamentalsTab() {
     }).sort();
 
     if (availableIndices.length === 0) {
+      clearFundamentalsChart();
       if (hud) hud.innerHTML = '<span style="color:var(--muted);">No fundamentals data available</span>';
       return;
     }
@@ -15026,7 +14867,7 @@ function renderFundamentalsTab() {
       if (!curVal || !availableIndices.includes(curVal)) {
         curVal = availableIndices.includes('Nifty 50') ? 'Nifty 50' : availableIndices[0];
       }
-      if (select.options.length !== availableIndices.length) {
+      if (select.options.length !== availableIndices.length || availableIndices.some((key, i) => select.options[i].value !== key)) {
         select.innerHTML = availableIndices.map(function(k) {
           return '<option value="' + k + '">' + k + '</option>';
         }).join('');
@@ -15049,7 +14890,8 @@ function renderFundamentalsTab() {
     }).sort();
 
     if (commonDates.length === 0) {
-      if (hud) hud.innerHTML = '<span style="color:var(--muted);">No common price &amp; P/E data available for ' + chosenKey + '</span>';
+      clearFundamentalsChart();
+      if (hud) hud.innerHTML = '<span style="color:var(--muted);">No common price &amp; P/E data available for ' + escapeFundText(chosenKey) + '</span>';
       return;
     }
 
@@ -15061,44 +14903,18 @@ function renderFundamentalsTab() {
     });
   }
 
-  // 2. Rolling CAGR % overlay
-  var cagrObj = (fundAssetMode === 'index' && typeof computeRollingCAGR === 'function') ? computeRollingCAGR(chosenKey, fundHorizon, 'close') : {};
+  if (!commonDates.length) {
+    clearFundamentalsChart();
+    if (hud) hud.textContent = 'No valid monthly prices available for ' + chosenKey;
+    return;
+  }
+
+  // Calendar-exact horizons: do not label a 13-month return as a 1Y return.
   var rollingCagrMap = {};
-  for (var i = 0; i < commonDates.length; i++) {
-    var curDate = commonDates[i];
-    if (cagrObj && cagrObj[curDate] !== undefined && cagrObj[curDate] !== null) {
-      rollingCagrMap[curDate] = cagrObj[curDate];
-    } else {
-      var parts = curDate.split('-');
-      var targetPrev = (parseInt(parts[0], 10) - fundHorizon) + '-' + parts[1];
-      var prevPrice = priceMap[targetPrev];
-      if (prevPrice && prevPrice > 0) {
-        var cagr = (Math.pow(priceMap[curDate] / prevPrice, 1 / fundHorizon) - 1) * 100;
-        rollingCagrMap[curDate] = parseFloat(cagr.toFixed(1));
-      } else {
-        var cand = null;
-        for (var ci = i - 1; ci >= 0; ci--) {
-          var cd = commonDates[ci];
-          if (cd <= targetPrev) {
-            cand = cd;
-            break;
-          }
-        }
-        if (cand && priceMap[cand]) {
-          var cParts = cand.split('-');
-          var mDiff = (parseInt(parts[0], 10) - parseInt(cParts[0], 10)) * 12 + (parseInt(parts[1], 10) - parseInt(cParts[1], 10));
-          var yDiff = mDiff / 12;
-          if (yDiff >= fundHorizon * 0.85 && yDiff <= fundHorizon * 1.15) {
-            var cagrApp = (Math.pow(priceMap[curDate] / priceMap[cand], 1 / yDiff) - 1) * 100;
-            rollingCagrMap[curDate] = parseFloat(cagrApp.toFixed(1));
-          } else {
-            rollingCagrMap[curDate] = null;
-          }
-        } else {
-          rollingCagrMap[curDate] = null;
-        }
-      }
-    }
+  for (const d of commonDates) {
+    const start = addMonths(d, -fundHorizon * 12);
+    const p0 = priceMap[start], p1 = priceMap[d];
+    rollingCagrMap[d] = p0 > 0 && p1 > 0 ? +((Math.pow(p1 / p0, 1 / fundHorizon) - 1) * 100).toFixed(2) : null;
   }
 
   // 3. Timeframe Filtering
@@ -15138,7 +14954,7 @@ function renderFundamentalsTab() {
     }
   }
   var rawMedianDirect = calcMedian(allPeValues);
-  var medianPe = (rawMedianDirect != null) ? rawMedianDirect : 20; // fallback
+  var medianPe = rawMedianDirect; // No positive history means no defensible median multiple.
 
   // 4b. P/E Percentile computation (Solution 3)
   //     For each date, compute: what percentile is the current P/E within all history up to that date
@@ -15165,16 +14981,10 @@ function renderFundamentalsTab() {
   var basePrice = (priceMap[baseDate] && priceMap[baseDate] > 0) ? priceMap[baseDate] : 1;
 
   var rawTrimDict = (fundAssetMode === 'index') ? (allTrimDict[chosenKey] || (chosenKey === 'Nifty 50' && typeof NIFTY_50_TRIMMED_EPS !== 'undefined' ? NIFTY_50_TRIMMED_EPS : null)) : null;
-  var trimKeys = rawTrimDict ? Object.keys(rawTrimDict).sort() : [];
-  var lastTrimDate = trimKeys.length > 0 ? trimKeys[trimKeys.length - 1] : null;
-  var lastTrimRatio = (lastTrimDate && epsMap[lastTrimDate] > 0) ? (rawTrimDict[lastTrimDate] / epsMap[lastTrimDate]) : null;
   function getTrimmedEpsForDate(dt) {
     if (fundAssetMode !== 'index' || !rawTrimDict) return null;
-    if (rawTrimDict[dt] != null) return rawTrimDict[dt];
-    if (lastTrimDate && dt > lastTrimDate && lastTrimRatio != null && epsMap[dt] != null) {
-      return parseFloat((epsMap[dt] * lastTrimRatio).toFixed(2));
-    }
-    return null;
+    // A missing constituent-derived observation is not an observed trimmed EPS.
+    return Number.isFinite(rawTrimDict[dt]) ? rawTrimDict[dt] : null;
   }
 
   // Compute Trimmed Median P/E from Price / 5% Trimmed EPS across all commonDates
@@ -15193,23 +15003,29 @@ function renderFundamentalsTab() {
       }
     }
   }
-  var medianTrimmedPe = (rawMedianDirect != null) ? medianPe : ((allTrimPeValues.length >= 3) ? calcMedian(allTrimPeValues) : medianPe);
-  if (rawMedianDirect == null && allTrimPeValues.length >= 3) {
-    medianPe = medianTrimmedPe;
+  // Deliberately share the raw/harmonized median baseline for visual comparison.
+  // A trimmed-only asset can use its own observed positive multiples.
+  var medianTrimmedPe = rawMedianDirect != null ? medianPe : calcMedian(allTrimPeValues);
+  var medianPeLabel = medianPe == null ? 'N/A' : medianPe.toFixed(1) + 'x';
+  var medianTrimmedPeLabel = medianTrimmedPe == null ? 'N/A' : medianTrimmedPe.toFixed(1) + 'x';
+  var note = document.getElementById('fundDataNote');
+  if (note) {
+    note.textContent = (fundAssetMode === 'index' ? 'Index EPS inferred from harmonized P/E; orange series uses supplied trimmed EPS. ' : 'Stock EPS basis: ' + (stockObj.epsBasis || (fundAssetMode === 'us_stock' ? 'embedded US cache; reporting basis not specified' : 'not supplied')) + '. ') +
+      'Latest price: ' + commonDates[commonDates.length - 1] + '. IV is a full-history median-multiple estimate, not a point-in-time backtest or fair-value guarantee. Missing EPS/trimmed values are not estimated. Decomposition uses the latest date, independent of chart zoom.';
   }
 
   var epsLblEl = document.getElementById('chkFundEpsLabel');
   if (epsLblEl) {
     if (fundAssetMode === 'index') {
-      epsLblEl.textContent = 'Raw Intrinsic Value (' + medianPe.toFixed(1) + 'x)';
+      epsLblEl.textContent = 'Harmonized Intrinsic Value (' + medianPeLabel + ')';
     } else {
-      epsLblEl.textContent = 'Intrinsic Value (' + medianPe.toFixed(1) + 'x Med P/E)';
+      epsLblEl.textContent = 'Intrinsic Value (' + medianPeLabel + ' Med P/E)';
     }
   }
   var trimLblEl = document.getElementById('chkFundTrimmedEpsLabel');
   if (trimLblEl) {
     if (fundAssetMode === 'index' && rawTrimDict) {
-      trimLblEl.textContent = 'Trimmed Intrinsic Value (' + medianTrimmedPe.toFixed(1) + 'x)';
+      trimLblEl.textContent = 'Trimmed Intrinsic Value (' + medianTrimmedPeLabel + ')';
     } else {
       trimLblEl.textContent = 'Trimmed Intrinsic Value (Orange Line)';
     }
@@ -15220,7 +15036,7 @@ function renderFundamentalsTab() {
   for (var iv = 0; iv < commonDates.length; iv++) {
     var ivDate = commonDates[iv];
     var ivEps = epsMap[ivDate];
-    if (ivEps != null) {
+    if (Number.isFinite(ivEps) && medianPe != null) {
       intrinsicValueMap[ivDate] = ivEps * medianPe;
     } else {
       intrinsicValueMap[ivDate] = null;
@@ -15248,7 +15064,7 @@ function renderFundamentalsTab() {
 
     // True constituent-level 5% Trimmed EPS × Trimmed Median P/E
     var tEps = getTrimmedEpsForDate(fd);
-    var tIvReb = (tEps != null && basePrice > 0) ? parseFloat(((tEps * medianTrimmedPe / basePrice) * 100).toFixed(2)) : null;
+    var tIvReb = (tEps != null && medianTrimmedPe != null && basePrice > 0) ? parseFloat(((tEps * medianTrimmedPe / basePrice) * 100).toFixed(2)) : null;
     rebasedTrimmedIV.push(tIvReb);
 
     rebasedPrice.push(pReb);
@@ -15260,7 +15076,7 @@ function renderFundamentalsTab() {
 
   // Edge case protection for Chart.js log scale:
   // Chart.js logarithmic scale fails if values <= 0.
-  // In logarithmic mode, non-positive values are mapped to null with spanGaps: true.
+  // In logarithmic mode, non-positive values are mapped to null with spanGaps: false.
   // In linear mode, the full numeric series (including negatives) is plotted.
   var chartPriceData = fundScaleType === 'logarithmic'
     ? rebasedPrice.map(function(v) { return (v != null && v > 0) ? v : null; })
@@ -15292,14 +15108,12 @@ function renderFundamentalsTab() {
 
     var isRawLoss = (actualE != null && actualE < 0);
     var isTrimLoss = (tEpsVal != null && tEpsVal < 0);
-    var isLoss = isRawLoss || (actualE == null && isTrimLoss);
-    var lossVal = isRawLoss ? actualE : tEpsVal;
-
     var _showEps = document.getElementById('chkFundEps') ? document.getElementById('chkFundEps').checked : true;
-    var _showTrim = document.getElementById('chkFundTrimmedEps') ? document.getElementById('chkFundTrimmedEps').checked : false;
-    var effIvVal = (!_showEps && _showTrim && tIvRebVal != null && tIvRebVal > 0)
-      ? tIvRebVal
-      : ((_showEps && ivRebVal != null && ivRebVal > 0) ? ivRebVal : ((_showTrim || !_showEps) && tIvRebVal != null && tIvRebVal > 0 ? tIvRebVal : ((ivRebVal != null && ivRebVal > 0) ? ivRebVal : null)));
+    var _showTrim = fundAssetMode === 'index' && document.getElementById('chkFundTrimmedEps') && document.getElementById('chkFundTrimmedEps').checked;
+    var useTrimmedValuation = _showTrim && (!_showEps || ivRebVal == null) && tIvRebVal != null;
+    var isLoss = useTrimmedValuation ? isTrimLoss : (_showEps && isRawLoss);
+    var lossVal = useTrimmedValuation ? tEpsVal : actualE;
+    var effIvVal = useTrimmedValuation ? tIvRebVal : (_showEps ? ivRebVal : null);
     // Valuation Gap = (Price / Intrinsic Value - 1) * 100
     var valGap = (!isLoss && effIvVal != null && effIvVal > 0 && pRebVal != null) ? (((pRebVal / effIvVal) - 1) * 100) : null;
     var gapSign = (valGap != null && valGap >= 0) ? '+' : '';
@@ -15307,8 +15121,8 @@ function renderFundamentalsTab() {
     var curSym = (fundAssetMode === 'us_stock') ? '$' : '₹';
 
     if (isLoss) {
-      gapBadge = '<span style="background:rgba(239,68,68,0.22);color:#f87171;border:1px solid rgba(239,68,68,0.45);padding:0 8px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">⚠️ Net Loss: ' + curSym + lossVal.toFixed(2) + (isRawLoss ? ' EPS' : ' Trimmed EPS') + '</span>' +
-        (fundScaleType === 'logarithmic' ? ' <button type="button" onclick="toggleFundScale()" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);border-radius:3px;font-size:0.64rem;padding:1px 6px;cursor:pointer;margin-left:4px;" title="Switch to Linear Scale to see negative trajectory below 0">View in Linear ↗</button>' : '');
+      gapBadge = '<span style="background:rgba(239,68,68,0.22);color:#f87171;border:1px solid rgba(239,68,68,0.45);padding:0 8px;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">⚠️ Net Loss: ' + curSym + lossVal.toFixed(2) + (useTrimmedValuation ? ' Trimmed EPS' : ' EPS') + '</span>' +
+        (fundScaleType === 'logarithmic' && effIvVal != null && effIvVal < 0 ? ' <button type="button" onclick="toggleFundScale()" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);border-radius:3px;font-size:0.64rem;padding:1px 6px;cursor:pointer;margin-left:4px;" title="Switch to Linear Scale to see negative trajectory below 0">View in Linear ↗</button>' : '');
     } else if (valGap == null) {
       gapBadge = '<span style="color:var(--muted);display:inline-flex;align-items:center;flex-shrink:0;">—</span>';
     } else if (valGap > 25) {
@@ -15319,7 +15133,7 @@ function renderFundamentalsTab() {
       gapBadge = '<span style="background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);padding:0 8px;border-radius:4px;font-weight:600;display:inline-flex;align-items:center;height:22px;box-sizing:border-box;flex-shrink:0;white-space:nowrap;">Fairly Priced (' + gapSign + valGap.toFixed(1) + '%)</span>';
     }
 
-    var assetTag = (fundAssetMode === 'stock' || fundAssetMode === 'us_stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;display:inline-flex;align-items:center;flex-shrink:0;">[' + (fundAssetMode === 'us_stock' ? '🇺🇸 ' : '') + chosenKey + ']</span> ' : '';
+    var assetTag = (fundAssetMode === 'stock' || fundAssetMode === 'us_stock') ? '<span style="color:#38bdf8;font-weight:700;margin-right:2px;display:inline-flex;align-items:center;flex-shrink:0;">[' + (fundAssetMode === 'us_stock' ? '🇺🇸 ' : '') + escapeFundText(chosenKey) + ']</span> ' : '';
 
     hud.innerHTML =
       assetTag +
@@ -15327,10 +15141,10 @@ function renderFundamentalsTab() {
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#f5c842;"></span>' +
       '<span>Price:</span> <strong style="color:#f5c842;">' + (actualP > 0 ? curSym + actualP.toLocaleString(fundAssetMode === 'us_stock' ? 'en-US' : 'en-IN') : (pRebVal != null ? pRebVal.toFixed(1) : '—')) + '</strong></span>' +
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:' + (isRawLoss ? '#f87171' : '#22d3a0') + ';"></span>' +
-      '<span>' + (fundAssetMode === 'index' ? 'Raw EPS:' : 'EPS:') + '</span> <strong style="color:' + (isRawLoss ? '#f87171' : '#22d3a0') + ';">' + (actualE != null ? curSym + actualE.toFixed(1) + (isRawLoss ? ' (Loss)' : '') : '—') + '</strong></span>' +
+      '<span>' + (fundAssetMode === 'index' ? 'Harmonized EPS:' : 'EPS:') + '</span> <strong style="color:' + (isRawLoss ? '#f87171' : '#22d3a0') + ';">' + (actualE != null ? curSym + actualE.toFixed(1) + (isRawLoss ? ' (Loss)' : '') : '—') + '</strong></span>' +
       (tEpsVal != null ? '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:' + (isTrimLoss ? '#f87171' : '#f97316') + ';"></span><span>5% Trimmed EPS:</span> <strong style="color:' + (isTrimLoss ? '#f87171' : '#f97316') + ';">' + curSym + tEpsVal.toFixed(1) + (isTrimLoss ? ' (Loss)' : '') + '</strong></span>' : '') +
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#a855f7;"></span>' +
-      '<span>P/E:</span> <strong style="color:' + (isLoss ? '#f87171' : '#a855f7') + ';">' + (isLoss ? 'Negative (N/A)' : (peVal != null ? peVal.toFixed(1) + 'x' : '—')) + (pePctVal != null && !isLoss ? ' <small style="color:var(--muted);font-weight:400;">(' + pePctVal.toFixed(0) + 'th %ile)</small>' : '') + '</strong></span>' +
+      '<span>P/E:</span> <strong style="color:' + (isRawLoss ? '#f87171' : '#a855f7') + ';">' + (isRawLoss ? 'Negative (N/A)' : (peVal != null ? peVal.toFixed(1) + 'x' : '—')) + (pePctVal != null && !isRawLoss ? ' <small style="color:var(--muted);font-weight:400;">(' + pePctVal.toFixed(0) + 'th %ile)</small>' : '') + '</strong></span>' +
       '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;"></span>' +
       '<span>' + fundHorizon + 'Y Roll:</span> <strong style="color:#38bdf8;">' + (rollVal != null ? (rollVal >= 0 ? '+' : '') + rollVal.toFixed(1) + '%' : '—') + '</strong></span>' +
       gapBadge;
@@ -15361,7 +15175,7 @@ function renderFundamentalsTab() {
   var showEps = chkEps ? chkEps.checked : true;
   var showPe = chkPe ? chkPe.checked : true;
   var showRolling = chkRolling ? chkRolling.checked : true;
-  var showTrimmed = chkTrimmed ? chkTrimmed.checked : true;
+  var showTrimmed = fundAssetMode === 'index' && (chkTrimmed ? chkTrimmed.checked : true);
 
   var yBounds = computeFundDynamicYBounds(chartPriceData, chartIVData, showPrice, showEps, fundScaleType, chartTrimmedIVData, showTrimmed);
 
@@ -15380,11 +15194,11 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'y',
       order: 1,
-      spanGaps: true,
+      spanGaps: false,
       hidden: !showPrice
     },
     {
-      label: 'Raw Intrinsic Value (Raw EPS × Med P/E ' + medianPe.toFixed(1) + 'x)',
+      label: (fundAssetMode === 'index' ? 'Harmonized' : 'Stock') + ' Intrinsic Value (EPS × Med P/E ' + medianPeLabel + ')',
       data: chartIVData,
       borderColor: '#22d3a0',
       backgroundColor: '#22d3a0',
@@ -15394,11 +15208,11 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'y',
       order: 2,
-      spanGaps: true,
+      spanGaps: false,
       hidden: !showEps
     },
     {
-      label: 'P/E Ratio',
+      label: fundAssetMode === 'index' ? 'Harmonized P/E Ratio' : 'P/E Ratio',
       data: peSeries,
       borderColor: '#a855f7',
       backgroundColor: '#a855f7',
@@ -15408,7 +15222,7 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'yPe',
       order: 3,
-      spanGaps: true,
+      spanGaps: false,
       hidden: !showPe
     },
     {
@@ -15422,11 +15236,11 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'yCagr',
       order: 4,
-      spanGaps: true,
+      spanGaps: false,
       hidden: !showRolling
     },
     {
-      label: 'Trimmed Intrinsic Value (' + chosenKey + ' • 5% Trim EPS × ' + medianTrimmedPe.toFixed(1) + 'x)',
+      label: 'Trimmed Intrinsic Value (' + chosenKey + ' • 5% Trim EPS × ' + medianTrimmedPeLabel + ')',
       data: chartTrimmedIVData,
       borderColor: '#f97316',
       backgroundColor: '#f97316',
@@ -15437,7 +15251,7 @@ function renderFundamentalsTab() {
       tension: 0.1,
       yAxisID: 'y',
       order: 2,
-      spanGaps: true,
+      spanGaps: false,
       hidden: !showTrimmed
     }
   ];
@@ -15456,7 +15270,10 @@ function renderFundamentalsTab() {
       var bottom = yScale.bottom;
 
       ctx.save();
-      for (var hi = 0; hi < fDates.length; hi++) {
+      ctx.beginPath();
+      ctx.rect(chart.chartArea.left, top, chart.chartArea.right - chart.chartArea.left, bottom - top);
+      ctx.clip();
+      for (var hi = Math.max(0, Math.floor(xScale.min)); hi <= Math.min(fDates.length - 1, Math.ceil(xScale.max)); hi++) {
         var curDate = fDates[hi];
         var curEpsVal = epsMap[curDate];
         var curTrimVal = getTrimmedEpsForDate(curDate);
@@ -15583,7 +15400,7 @@ function renderFundamentalsTab() {
             autoSkip: true,
             maxTicksLimit: 14,
             callback: function(val, index) {
-              var d = fDates[index];
+              var d = fDates[val];
               return d ? (fDates.length > 50 ? (d.endsWith('-01') ? d.split('-')[0] : '') : d) : '';
             }
           },
@@ -15680,6 +15497,7 @@ function renderFundamentalsTab() {
     }
   });
 
+  fundamentalsChartInstance.$syncFundHud = function() { syncFundHudAfterZoomPan(fundamentalsChartInstance); };
   window.fundamentalsChartInstance = fundamentalsChartInstance;
   window.fundChart = fundamentalsChartInstance;
   fundChart = fundamentalsChartInstance;
@@ -15732,13 +15550,7 @@ function renderFundamentalsTab() {
       var startY = parseInt(lParts[0], 10) - hz.years;
       var targetStart = startY + '-' + lParts[1];
 
-      var sDate = null;
-      for (var ci = commonDates.length - 1; ci >= 0; ci--) {
-        if (commonDates[ci] <= targetStart) {
-          sDate = commonDates[ci];
-          break;
-        }
-      }
+      var sDate = commonDates.includes(targetStart) ? targetStart : null;
 
       if (!sDate) {
         var trEmpty = document.createElement('tr');
@@ -15787,17 +15599,19 @@ function renderFundamentalsTab() {
 
       var driverBadge = '';
       if (eCagr != null && pCagr != null && eCagr >= pCagr && pCagr > 0) {
-        driverBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">💼 Real Earnings Compounding (Value Safe)</span>';
+        driverBadge = '<span style="background:rgba(34,211,160,0.12);color:#22d3a0;border:1px solid rgba(34,211,160,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">💼 Earnings-led Growth (Multiple Compressed/Flat)</span>';
       } else if (peMultCagr != null && eCagr != null && peMultCagr > eCagr && peMultCagr > 0) {
-        driverBadge = '<span style="background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">🎈 Speculative Multiple Expansion (Hype Driven)</span>';
+        driverBadge = '<span style="background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">🎈 Multiple-led Growth</span>';
       } else if (eCagr != null && pCagr != null && eCagr > 0 && pCagr <= 0) {
         driverBadge = '<span style="background:rgba(6,182,212,0.12);color:#06b6d4;border:1px solid rgba(6,182,212,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">🛡️ Earnings Resilient (Multiple Compressed)</span>';
       } else if (eCagr != null && pCagr != null && eCagr <= 0 && pCagr > 0) {
         driverBadge = '<span style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">⚠️ Multiple Expansion on Earnings Contraction</span>';
       } else if (eCagr != null && peMultCagr != null) {
         driverBadge = '<span style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;">⚖️ Balanced Compounding</span>';
+      } else if (eps0 == null || eps1 == null) {
+        driverBadge = 'Missing EPS at an endpoint';
       } else {
-        driverBadge = '<span style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">⚠️ Turnaround / Undefined Multiple (Loss in Period)</span>';
+        driverBadge = '<span style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25);padding:2px 8px;border-radius:4px;font-weight:600;">⚠️ Turnaround / Undefined Multiple (Non-positive EPS)</span>';
       }
 
       var eColor = useTrimmedEngine ? '#f97316' : (eCagr != null && eCagr >= 0 ? '#22d3a0' : '#f87171');

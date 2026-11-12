@@ -1,0 +1,36 @@
+name: Offline Regression Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements.txt
+          npm ci
+      - name: Python data pipeline regressions
+        run: python -m unittest discover -s tests -v
+      - name: JavaScript calculation and proxy regressions
+        run: npm test
+      - name: Single-page browser smoke tests (external providers blocked)
+        run: npm run test:browser
+      - name: Focused fundamentals calculations, controls, and full catalog sweep
+        run: npm run test:fundamentals

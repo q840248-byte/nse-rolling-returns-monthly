@@ -3,6 +3,10 @@ name: Full History Rebuild (Manual Only)
 on:
   workflow_dispatch:
 
+concurrency:
+  group: data-update-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -23,7 +27,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests python-dateutil yfinance pandas
+        run: pip install -r requirements.txt
 
       - name: Run full history update
         run: python update_data.py --full

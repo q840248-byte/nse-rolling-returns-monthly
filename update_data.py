@@ -14,6 +14,7 @@ import re
 import sys
 import json
 import time
+import math
 import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
@@ -157,18 +158,18 @@ def rows_to_month_ohlc(rows):
             close_val = round(float(str(close_raw).replace(",", "")), 2)
         except (ValueError, TypeError):
             continue
-        if close_val <= 0:
+        if not math.isfinite(close_val) or close_val <= 0:
             continue
-        
+
         key = dt.strftime("%Y-%m")
         if key not in monthly:
             monthly[key] = {"date": dt, "close": close_val}
             continue
-            
+
         if dt > monthly[key]["date"]:
             monthly[key]["date"] = dt
             monthly[key]["close"] = close_val
-            
+
     return { k: v["close"] for k, v in monthly.items() }
 
 def fetch_full_history(api_name, base_date_str, today):
@@ -292,6 +293,7 @@ def update_pe_data(html, today):
         for attempt in range(3):
             try:
                 r = requests.post(PE_URL, headers=PE_HEADERS, json=payload, timeout=30)
+                r.raise_for_status()
                 data = r.json()
                 rows = data if isinstance(data, list) else (json.loads(data.get("d", "[]")) if isinstance(data.get("d"), str) else data.get("d", []))
                 monthend = {}
@@ -311,7 +313,7 @@ def update_pe_data(html, today):
                         pe = round(float(str(pe_val).replace(",", "")), 2)
                     except Exception:
                         continue
-                    if pe <= 0: continue
+                    if not math.isfinite(pe) or pe <= 0: continue
                     ym = dt.strftime("%Y-%m")
                     if ym not in monthend or dt > monthend[ym]["dt"]:
                         monthend[ym] = {"dt": dt, "pe": pe}
@@ -329,22 +331,13 @@ def update_pe_data(html, today):
     for disp_name, was_full, new_pe in results:
         if not new_pe: continue
         filtered = {ym: val for ym, val in sorted(new_pe.items()) if ym <= this_month}
-        if was_full:
-            old_pe = pe_dict.get(disp_name, {})
-            if old_pe != filtered:
-                pe_dict[disp_name] = filtered
-                pe_updated_count += 1
-        else:
-            if disp_name not in pe_dict:
-                pe_dict[disp_name] = {}
-            changed = False
-            for ym, val in filtered.items():
-                if pe_dict[disp_name].get(ym) != val:
-                    pe_dict[disp_name][ym] = val
-                    changed = True
-            if changed:
-                pe_dict[disp_name] = dict(sorted(pe_dict[disp_name].items()))
-                pe_updated_count += 1
+        # A full request can still be partial (provider limits or missing history).
+        # Merge revisions, never erase months merely absent from a response.
+        old_pe = pe_dict.get(disp_name, {})
+        merged = dict(sorted({**old_pe, **filtered}.items()))
+        if old_pe != merged:
+            pe_dict[disp_name] = merged
+            pe_updated_count += 1
 
     for k in list(pe_dict.keys()):
         if isinstance(pe_dict[k], dict):
@@ -408,7 +401,7 @@ def main():
             updated += 1
 
             new_json = json.dumps(dict(sorted(data.items())), separators=(",", ":"))
-            return f'{prefix}{new_json};' 
+            return f'{prefix}{new_json};'
 
         total += 1
         config = INDEX_CONFIG.get(index_name)
@@ -424,11 +417,13 @@ def main():
             print(f"  [{index_name}] ⚠️  Could not parse existing data — skipping")
             return m.group(0)
 
-        # AUTO-HEAL: Detect and remove anomalies (>100% jump or >50% drop)
+        original_data = dict(data)
+
+        # AUTO-HEAL: Refresh suspected anomalies (>100% jump or >50% drop)
         prev_close = None
         anomalies = []
         months = sorted([m for m in data.keys() if re.match(r'^\d{4}-\d{2}$', m)])
-        
+
         for i, month in enumerate(months):
             val = data[month]
             close = val['close'] if isinstance(val, dict) else val
@@ -437,27 +432,25 @@ def main():
                 if change > 1.0 or change < -0.5:
                     anomalies.append(i)
             prev_close = close
-            
+
         if anomalies:
             first_i = anomalies[0]
             last_i = anomalies[-1]
             start_month = months[first_i]
             end_month = months[last_i]
             print(f"  [{index_name}] ⚠️  Auto-healing anomalies from {start_month} to {end_month}...")
-            
+
             start_date = datetime.strptime(start_month + '-01', '%Y-%m-%d')
             end_date = datetime.strptime(end_month + '-01', '%Y-%m-%d')
             end_date = end_date + relativedelta(months=1) - relativedelta(days=1)
-            
+
             # Fetch specifically to heal this gap
             rows = fetch_data(api_name, start_date, end_date)
             if rows:
                 new_data = rows_to_month_ohlc(rows)
-                for m in months[first_i:last_i+1]:
-                    if m in new_data:
-                        data[m] = new_data[m]
-                    else:
-                        del data[m]
+                for month_key in months[first_i:last_i+1]:
+                    if month_key in new_data:
+                        data[month_key] = new_data[month_key]
 
         if FULL_MODE:
             # Fetch everything from base date in 60-month chunks
@@ -471,15 +464,14 @@ def main():
             time.sleep(0.8)
             rows = fetch_data(api_name, fetch_from, fetch_to)
             if not rows:
-                print("no data returned from API")
-                return m.group(0)
+                print("no recent data returned from API; retaining any verified repairs")
             new_monthly = rows_to_month_ohlc(rows)
 
-        if not new_monthly:
+        if not new_monthly and data == original_data:
             print("could not parse any rows")
             return m.group(0)
 
-        added = 0
+        added = sum(data[k] != v for k, v in original_data.items())
         for k, v in sorted(new_monthly.items()):
             if k <= this_month:
                 if k not in data or data[k] != v:

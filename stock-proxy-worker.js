@@ -104,8 +104,8 @@ const KNOWN_MAP = {
 
 function sanitizeEpsValues(values) {
   const valid = (values || [])
-    .filter(pt => Array.isArray(pt) && pt[0] && pt[1] !== null && pt[1] !== undefined && !isNaN(parseFloat(pt[1])))
-    .map(pt => [String(pt[0]), parseFloat(pt[1])])
+    .filter(pt => Array.isArray(pt) && /^\d{4}-(0[1-9]|1[0-2])-\d{2}/.test(String(pt[0])) && Number.isFinite(Date.parse(pt[0])) && pt[1] !== null && pt[1] !== undefined && String(pt[1]).trim() !== '' && Number.isFinite(Number(pt[1])))
+    .map(pt => [String(pt[0]).slice(0, 10), Number(pt[1])])
     .sort((a, b) => a[0].localeCompare(b[0]));
   if (valid.length < 3) return valid;
 
@@ -142,10 +142,18 @@ function sanitizeEpsValues(values) {
   return out;
 }
 
+function fetchUpstream(url, options = {}) {
+  return fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    if (request.method !== 'GET') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...CORS_HEADERS, Allow: 'GET, OPTIONS' } });
     }
 
     const url = new URL(request.url);
@@ -162,7 +170,7 @@ export default {
           });
         }
         const screenerUrl = `https://www.screener.in/api/company/search/?q=${encodeURIComponent(query)}`;
-        const res = await fetch(screenerUrl, { headers: SCREENER_HEADERS });
+        const res = await fetchUpstream(screenerUrl, { headers: SCREENER_HEADERS });
         const data = await res.json();
         return new Response(JSON.stringify(data), {
           status: res.status,
@@ -174,6 +182,10 @@ export default {
       if (path === '/api/stock' || path === '/stock') {
         let symbol = url.searchParams.get('symbol') || '';
         let compId = url.searchParams.get('id');
+        const days = url.searchParams.get('days') || '10000';
+        if ((compId !== null && !/^[1-9]\d{0,9}$/.test(compId)) || !/^\d{1,5}$/.test(days) || Number(days) < 1 || Number(days) > 20000) {
+          return new Response(JSON.stringify({ error: 'id must be a positive integer; days must be between 1 and 20000' }), { status: 400, headers: CORS_HEADERS });
+        }
 
         symbol = symbol.trim().toUpperCase();
 
@@ -186,7 +198,7 @@ export default {
             for (const q of queries) {
               if (compId) break;
               const searchUrl = `https://www.screener.in/api/company/search/?q=${encodeURIComponent(q)}`;
-              const sRes = await fetch(searchUrl, { headers: SCREENER_HEADERS });
+              const sRes = await fetchUpstream(searchUrl, { headers: SCREENER_HEADERS });
               if (sRes.ok) {
                 const sData = await sRes.json();
                 if (Array.isArray(sData) && sData.length > 0) {
@@ -202,7 +214,7 @@ export default {
               }
             }
             if (!compId) {
-              const pageRes = await fetch(`https://www.screener.in/company/${encodeURIComponent(symbol)}/`, { headers: SCREENER_HEADERS, redirect: 'follow' });
+              const pageRes = await fetchUpstream(`https://www.screener.in/company/${encodeURIComponent(symbol)}/`, { headers: SCREENER_HEADERS, redirect: 'follow' });
               if (pageRes.ok && pageRes.url.toUpperCase().includes(`/${symbol}/`)) {
                 const htmlTxt = await pageRes.text();
                 const idM = htmlTxt.match(/data-company-id="(\d+)"/);
@@ -219,7 +231,6 @@ export default {
           });
         }
 
-        const days = url.searchParams.get('days') || '10000';
         const wantStandalone = url.searchParams.get('consolidated') === 'false';
 
         const consUrl = `https://www.screener.in/api/company/${compId}/chart/?q=Price-EPS&days=${days}&consolidated=true`;
@@ -228,12 +239,12 @@ export default {
         let consData = null;
         let saData = null;
         if (wantStandalone) {
-          const saRes = await fetch(saUrl, { headers: SCREENER_HEADERS });
+          const saRes = await fetchUpstream(saUrl, { headers: SCREENER_HEADERS });
           if (saRes.ok) saData = await saRes.json();
         } else {
           const [cRes, sRes] = await Promise.allSettled([
-            fetch(consUrl, { headers: SCREENER_HEADERS }),
-            fetch(saUrl, { headers: SCREENER_HEADERS })
+            fetchUpstream(consUrl, { headers: SCREENER_HEADERS }),
+            fetchUpstream(saUrl, { headers: SCREENER_HEADERS })
           ]);
           if (cRes.status === 'fulfilled' && cRes.value.ok) {
             try { consData = await cRes.value.json(); } catch (e) {}
