@@ -4,6 +4,8 @@ import json
 import time
 import os
 import re
+import math
+from pathlib import Path
 
 STOCKS_CATALOG = [
     {"symbol": "RELIANCE", "id": 2726, "name": "Reliance Industries Ltd"},
@@ -90,7 +92,18 @@ def fetch_stock_chart(wid, consolidated=True, days=10000):
         return json.loads(resp.read().decode('utf-8'))
 
 def sanitize_eps_points(points):
-    valid = sorted([(dt[:10], float(v)) for dt, v in points if dt and v is not None], key=lambda x: x[0])
+    valid = []
+    for point in points or []:
+        try:
+            dt, value = point
+            dt = str(dt)[:10]
+            datetime.strptime(dt, '%Y-%m-%d')
+            value = float(value)
+            if math.isfinite(value):
+                valid.append((dt, value))
+        except (ValueError, TypeError):
+            continue
+    valid.sort(key=lambda x: x[0])
     if len(valid) < 3:
         return valid
     start_idx = 0
@@ -128,9 +141,9 @@ def choose_and_merge_charts(cons_raw, sa_raw):
 
     ce = get_eps(cons_raw)
     se = get_eps(sa_raw)
-    eps_basis = 'standalone'
+    eps_basis = 'standalone' if sa_raw else 'consolidated'
     chosen_raw = sa_raw or cons_raw
-    final_eps = se
+    final_eps = se if sa_raw else ce
 
     if len(ce) >= 2:
         c_last = datetime.strptime(ce[-1][0], '%Y-%m-%d')
@@ -183,7 +196,7 @@ def process_chart_data(raw_data, sym_info, eps_basis='consolidated'):
         ym = dt_str[:7]
         try:
             val = float(p)
-            if val > 0:
+            if math.isfinite(val) and val > 0:
                 price_by_month[ym] = round(val, 2)
         except Exception:
             pass
@@ -241,7 +254,10 @@ def main(force_refresh=False):
         except Exception as e:
             print("Could not load raw cache:", e)
 
-    all_stocks = {}
+    # Retain last-known-good stocks when an individual provider request fails.
+    cache_path = Path("top_stocks_cache.json")
+    all_stocks = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
+    refreshed = 0
 
     for i, stock in enumerate(STOCKS_CATALOG):
         sym = stock["symbol"]
@@ -275,9 +291,23 @@ def main(force_refresh=False):
         processed = process_chart_data(merged_raw, stock, eps_basis=basis) if merged_raw else None
         if processed:
             all_stocks[sym] = processed
+            refreshed += 1
             print(f"  ✓ {sym} [{basis}]: {len(processed['dates'])} months ({processed['dates'][0]} to {processed['dates'][-1]}), last EPS={processed['eps'][processed['dates'][-1]]}")
         else:
             print(f"  ✗ {sym}: processing returned None")
+
+    if refreshed == 0:
+        raise RuntimeError("No stocks refreshed; existing output files were preserved")
+
+    # Prepare the embedded cache before writing outputs. The HTML is the app's
+    # runtime source; writing only the standalone JS/JSON leaves it stale.
+    html_path = Path("rolling_returns.html")
+    html = html_path.read_text(encoding="utf-8")
+    match = re.search(r'const TOP_STOCKS_DATA = (\{.*?\});', html)
+    if not match:
+        raise ValueError("Embedded TOP_STOCKS_DATA block not found; outputs were preserved")
+    serialized = json.dumps(all_stocks, separators=(',', ':'), allow_nan=False)
+    patched_html = html[:match.start(1)] + serialized + html[match.end(1):]
 
     with open(raw_cache_file, "w", encoding="utf-8") as f:
         json.dump(raw_cache, f)
@@ -293,7 +323,8 @@ def main(force_refresh=False):
         f.write("const TOP_STOCKS_DATA = ")
         json.dump(all_stocks, f, separators=(',', ':'))
         f.write(";\nif (typeof window !== 'undefined') { window.TOP_STOCKS_DATA = TOP_STOCKS_DATA; }\n")
-    print("Generated top_stocks_data.js")
+    html_path.write_text(patched_html, encoding="utf-8")
+    print("Generated top_stocks_data.js and synchronized rolling_returns.html")
 
 if __name__ == "__main__":
     main()

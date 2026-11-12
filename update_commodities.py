@@ -3,8 +3,8 @@
 update_commodities.py
 ================================================================================
 Automatically fetches, processes, and updates Gold and Silver prices in INR:
-- Gold: Pure international spot converted to INR per 10 grams (₹ / 10g)
-- Silver: Pure international spot converted to INR per 1 kilogram (₹ / 1kg)
+- Gold: International futures proxy converted to INR per 10 grams (₹ / 10g)
+- Silver: International futures proxy converted to INR per 1 kilogram (₹ / 1kg)
 - Zero tax, customs duty, or cess (pure physical weight parity)
 - Smart incremental update: only fetches new days if CSV already exists
 - Can also export monthly series and optionally patch rolling_returns.html
@@ -20,6 +20,8 @@ Usage:
 import os
 import sys
 import json
+import math
+import re
 import argparse
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -70,18 +72,18 @@ def calculate_pure_inr_prices(df: pd.DataFrame) -> pd.DataFrame:
     """Apply zero-tax pure physical weight conversion formulas."""
     result = pd.DataFrame(index=df.index)
     result.index.name = "Date"
-    result.index = pd.to_datetime(result.index).strftime("%Y-%m-%d")
 
-    # Gold: Pure spot converted to INR per 10 grams (rounded to 2 decimal places)
+    # Gold: Futures proxy converted to INR per 10 grams (rounded to 2 decimal places)
     result["gold_inr_per_10g"] = (
         ((df["Gold_USD"] * df["USD_INR"]) / TROY_OZ_TO_GRAMS) * 10
     ).round(2)
 
-    # Silver: Pure spot converted to INR per 1 kilogram (1000g) (rounded to 2 decimal places)
+    # Silver: Futures proxy converted to INR per 1 kilogram (1000g) (rounded to 2 decimal places)
     result["silver_inr_per_1kg"] = (
         ((df["Silver_USD"] * df["USD_INR"]) / TROY_OZ_TO_GRAMS) * 1000
     ).round(2)
 
+    result.index = pd.to_datetime(result.index).strftime("%Y-%m-%d")
     return result
 
 
@@ -156,12 +158,13 @@ def update_dataset(full_mode: bool = False, start_override: str = None, custom_o
 
 def export_monthly_csv(daily_df: pd.DataFrame, custom_output: str = None):
     """Resample daily prices to month-end values (YYYY-MM)."""
-    monthly = daily_df.copy()
+    monthly = daily_df.sort_index().copy()
     monthly["Month"] = monthly.index.str[:7]
     monthly = monthly.groupby("Month").last()
     monthly.index.name = "Month"
 
     out_path = Path(custom_output) if custom_output else DEFAULT_DOWNLOADS_CSV.with_name("gold_silver_inr_monthly.csv")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     monthly.to_csv(out_path)
     print(f"📅 Saved monthly month-end data ({len(monthly)} months) to: {out_path}")
     return monthly
@@ -174,47 +177,34 @@ def update_html_app(daily_df: pd.DataFrame):
         return
 
     # Extract month-end prices
-    monthly = daily_df.copy()
+    monthly = daily_df.sort_index().copy()
     monthly["Month"] = monthly.index.str[:7]
     monthly = monthly.groupby("Month").last()
 
     with open(HTML_PATH, "r", encoding="utf-8") as f:
         content = f.read()
 
-    idx_start = content.find("const RAW =")
-    if idx_start == -1:
-        print("⚠️ Could not find const RAW in HTML file.")
-        return
-    idx_end = content.find("};", idx_start)
-    if idx_end == -1:
-        return
-
-    raw_json_str = content[idx_start + len("const RAW ="):idx_end + 1]
-    raw = json.loads(raw_json_str)
-
-    gold_dict = raw.get("Gold (INR)", {})
-    silver_dict = raw.get("Silver (INR)", {})
-
+    # The single-page app initializes RAW = {} and assigns each asset separately.
+    # Store the same units as update_data.py: gold INR/10g, silver INR/kg.
+    columns = {"Gold (INR)": "gold_inr_per_10g", "Silver (INR)": "silver_inr_per_1kg"}
     updated_months = 0
-    for month_str, row in monthly.iterrows():
-        # App's existing scale: Troy Ounce (₹/oz = ₹/10g * 31.1034768 / 10)
-        troy_oz_gold = round((row["gold_inr_per_10g"] * TROY_OZ_TO_GRAMS) / 10, 2)
-        troy_oz_silver = round((row["silver_inr_per_1kg"] * TROY_OZ_TO_GRAMS) / 1000, 2)
-        
-        gold_dict[month_str] = troy_oz_gold
-        silver_dict[month_str] = troy_oz_silver
-        updated_months += 1
-
-    raw["Gold (INR)"] = gold_dict
-    raw["Silver (INR)"] = silver_dict
-
-    new_json_str = json.dumps(raw, separators=(",", ":"))
-    new_content = content[:idx_start + len("const RAW = ")] + new_json_str + content[idx_end + 1:]
+    for asset, column in columns.items():
+        pattern = re.compile(r'(RAW\["' + re.escape(asset) + r'"\]\s*=\s*)(\{[^;]+\})(\s*;)')
+        match = pattern.search(content)
+        if not match:
+            raise ValueError(f"Missing RAW block for {asset}; HTML was not changed")
+        existing = json.loads(match.group(2))
+        for month, value in monthly[column].items():
+            value = float(value)
+            if math.isfinite(value) and value > 0:
+                existing[month] = round(value, 2)
+                updated_months += 1
+        serialized = json.dumps(dict(sorted(existing.items())), separators=(",", ":"), allow_nan=False)
+        content = content[:match.start(2)] + serialized + content[match.end(2):]
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-    print(f"🌐 Patched {updated_months} months for Gold and Silver into: {HTML_PATH}")
+        f.write(content)
+    print(f"🌐 Patched {updated_months} asset-month values into: {HTML_PATH}")
 
 
 def main():
