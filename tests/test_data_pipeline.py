@@ -80,6 +80,19 @@ class IndexTests(unittest.TestCase):
 
 
 class StockTests(unittest.TestCase):
+    def test_boolean_and_impossible_dates_are_not_eps(self):
+        points = [['2024-02-30', 1], ['2024-01-01', True], ['2024-02-29', 0]]
+        self.assertEqual(stocks.sanitize_eps_points(points), [('2024-02-29', 0.0)])
+        self.assertEqual(stocks.sanitize_eps_points({'bad': True}), [])
+
+    def test_malformed_price_observations_do_not_abort_valid_stock_history(self):
+        prices = [[f'2024-{m:02d}-01', 100] for m in range(1, 13)]
+        prices += [None, ['bad', 1], ['2024-02-30', 1000], ['2024-12-31', True], ['2024-01-31']]
+        raw = {'datasets': [{'metric': 'Price', 'values': prices}, {'metric': 'EPS', 'values': [['2024-01-01', 10]]}]}
+        result = stocks.process_chart_data(raw, {'symbol': 'TEST', 'id': 1, 'name': 'Test'})
+        self.assertEqual(len(result['dates']), 12)
+        self.assertEqual(set(result['price'].values()), {100})
+
     def test_consolidated_only_single_eps_is_not_discarded(self):
         raw = {'datasets': [{'metric': 'EPS', 'values': [['2024-01-01', 10]]}]}
         merged, basis = stocks.choose_and_merge_charts(raw, None)

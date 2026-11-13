@@ -13,6 +13,7 @@
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "test:browser": "node tests/browser-smoke.cjs",
-    "test:fundamentals": "node tests/fundamentals-browser.cjs"
+    "test:fundamentals": "node tests/fundamentals-browser.cjs",
+    "test:project": "node tests/project-browser.cjs"
   }
 }

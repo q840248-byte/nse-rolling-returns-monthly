@@ -91,18 +91,27 @@ def fetch_stock_chart(wid, consolidated=True, days=10000):
     with urllib.request.urlopen(req, timeout=20) as resp:
         return json.loads(resp.read().decode('utf-8'))
 
+def parse_stock_point(point):
+    """Reject malformed provider observations before month aggregation or EPS cleanup."""
+    if not isinstance(point, (list, tuple)) or len(point) != 2:
+        return None
+    dt, value = point
+    if not isinstance(dt, str) or not re.match(r"^\d{4}-\d{2}-\d{2}(?:$|T| )", dt):
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        return None
+    try:
+        dt = dt[:10]
+        datetime.strptime(dt, '%Y-%m-%d')
+        value = float(value)
+        return (dt, value) if math.isfinite(value) else None
+    except (ValueError, TypeError):
+        return None
+
+
 def sanitize_eps_points(points):
-    valid = []
-    for point in points or []:
-        try:
-            dt, value = point
-            dt = str(dt)[:10]
-            datetime.strptime(dt, '%Y-%m-%d')
-            value = float(value)
-            if math.isfinite(value):
-                valid.append((dt, value))
-        except (ValueError, TypeError):
-            continue
+    valid = [p for point in (points if isinstance(points, (list, tuple)) else [])
+             if (p := parse_stock_point(point)) is not None]
     valid.sort(key=lambda x: x[0])
     if len(valid) < 3:
         return valid
@@ -190,16 +199,11 @@ def process_chart_data(raw_data, sym_info, eps_basis='consolidated'):
 
     # Group price by month (last price in month)
     price_by_month = {}
-    for dt_str, p in sorted(price_raw, key=lambda x: str(x[0])):
-        if p is None:
-            continue
-        ym = dt_str[:7]
-        try:
-            val = float(p)
-            if math.isfinite(val) and val > 0:
-                price_by_month[ym] = round(val, 2)
-        except Exception:
-            pass
+    price_points = [p for point in (price_raw if isinstance(price_raw, (list, tuple)) else [])
+                    if (p := parse_stock_point(point)) is not None]
+    for dt_str, value in sorted(price_points, key=lambda x: x[0]):
+        if value > 0:
+            price_by_month[dt_str[:7]] = round(value, 2)
 
     # Sort EPS points (keep full date for exact chronology, store latest within month)
     eps_points = sanitize_eps_points(eps_raw)

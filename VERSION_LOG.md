@@ -390,3 +390,87 @@ The original trimming script/notebook/spreadsheet or exact written formula, plus
 - Confirmed that the PR is open, non-draft, mergeable, and targets `main` from the current working branch. Both existing GitHub regression checks passed (runs `43358917263` and `43358887658`).
 - Added this authorization record only; no application code, financial data, or methodology conclusions changed. Final-head checks will be verified before executing the merge.
 - This entry records the pre-merge checkpoint, not a completed merge. The PR's merge event records the actual outcome and merge commit. Audit publication does not certify the constituent calculations or alter the orange-line data.
+
+---
+
+## Complete supplied trimming-function review — boundary behavior
+
+**By Arena.ai Agent**<br>
+**Date/time:** 2026-11-13 03:37:08 UTC<br>
+**Working branch:** `arena/be81f877-nse-rolling-returns-monthly`<br>
+**Base commit:** `b2f0877a7a92a6329bcbd28b721c0863c87c6f7b`
+
+- Reviewed the complete `weighted_trimmed_ey` function pasted by the owner. This resolves the missing windfall-cap implementation in the earlier abbreviated explanation. The full original script, caller, and historical input files remain unavailable; no local Windows file was accessed.
+- Preserved the supplied function unchanged as a labelled chat-source fixture in `tests/test_supplied_trim_function.py`, separate from production. Added 11 behavior tests. Verified partial loss trimming, stopping below the loss budget, partial-weight windfall capping with retained denominator weight, original-total-weight budgets, empty/zero-weight input, and possible negative all-loss output.
+- Confirmed continuity across the upper threshold with fixed weights/median, but disproved a global “continuous without cliffs” claim. A 5%-weight constituent moving from an arbitrarily small loss to a small profit changes the denominator from 0.95 to 1.00: with remaining yield 5%, adjusted output drops from 5% to approximately 4.75%. A second fixture demonstrates a weighted-median switch that changes the cap threshold from 0.55 to 0.80 and output from 0.09749995 to 0.11000005 after a tiny weight shift. These characterize the supplied design, not identified historical occurrences.
+- Verified that the function relies on pre-sorted inputs and does not itself validate finiteness, nonnegative weights, or trim-fraction range. Documented these as caller preconditions rather than assuming the unseen caller is defective.
+- Rechecked the real frontend: `getHarmonizedPeSeries` applies pre-March-2021 multipliers and rounding inside this application. The owner's attribution of this specific transformation to NSE back-adjusting the history is not established. Also recorded the 53-index handoff versus 56-index embedded-data coverage discrepancy.
+- Updated `TRIMMED_EPS_METHOD.md`, the README, and the reproducible audit/report wording to distinguish resolved code questions from remaining caller/data validation. Regenerated `TRIMMED_EPS_AUDIT.md`; no historical values were modified.
+- Validation: **17 targeted Python audit tests passed** (11 new supplied-function tests + 6 structural audit tests), and **28 JavaScript unit tests passed**. This is not a rerun of the full Python pipeline/browser suites. Whitespace checks passed; application HTML, datasets, and updater scripts remain unchanged.
+- No formula redesign, production integration of the fixture, data refresh, commit, push, PR, merge, or deployment was performed. Any continuity-oriented redesign requires an explicit methodology decision, not a silent alteration of the user's custom rule.
+
+---
+
+## Full-project review — all ten tabs, shared engine, pipelines, and mobile layout
+
+**By Arena.ai Agent**<br>
+**Completed:** 2026-11-13 03:58:37 UTC<br>
+**Working branch:** `arena/be81f877-nse-rolling-returns-monthly`<br>
+**Baseline:** `b2f0877a7a92a6329bcbd28b721c0863c87c6f7b`
+
+### Scope and baseline
+
+The user set aside the orange methodology discussion and requested a thorough review of the entire integrated application. Preserved earlier uncommitted audit documentation and the supplied-function fixture; no custom orange calculation, financial history, or dataset was rebuilt. Retained one HTML application/shared engine rather than introducing a separate frontend. Restored existing development dependencies in ignored `node_modules`/`.venv`; no new dependencies were added.
+
+Re-ran the baseline: 28 JavaScript tests, 28 Python tests, existing ten-tab browser smoke scenarios, and all 24 focused Fundamentals checks passed. Then added adversarial fixtures and broader cross-tab checks rather than treating that initial green result as a complete audit. All eight initial new unit checks failed against the old implementation; two additional exact-horizon/date fixtures also failed before their fixes. The first extended browser run exposed P/E clipping, premature dynamic bands, stale charts/selectors, and page-width overflow; one separate harness issue (no selected Growth asset) was corrected in the test itself.
+
+### Detailed changes
+
+1. **Allocation controls:** fully locked valid weights no longer reset to equal allocations. Selection-driven all-locked normalization is proportional, removing the negative rounded-last-weight bug with large catalogs. Invalid/negative edits cannot distort locked weights; locked or unselected targets are ignored.
+2. **Latest Stats drawdown timing:** sparse histories now count actual calendar months rather than observation count. Portfolio NAV carries dates and excludes zero-weight assets from required overlap. Existing drawdown return conventions are otherwise retained.
+3. **Latest Stats decomposition:** introduced `computeIndexDecomposition` for exact shared price/EPS/P/E endpoint months, including half-year horizons. Removed earliest-date/nearby-date substitutions and mismatched price-versus-earnings end dates. Missing horizon endpoints display unavailable, not a differently labelled period. Updated drawer headings/fallback wording.
+4. **Growth and valuation date axes:** six category tick callbacks now resolve labels from the category value, not the local tick ordinal. Tested a nonzero category index as used after zooming.
+5. **Raw/Harmonized P/E:** removed fixed 8x log-axis floors so low positive observations are visible. Replaced the hardcoded 20x “Median” label with “Reference.” Corrected unsupported uniform/audited 18.5% harmonization claims to the actual pre-March-2021 fixed per-index factor approximation.
+6. **Dynamic Bands:** added `computeDynamicPeBands` with 60 consecutive valid calendar months, population standard deviation, missing-window nulls, and no Z-score for zero dispersion. No more short warm-up samples or 60 sparse observations presented as five years. Reused the harmonized P/E helper for consistency. Updated explanatory copy to descriptive statistics rather than guaranteed investment signals.
+7. **Empty valuation states:** Raw P/E, Harmonized P/E, Dynamic Bands, Yield Gap, and Smoothed P/E destroy old charts before early no-data returns. Yield Gap/Smoothed P/E selectors now compare option names as well as counts.
+8. **Cashflow inputs:** active-mode inputs are validated against finite numeric values and declared bounds before calculation. Invalid values clear old results with an explanation. Rolling windows require whole years instead of silently truncating fractions.
+9. **Cashflow date synchronization:** preserved month-accurate fractional-year dates instead of rounding to a full year. Single-journey badge shows actual simulated tenure; the years input is labelled as an end-date shortcut.
+10. **Simple investment simulator:** deselecting all assets now clears its prior chart through `runSimulator`; nonpositive/non-finite capital is rejected instead of executing invalid or silently defaulted amounts.
+11. **Excel export:** exceptions restore the disabled export control and display an error. Offline browser fixture verifies construction of five worksheet payloads, while a unit fixture verifies failure recovery. Actual Excel file compatibility remains untested.
+12. **Responsive layout:** contained grid/flex intrinsic widths without clipping the page. All ten tabs pass 390px page-width checks. Visual inspection identified invalid `flex-wrap:gap` in Dynamic Bands HUD; corrected it and added a HUD-content containment assertion.
+13. **Targeted accessibility:** added labels to valuation selectors and cashflow fields, active-tab pressed state on selection, and expanded state for keyboard-operated collapse controls. No claim of full accessibility compliance.
+14. **Stock builder:** added validated observation parsing shared by EPS cleanup and prices. Rejects impossible dates, booleans, malformed observations, and non-finite numbers; invalid price rows no longer abort otherwise valid stock histories. Preserved the existing EPS cleaning/splicing policy.
+15. **Worker source:** rejects impossible EPS dates, boolean/object values, and malformed observation collections. Preserves zero/negative EPS. No live Worker deployment performed.
+16. **Test integration:** added `tests/project-review.test.cjs` (10 unit checks), `tests/project-browser.cjs` (15 scenario groups), one Worker test and two Python stock tests. Added `npm run test:project` and a corresponding CI step. Browser screenshots remain under ignored `artifacts/`.
+17. **Documentation:** created `PROJECT_REVIEW.md` with a ten-tab matrix, fixes, exact validation scope, and remaining limitations; updated README commands/conventions and appended this signed version record. Earlier orange-audit files remain a separate dated review, not a newly certified historical dataset.
+
+### Final validation
+
+- **39 JavaScript unit tests passed**.
+- **30 Python tests passed** (includes 11 retained tests for the earlier chat-supplied trimming-function excerpt, not 11 additional production pipeline checks).
+- Existing all-tab Chromium smoke suite passed, including all six cashflow mode/view combinations and stock request/fallback scenarios.
+- **24 focused Fundamentals browser checks passed**; catalog sweep covers 56 indices, 67 Indian stocks, and 9 US stocks.
+- **15 new project browser scenario groups passed**, including all 56 embedded index keys across five valuation tabs, timeframe/scale/window controls, empty states, selectors, allocation/selection, offline export payloads, keyboard collapse, and all-ten-tab 390px layout. No uncaught page exceptions.
+- All seven inline script blocks parse. `git diff --check` passed. npm's install audit reported zero known dependency vulnerabilities; that does not audit vendored/CDN code.
+- Compared against HEAD: all **58 RAW blocks** and all six financial constants (`RAW_PE`, `TOP_STOCKS_DATA`, `READY_US_STOCKS`, `ALL_INDICES_TRIMMED_EPS`, `SUBSIDIARY_FACTOR_MAP`, `GSEC_10Y`) remain unchanged.
+
+### Important limits and publication status
+
+No live financial providers were contacted for validation or updates. Source history, corporate actions, full point-in-time availability, harmonization factors, valuation assumptions, and orange constituent methodology remain outside this verification. Portfolio models retain distinct buy-and-hold/available-asset versus monthly-rebalanced conventions; gaps do not reconstruct unobserved monthly trades. Recovery is the longest observed underwater span (possibly ongoing), not necessarily the recovery time for the deepest crash. No Safari/Firefox, real-device pinch, comprehensive accessibility/security/load testing, or actual spreadsheet-client compatibility is claimed.
+
+Changes remain on the active working branch. **No commit, push, PR, merge, website deployment, or Cloudflare Worker deployment was performed in this review.**
+
+---
+
+## Publication — full-project review deployment authorized
+
+**By Arena.ai Agent**<br>
+**Date/time:** 2026-11-13 04:02:03 UTC<br>
+**Working branch:** `arena/be81f877-nse-rolling-returns-monthly`
+
+- User explicitly requested deployment of the reviewed changes. Publication includes the full-project fixes, tests, CI updates, review report, README/version log, and earlier preserved audit documentation/test fixture. No financial datasets are being refreshed.
+- Confirmed GitHub Pages publishes from `main` at the repository root. The remote base remains `b2f0877a7a92a6329bcbd28b721c0863c87c6f7b`, matching this branch's review baseline. No Pages settings are changed.
+- Fresh deployment preflight passed: **39 JavaScript tests, 30 Python tests, the existing all-tab browser suite, 24 focused Fundamentals checks, and 15 cross-project browser scenarios**. Whitespace checks passed.
+- Publication procedure: commit/push only the current branch, open a PR to `main`, verify GitHub regression checks, merge the explicit PR, and verify the Pages deployment for that merge. This is the pre-deployment checkpoint; the PR/deployment record provides the final outcome and commit.
+- The separately hosted **Cloudflare Worker is not deployed** by this GitHub Pages release. Its improved source is included in the repository, but deploying that service requires its separate deployment environment.
+- Existing source-data/methodology limitations remain documented in `PROJECT_REVIEW.md`; deployment does not certify original financial histories or the orange constituent calculation.
