@@ -15013,6 +15013,50 @@ function renderFundamentalsTab() {
     ? rebasedTrimmedIV.map(function(v) { return (v != null && v > 0) ? v : null; })
     : rebasedTrimmedIV;
 
+  // Single source for both the text readout and the threshold shading.
+  function getFundGap(d) {
+    var showEpsGap = document.getElementById('chkFundEps').checked;
+    var showTrimGap = fundAssetMode === 'index' && document.getElementById('chkFundTrimmedEps').checked;
+    var gapValue = showEpsGap ? intrinsicValueMap[d] : null;
+    var basis = 'EPS Value';
+    if (showTrimGap && (!showEpsGap || gapValue == null)) {
+      var trimmedEps = getTrimmedEpsForDate(d);
+      gapValue = trimmedEps != null && medianTrimmedPe != null ? trimmedEps * medianTrimmedPe : null;
+      basis = 'Trim. EPS Value';
+    }
+    var gap = Number.isFinite(priceMap[d]) && priceMap[d] > 0 && Number.isFinite(gapValue) && gapValue > 0
+      ? (priceMap[d] / gapValue - 1) * 100 : null;
+    return { enabled: showEpsGap || showTrimGap, basis: basis, value: Number.isFinite(gap) ? gap : null };
+  }
+
+  // Shade each qualifying monthly observation's band, behind the grid and curves.
+  // Midpoints bound the bands; no interpolation across unavailable valuations.
+  var fundGapShadingPlugin = {
+    id: 'fundGapShading',
+    beforeDraw: function(chart) {
+      var area = chart.chartArea, x = chart.scales.x;
+      if (!area || !x || area.right <= area.left) return;
+      var ctx = chart.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(34, 211, 160, 0.10)';
+      for (var i = 0; i < fDates.length; i++) {
+        var info = getFundGap(fDates[i]);
+        // Compare the full-precision gap, not the rounded legend percentage.
+        if (!info.enabled || info.value == null || info.value > -39) continue;
+        var center = x.getPixelForValue(i);
+        var left = i > 0 ? (x.getPixelForValue(i - 1) + center) / 2 : area.left;
+        var right = i < fDates.length - 1 ? (center + x.getPixelForValue(i + 1)) / 2 : area.right;
+        left = Math.max(area.left, left);
+        right = Math.min(area.right, right);
+        if (right > left) ctx.fillRect(left, area.top, right - left, area.bottom - area.top);
+      }
+      ctx.restore();
+    }
+  };
+
   // 5. Selected-series legend: actual series value followed by the plotted rebased value.
   var _fundHudIdx = fDates.length - 1;
   function updateHud(idx) {
@@ -15034,6 +15078,12 @@ function renderFundamentalsTab() {
     entry('chkFundPe', 'P/E', '#a855f7', Number.isFinite(peSeries[idx]) && peSeries[idx] > 0 ? peSeries[idx].toFixed(1) + 'x' : '—');
     if (fundAssetMode === 'index') {
       entry('chkFundTrimmedEps', 'Trim. EPS Value', '#f97316', formatFundLegendValue(getTrimmedEpsForDate(d) != null && medianTrimmedPe != null ? getTrimmedEpsForDate(d) * medianTrimmedPe : null, rebasedTrimmedIV[idx], currency));
+    }
+    var gapInfo = getFundGap(d);
+    if (gapInfo.enabled) {
+      var roundedGap = gapInfo.value == null ? null : Number(gapInfo.value.toFixed(1));
+      var gapText = roundedGap == null ? '—' : (roundedGap > 0 ? '+' : '') + roundedGap.toFixed(1) + '%';
+      items.push('<span data-fund-gap title="Gap = (Price / ' + gapInfo.basis + ' − 1) × 100" style="color:var(--text);">Gap: ' + gapText + '</span>');
     }
     hud.innerHTML = items.join('');
   }
@@ -15134,6 +15184,7 @@ function renderFundamentalsTab() {
 
   fundamentalsChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
+    plugins: [fundGapShadingPlugin],
     data: { labels: fDates, datasets: datasets },
     options: {
       responsive: true,
