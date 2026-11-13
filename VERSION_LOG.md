@@ -307,3 +307,86 @@ All 58 embedded RAW blocks and the auxiliary financial constants were compared w
 - **Cloudflare Worker deployment is not included.** Its reviewed source file is published in the repository, but the separately hosted live Worker remains unchanged.
 
 - Publication housekeeping: replaced Markdown trailing-space line breaks in this log with explicit `<br>` so the fully staged patch passes whitespace checks. No runtime behavior changed.
+
+---
+
+## Audit 2026-11-12.4 — Orange trimmed-EPS financial methodology and provenance
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12<br>
+**Audit work:** approximately 19:05–19:12 UTC<br>
+**Working branch:** `arena/47716a45-nse-rolling-returns-monthly`<br>
+**Base commit:** `7fe1e9796d164da635dee749a67b36f5dda3c89e`
+
+### User request and verdict
+
+The user asked whether their custom orange trimmed EPS was calculated correctly for every index, independently of whether the chart renders correctly. This pass audits the source table, calculation path, update coverage, and available provenance. **Constituent-level correctness remains UNVERIFIED for all 56 indices:** no identifiable generator, complete historical constituent/weight/earnings inputs, or exclusion ledger was found in the current repository or targeted historical revisions. This is not a finding that all supplied values are wrong. Earlier chart tests did not certify the financial methodology.
+
+### Work and findings
+
+1. Traced `ALL_INDICES_TRIMMED_EPS`, its aliases, lookup helper, intrinsic-value scaling, median-multiple selection, and EPS/multiple decomposition. The current app reads precomputed values; it does not perform constituent trimming at runtime.
+2. Audited **56 histories / 5,889 observations**. No duplicate JSON keys, invalid month keys, non-finite/non-numeric EPS values, internal calendar gaps, or missing corresponding positive prices were found. All supplied EPS values are positive; all histories end at `2026-11`. Positivity/continuity are not proof of correctness, and November is still incomplete on the audit date.
+3. Found **626 supplied trimmed observations across 15 indices without a matching positive stored P/E**. That makes same-month comparison with inferred EPS unavailable; an independent constituent calculation might nevertheless be valid.
+4. Identified **7 observations across 2 indices above 100× inferred harmonized EPS**, and **10 consecutive-month moves above 50% across 7 indices**. Saved every flagged date/value in the report. These are screening leads, not automatic data errors: near-zero aggregate earnings, reconstitutions, weight changes, and upstream source issues must be distinguished using constituents.
+5. Established that green index EPS is **price / harmonized P/E**, not a separately imported NSE EPS dataset. Pre-March-2021 P/E is multiplied by fixed per-index factors and rounded. Documented Nifty 50 examples before/after the cutoff.
+6. Established that orange is **trimmed EPS × median multiple, rebased to visible starting price**, not raw EPS units on the chart axis. The normal orange valuation uses the same full-history raw/harmonized median as green. This is a shared valuation assumption; neither a financial validation nor a point-in-time valuation backtest.
+7. Reviewed `update_data.py`, commodity/stock builders, and scheduled/full-history workflows. No trimmed-EPS rebuilding step exists in those update paths. A current month label does not establish synchronized source timestamps or earnings freshness.
+8. Used GitHub commit/file/tree APIs because local history is shallow. Inspected the relevant trimming changes from `71e3a9d465`, `d61abc3b91`, `3fcdfc45e7`, `679c4acd0f`, `e1b84d4f34`, `5462cdc30e`, `5ee58f50e2`, and `0bc7e9b2bb`.
+9. Recovered the old `d61abc3b91` implementation: non-Nifty-50 orange EPS was `price / clipped historical P/E`, using full-history 5th/95th percentiles. That was **P/E winsorization, not constituent EPS trimming**. It is no longer the current implementation. Later commit messages claim point-in-time constituents, index weighting, and methodology changes, but the inspected files/trees did not supply the generator or underlying input snapshots necessary to reproduce those claims. The report links the relevant revisions and does not treat commit messages as proof.
+10. Documented the missing specification: trimming metric/tails, count versus weight, rounding/ties for small baskets, historical membership, accounting basis, report availability, corporate actions, loss handling, retained-weight normalization, and index/divisor scaling. Included a possible earnings-yield aggregation definition only as an explanatory example—not a replacement for the user's unknown method.
+
+### Repository deliverables
+
+- **`TRIMMED_EPS_AUDIT.md`**: signed/timestamped report with HTML SHA-256, source locations, all-56-index coverage table, numerical flags, Nifty 50 comparisons, historical implementation findings, and a source-data request.
+- **`audit_trimmed_eps.py`**: standard-library-only, offline diagnostic/report generator. It does not update the webpage or financial histories. The report includes manually investigated methodology/history notes that require re-review if implementation changes.
+- **`tests/test_trimmed_eps_audit.py`**: six regression tests covering duplicate keys, malformed/non-finite values, calendar gaps, missing/invalid comparators, harmonization cutoff/signed changes, and current-table price coverage. Negative earnings and large moves are intentionally not treated as invalid financial data.
+- **`README.md`**: linked the audit, added regeneration/test instructions, and explicitly distinguished chart testing from constituent-methodology validation.
+- **`VERSION_LOG.md`**: this detailed signed audit record and the prior-publication confirmation below.
+
+### Verification and unchanged scope
+
+- **28 JavaScript unit tests passed** (`npm test`).
+- **17 Python tests passed** (11 existing + 6 audit tests) with `.venv/bin/python -B -m unittest discover -s tests -v`.
+- The first full Python run lacked `pandas` in the fresh sandbox. Restored dependencies from existing `requirements.txt` in ignored `.venv`, then reran successfully. No dependency manifests changed.
+- Independently executed the actual HTML JavaScript harmonization helpers in Node: **5,263 comparable observations and the same 7 >100× ratio flags** as the Python diagnostic.
+- Regenerated and reviewed the report; whitespace check passed. Confirmed **`rolling_returns.html` and financial datasets/pipelines are unchanged** against HEAD. No new browser run was needed for this documentation/offline-audit-only pass; prior browser tests are not represented as newly rerun.
+- No live NSE/Screener/Yahoo/SEC constituent or financial source validation was performed. No data refresh, formula substitution, UI rewrite, or guessed correction was made.
+- No commit, push, PR, merge, or deployment was performed for this audit. Files remain on the active working branch.
+
+### Prior publication confirmation (separate from this audit)
+
+Rechecked GitHub Pages API: the earlier authorized release was built from `7fe1e9796d164da635dee749a67b36f5dda3c89e`, updated **2026-11-12 18:57:24 UTC**, with no reported build error. GitHub `main`'s HTML blob `749ccbbff3c79b4cb98c5df069f9f25e89d97225` matches the audited local HTML. This verifies deployment/source identity via GitHub; it is not a claim of directly fetching or visually inspecting the public URL during this audit.
+
+### Required next input
+
+The original trimming script/notebook/spreadsheet or exact written formula, plus constituent-level inputs for at least one example month. Without that evidence, do not certify the orange histories as correctly computed, and do not silently replace them with a different definition.
+
+---
+
+## Pull-request preparation — owner-supplied orange-line methodology
+
+**By Arena.ai Agent**<br>
+**Date/time:** 2026-11-13 03:25:37 UTC<br>
+**Working branch:** `arena/47716a45-nse-rolling-returns-monthly`
+
+- The user requested a pull request for the audit changes and supplied the intended earnings-yield formula plus local Windows paths for the generating script and datasets.
+- Added `TRIMMED_EPS_METHOD.md` to record the supplied method and filenames without claiming to access those local files. Clarified separate loss-tail removal and upper-tail capping, retained-weight renormalization, and index-price/median-multiple scaling.
+- Reviewed the stated design: earnings-yield aggregation is mathematically coherent under compatible inputs, but this is a custom asymmetric loss-trim/windfall-cap model, not a conventional symmetric 5% trim or proof of true earnings. Documented unresolved fractional boundaries, cap transformation, median timing, historical weight/factor reconstruction, reporting availability, and missing-data behavior.
+- Corrected two interpretation points: only price necessarily starts at 100 on the rebased chart, and the shared frontend median is calculated from harmonized historical P/E rather than untouched official NSE P/E. Neither correction changes application formulas or stored values.
+- Updated `audit_trimmed_eps.py` and regenerated `TRIMMED_EPS_AUDIT.md`: the intended formula is now documented, while the actual generator and historical inputs remain unavailable. Updated the README to link the supplement. Preserved the earlier audit log as a dated record of evidence available at that time.
+- Re-ran validation: **28 JavaScript tests and 17 Python tests passed**, including all six new audit tests. Restored the existing Python dependencies in ignored `.venv`; no dependency manifests changed. The report remains a structural diagnostic, not certification of historical constituent calculations.
+- Publication scope is audit tooling, tests, methodology/report documentation, README, and this version log only. The application HTML, financial datasets, updater scripts, and live site remain unchanged.
+- The requested operation is to commit/push this working branch and open a PR to `main`; **no merge or deployment is authorized or performed here**. This is the pre-PR checkpoint; the GitHub PR record will provide the resulting URL/status.
+
+---
+
+## PR #10 — merge authorization and pre-merge verification
+
+**By Arena.ai Agent**<br>
+**Date/time:** 2026-11-13 03:27:42 UTC<br>
+**Working branch:** `arena/47716a45-nse-rolling-returns-monthly`
+
+- The user explicitly authorized merging [PR #10](https://github.com/q840248-byte/nse-rolling-returns-monthly/pull/10) into `main`.
+- Confirmed that the PR is open, non-draft, mergeable, and targets `main` from the current working branch. Both existing GitHub regression checks passed (runs `43358917263` and `43358887658`).
+- Added this authorization record only; no application code, financial data, or methodology conclusions changed. Final-head checks will be verified before executing the merge.
+- This entry records the pre-merge checkpoint, not a completed merge. The PR's merge event records the actual outcome and merge commit. Audit publication does not certify the constituent calculations or alter the orange-line data.
