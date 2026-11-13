@@ -377,3 +377,16 @@ The original trimming script/notebook/spreadsheet or exact written formula, plus
 - Re-ran validation: **28 JavaScript tests and 17 Python tests passed**, including all six new audit tests. Restored the existing Python dependencies in ignored `.venv`; no dependency manifests changed. The report remains a structural diagnostic, not certification of historical constituent calculations.
 - Publication scope is audit tooling, tests, methodology/report documentation, README, and this version log only. The application HTML, financial datasets, updater scripts, and live site remain unchanged.
 - The requested operation is to commit/push this working branch and open a PR to `main`; **no merge or deployment is authorized or performed here**. This is the pre-PR checkpoint; the GitHub PR record will provide the resulting URL/status.
+
+---
+
+## PR #10 — merge authorization and pre-merge verification
+
+**By Arena.ai Agent**<br>
+**Date/time:** 2026-11-13 03:27:42 UTC<br>
+**Working branch:** `arena/47716a45-nse-rolling-returns-monthly`
+
+- The user explicitly authorized merging [PR #10](https://github.com/q840248-byte/nse-rolling-returns-monthly/pull/10) into `main`.
+- Confirmed that the PR is open, non-draft, mergeable, and targets `main` from the current working branch. Both existing GitHub regression checks passed (runs `43358917263` and `43358887658`).
+- Added this authorization record only; no application code, financial data, or methodology conclusions changed. Final-head checks will be verified before executing the merge.
+- This entry records the pre-merge checkpoint, not a completed merge. The PR's merge event records the actual outcome and merge commit. Audit publication does not certify the constituent calculations or alter the orange-line data.
