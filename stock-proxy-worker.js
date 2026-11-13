@@ -103,8 +103,13 @@ const KNOWN_MAP = {
 };
 
 function sanitizeEpsValues(values) {
-  const valid = (values || [])
-    .filter(pt => Array.isArray(pt) && /^\d{4}-(0[1-9]|1[0-2])-\d{2}/.test(String(pt[0])) && Number.isFinite(Date.parse(pt[0])) && pt[1] !== null && pt[1] !== undefined && String(pt[1]).trim() !== '' && Number.isFinite(Number(pt[1])))
+  const valid = (Array.isArray(values) ? values : [])
+    .filter(pt => {
+      if (!Array.isArray(pt) || typeof pt[0] !== 'string' || !/^\d{4}-\d{2}-\d{2}(?:$|T| )/.test(pt[0])) return false;
+      if (!['number', 'string'].includes(typeof pt[1]) || String(pt[1]).trim() === '' || !Number.isFinite(Number(pt[1]))) return false;
+      const date = pt[0].slice(0, 10), parsed = new Date(date + 'T00:00:00Z');
+      return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+    })
     .map(pt => [String(pt[0]).slice(0, 10), Number(pt[1])])
     .sort((a, b) => a[0].localeCompare(b[0]));
   if (valid.length < 3) return valid;

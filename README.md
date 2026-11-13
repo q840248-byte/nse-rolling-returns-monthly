@@ -31,6 +31,10 @@ The stock builder preserves previously cached symbols if their refresh fails and
 
 ## Calculation conventions and limitations
 
+- Dynamic P/E bands require 60 consecutive positive monthly observations; incomplete windows and undefined zero-dispersion Z-scores remain unavailable. Bands are descriptive statistics, not calibrated investment signals.
+- Latest Stats decomposition uses exact, shared calendar endpoints for price/EPS/multiple growth; sparse-history drawdown durations use elapsed calendar months. The displayed recovery duration is the longest observed underwater span, including ongoing episodes.
+- Cashflow input bounds are checked before simulation. Single-journey duration is derived from the actual dates (the years input is an end-date shortcut); rolling windows require whole years.
+
 - Rolling asset CAGR uses actual calendar-month endpoints. Missing endpoints are not interpolated.
 - Cashflow simulations use a **monthly-rebalanced positive-weight portfolio**. Missing monthly prices are represented as missing, not as 0% returns or a change of allocation. Single journeys require continuous history; rolling cohorts crossing gaps are excluded.
 - The rolling-return portfolio endpoint calculation retains the pre-existing buy-and-hold/available-asset convention. It is **not the same portfolio model** as monthly-rebalanced cashflows. This distinction needs a future explicit UI/model decision; it was not silently changed in the review.
@@ -56,6 +60,7 @@ npm ci
 npm test
 npm run test:browser
 npm run test:fundamentals
+npm run test:project
 ```
 
 The browser suite uses Playwright Core with an npm-packaged Chromium binary on Linux. It serves the real app on an ephemeral loopback port, blocks external providers, and closes its server/browser on completion. You can provide `BROWSER_PATH` for an installed compatible Chromium browser. A screenshot is written under ignored `artifacts/`; no browser binaries, generated screenshots, or virtual environments should be committed.
@@ -72,16 +77,21 @@ The tab uses a full-history median P/E as a **valuation estimate**, not a point-
 
 ## Trimmed-EPS methodology audit
 
-See [TRIMMED_EPS_AUDIT.md](TRIMMED_EPS_AUDIT.md) for the all-56-index review, diagnostic dates, provenance findings, and the inputs needed to validate the custom calculation. **The orange data is not yet constituent-validated.** The page reads precomputed values; no reproducible trimming generator or complete historical constituent/weight/earnings dataset was found in the inspected repository revisions. The owner subsequently supplied the intended formula and external script filenames; see [TRIMMED_EPS_METHOD.md](TRIMMED_EPS_METHOD.md). The actual generator and inputs have not been uploaded or inspected. The scheduled updater does not rebuild that table. Passing chart tests does not certify its financial methodology.
+See [TRIMMED_EPS_AUDIT.md](TRIMMED_EPS_AUDIT.md) for the all-56-index review, diagnostic dates, provenance findings, and the inputs needed to validate the custom calculation. **The orange data is not yet constituent-validated.** The page reads precomputed values; no reproducible trimming generator or complete historical constituent/weight/earnings dataset was found in the inspected repository revisions. The owner subsequently supplied the intended formula and external script filenames; see [TRIMMED_EPS_METHOD.md](TRIMMED_EPS_METHOD.md). A subsequently supplied complete trimming-function excerpt is preserved and tested in `tests/test_supplied_trim_function.py`; it implements the cap but exhibits loss-gate and weighted-median discontinuities documented in the supplement. The full generator, caller, and historical inputs have not been uploaded or inspected. The scheduled updater does not rebuild that table. Passing chart tests does not certify its financial methodology.
 
 Regenerate the offline structural report without changing application data:
 
 ```sh
 python -B audit_trimmed_eps.py --output TRIMMED_EPS_AUDIT.md
 python -B -m unittest discover -s tests -p test_trimmed_eps_audit.py -v
+python -B -m unittest discover -s tests -p test_supplied_trim_function.py -v
 ```
 
 The report checks dates, coverage, duplicate keys, numerical validity, comparator availability, and large changes. Its flags are reconciliation leads, not evidence that an observation is necessarily wrong. The report also includes the manually investigated implementation/history findings; they should be re-reviewed when the application methodology changes.
+
+## Full-project review
+
+See [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the all-ten-tab review, reproducible fixes, verification counts, and remaining source/browser/methodology limits. `npm run test:project` adds cross-tab P/E/dynamic-band checks, the 56-index valuation sweep, empty-state and selector regressions, allocation/selection scenarios, an offline Excel writer fixture, keyboard collapse state, and all-tab 390px containment. This complements—not replaces—the existing general and Fundamentals suites.
 
 ## Change history
 

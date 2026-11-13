@@ -41,3 +41,10 @@ test('both upstream failures return explicit 502 rather than empty success', asy
   const p = proxy(async () => new Response('unavailable', {status: 503}));
   assert.equal((await p.worker.fetch(new Request('https://proxy/api/stock?id=2726'))).status, 502);
 });
+
+test('proxy rejects impossible dates, boolean EPS, and malformed observation collections', () => {
+  const p=proxy();
+  const values=p.sanitizeEpsValues([['2024-02-30',10],['2024-01-01',true],['2024-01-01',[]],['2024-01-01',{}],['2024-02-29',0]]);
+  assert.equal(JSON.stringify(values),JSON.stringify([['2024-02-29',0]]));
+  assert.equal(JSON.stringify(p.sanitizeEpsValues({bad:true})), '[]');
+});

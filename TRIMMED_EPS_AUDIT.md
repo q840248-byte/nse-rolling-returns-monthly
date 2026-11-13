@@ -2,17 +2,17 @@
 
 **By Arena.ai Agent**
 
-**Generated (UTC):** 2026-11-13 03:25:06
+**Generated (UTC):** 2026-11-13 03:36:44
 
 **Audited file:** `rolling_returns.html`
 
-**HTML SHA-256:** `1ef3463d837eb7df2c6b5c88754021566a906f828b1ba24e9b5fd403028db645`
+**HTML SHA-256:** `a42ae1aff88990bc0bdd47b6d537e3404326d61445475ec2c4403094f5ca70da`
 
 ## Verdict
 
 **The project does not provide enough evidence to certify the trimmed-EPS calculation for any of these indices.** It contains precomputed output values but no accessible constituent-trimming generator, input snapshots, or exclusion ledger. This is an **unverified** result, not proof that every value is wrong.
 
-**Follow-up:** the owner has now supplied the intended weighted earnings-yield methodology and external generator filenames. See [TRIMMED_EPS_METHOD.md](TRIMMED_EPS_METHOD.md) for the supplied rule, its assessment, and remaining implementation questions. Local Windows file links do not provide the actual script or inputs to this workspace.
+**Follow-up:** the owner has supplied the intended methodology, external generator filenames, and a complete trimming-function excerpt tested separately. See [TRIMMED_EPS_METHOD.md](TRIMMED_EPS_METHOD.md) for the supplied rule, its assessment, and remaining implementation questions. The excerpt implements the cap but has loss-gate and weighted-median discontinuities; see the supplement for tested examples. Local Windows links do not supply the full generator or inputs.
 
 Earlier chart tests established rendering and arithmetic behavior, not the financial validity of the supplied trimmed data. This audit does not modify that data or replace the user’s method with a guessed formula.
 
@@ -148,14 +148,14 @@ Screening rule: absolute change >50% between adjacent calendar months. Reconstit
 | 2020-09 | 11,247.55 | 32.69 | 344.07 | 402.13 | 503.21 |
 | 2021-02 | 14,529.15 | 39.65 | 366.44 | 428.34 | 537.59 |
 | 2021-03 | 14,690.70 | 33.20 | 442.49 | 442.49 | 534.76 |
-| 2026-11 | 25,255.05 | 20.59 | 1226.57 | 1226.57 | 1,182.28 |
+| 2026-11 | 25,299.35 | 20.62 | 1226.93 | 1226.93 | 1,182.28 |
 
 The harmonization factor is an assumption applied to old observations, not a reconstruction of each historical constituent’s consolidated financial statements. The orange generator must use a compatible earnings/accounting/index scale before these lines can be interpreted as a clean raw-versus-trimmed comparison.
 
 ## What is needed to validate your method
 
 1. The actual `compute_pit_trimmed_eps.py` generator identified by the owner, plus its inputs and configuration. The written methodology is now recorded in the supplement.
-2. Resolve the remaining cap-function, fractional boundary, tie, median-timing, and missing-data details. The owner specifies earnings-yield ranking and separate up-to-5%-of-weight loss/cap budgets.
+2. Verify that the full generator calls the supplied function with sorted, valid inputs and documented missing-data handling. Decide whether its tested loss-gate and median-switch discontinuities are intended.
 3. For each historical date: constituent identifiers, effective memberships, index weights/free-float or cap adjustments, and prices.
 4. Matching TTM earnings with declared standalone/consolidated and basic/diluted basis, share/split adjustments, loss/exceptional-item treatment, and reporting availability dates.
 5. Verify the described retained-weight renormalization and index-price scaling in the script; reconcile the untrimmed aggregate against the official baseline.
