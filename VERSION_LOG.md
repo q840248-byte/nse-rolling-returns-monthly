@@ -474,3 +474,36 @@ Changes remain on the active working branch. **No commit, push, PR, merge, websi
 - Publication procedure: commit/push only the current branch, open a PR to `main`, verify GitHub regression checks, merge the explicit PR, and verify the Pages deployment for that merge. This is the pre-deployment checkpoint; the PR/deployment record provides the final outcome and commit.
 - The separately hosted **Cloudflare Worker is not deployed** by this GitHub Pages release. Its improved source is included in the repository, but deploying that service requires its separate deployment environment.
 - Existing source-data/methodology limitations remain documented in `PROJECT_REVIEW.md`; deployment does not certify original financial histories or the orange constituent calculation.
+
+---
+
+## Fundamentals — four-series controls and selected-only legend
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Validation timestamp:** 2026-11-13 04:48 UTC (sandbox clock)<br>
+**Working branch:** `arena/bb6f4605-nse-rolling-returns-monthly`
+
+- Set P/E unchecked on first load, with both its dataset and right-hand axis hidden. User selections survive timeframe, scale and asset-mode rerenders.
+- Standardized control, dataset and legend names to **Price**, **EPS Value**, **P/E**, and **Trim. EPS Value**; removed dynamic median-dependent long labels.
+- Removed the Fundamentals rolling-horizon toolbar, rolling-CAGR calculation/state/dataset/axis/legend, and its exported setter. Other tabs' rolling-return functionality and Fundamentals timeframe/decomposition horizons remain intact.
+- Removed the P/E percentile checkbox, expanding percentile calculation, heatmap plugin and its shading, and percentile legend/help text.
+- Replaced the diagnostic HUD with selected-series entries plus date/asset context. Price and EPS-based valuation amounts display currency to one decimal followed by their plotted rebased values, e.g. `₹1226.9 (126)`. P/E displays only a multiple, e.g. `20.6x`. US stocks use dollars. EPS Value currency amounts represent the existing EPS × median P/E curves, not raw EPS; the earlier implementation's raw-EPS legend interpretation was corrected before completion.
+- Removed valuation-gap and loss badges from the simplified legend. Missing values remain unavailable; zero/negative valuation values remain readable, and logarithmic charts continue to omit nonpositive points. Trimmed entries remain index-only.
+- Preserved curve calculations: full-history median P/E, shared raw/trimmed baseline where available, trimmed-only fallback, visible-window price rebasing, and no fabricated missing trimmed observations. Updated dataset indexing and primary-axis visibility/bounds after deleting the rolling dataset.
+- Updated README and added formatter coverage. Replaced obsolete rolling/heatmap browser checks with removal/default/format coverage and all 16 checkbox combinations in each of the three asset modes, including hover. Retained catalog sweep, negative/missing-data, decomposition, zoom/pan/reset, and mobile tests.
+- Validation: **40 JavaScript unit tests**, **27 focused Fundamentals browser checks**, existing **all-tab browser smoke suite**, and **15 project browser scenarios** passed. The focused suite was rerun after correcting the legend currency interpretation. Inline scripts parsed; whitespace checks passed. Python code was untouched and Python tests were not rerun for this UI-only change.
+- Compared embedded data against HEAD: all **58 RAW blocks**, `RAW_PE`, `TOP_STOCKS_DATA`, `READY_US_STOCKS`, `ALL_INDICES_TRIMMED_EPS`, `SUBSIDIARY_FACTOR_MAP`, and `GSEC_10Y` unchanged. No orange-data recalculation or provider refresh. Screenshots/test artifacts remain ignored.
+- Changes are saved on the active working branch only. No commit, push, PR, merge, website deployment or Worker deployment performed for this request.
+
+### Publication checkpoint — Fundamentals simplification
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Preflight timestamp:** 2026-11-13 04:51:09 UTC (sandbox clock)
+
+- User explicitly authorized deployment of this branch's Fundamentals changes.
+- Restored ephemeral test dependencies with `npm ci` after the first browser preflight reported a missing Playwright module. Installation completed with zero reported vulnerabilities.
+- Fresh deployment preflight passed: 40 JavaScript unit tests, 27 focused Fundamentals browser checks, all-tab browser smoke tests, and 15 cross-project browser scenarios. `git diff --check` passed. GitHub CI also runs the unchanged Python pipeline tests before merge.
+- Confirmed GitHub Pages still publishes `main` at repository root. Publication will commit/push only `arena/bb6f4605-nse-rolling-returns-monthly`, open its PR, verify CI, merge that explicit PR and verify the Pages build. The PR records the final merge and deployment outcome.
+- No financial dataset refresh or trimmed-EPS recalculation is included. No separate Cloudflare Worker deployment is required or performed.

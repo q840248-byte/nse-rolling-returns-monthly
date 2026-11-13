@@ -71,9 +71,13 @@ GitHub Actions runs the offline suite on pushes and pull requests. The scheduled
 
 ## Fundamentals verification
 
-`npm run test:fundamentals` runs focused Chromium checks using controlled return/valuation fixtures, then renders every embedded Fundamentals asset (56 indices, 67 Indian stocks, 9 US stocks). It checks exact horizons, price/EPS/multiple decomposition, median-based IV rebasing, loss/zero-EPS behavior, missing data, hover/zoom/reset consistency, series visibility, US suggestions, and the 390px layout.
+`npm run test:fundamentals` runs focused Chromium checks using controlled return/valuation fixtures, then renders every embedded Fundamentals asset (56 indices, 67 Indian stocks, 9 US stocks). It checks exact decomposition horizons, median-based curve rebasing, loss/zero-EPS behavior, missing data, hover/zoom/reset consistency, every combination of the four series toggles, default P/E visibility, US suggestions, and the 390px layout.
 
-The tab uses a full-history median P/E as a **valuation estimate**, not a point-in-time backtest. The index green series uses harmonized P/E/EPS; the orange supplied trimmed series intentionally shares that median baseline when available. No missing trimmed observations are extrapolated. Stock P/E is derived at render time from valid price/EPS for a consistent decomposition; the persisted caches are not rewritten. Historical EPS preprocessing and corporate-action adjustments still need source-level validation.
+The four controls are **Price**, **EPS Value**, **P/E**, and **Trim. EPS Value**. P/E starts unchecked; only checked series appear in the legend. Currency values show actual price or EPS-based valuation, followed by the corresponding plotted rebased value, for example `₹1226.9 (126)`; US stocks use `$`. P/E displays only its multiple, such as `20.6x`. Missing values remain `—`; zero and negative valuation amounts are retained in the legend, although nonpositive points cannot be plotted on a logarithmic axis. Trimmed values apply only to indices.
+
+The Fundamentals rolling-CAGR overlay, rolling-horizon controls, percentile calculation/heatmap, and auxiliary valuation badges have been removed. Chart timeframe buttons and the 3Y/5Y/10Y return-decomposition table remain. Rolling Returns and the other application tabs are unaffected.
+
+The EPS curves retain their existing **EPS × full-history median P/E** valuation scaling—not a new raw-EPS rebasing algorithm. The index green curve uses harmonized P/E/EPS; orange intentionally shares that median baseline when available. No missing trimmed observations are extrapolated. Stock P/E is derived from valid price/EPS for consistent decomposition; persisted caches are not rewritten. The full-history median is a valuation estimate, not a point-in-time backtest. Historical source/EPS/corporate-action accuracy remains outside these UI checks.
 
 ## Trimmed-EPS methodology audit
 
