@@ -507,3 +507,49 @@ Changes remain on the active working branch. **No commit, push, PR, merge, websi
 - Fresh deployment preflight passed: 40 JavaScript unit tests, 27 focused Fundamentals browser checks, all-tab browser smoke tests, and 15 cross-project browser scenarios. `git diff --check` passed. GitHub CI also runs the unchanged Python pipeline tests before merge.
 - Confirmed GitHub Pages still publishes `main` at repository root. Publication will commit/push only `arena/bb6f4605-nse-rolling-returns-monthly`, open its PR, verify CI, merge that explicit PR and verify the Pages build. The PR records the final merge and deployment outcome.
 - No financial dataset refresh or trimmed-EPS recalculation is included. No separate Cloudflare Worker deployment is required or performed.
+
+---
+
+## Fundamentals — plain gap percentage without badges
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Validation timestamp:** 2026-11-13 05:08:55 UTC (sandbox clock)<br>
+**Working branch:** `arena/869cd2d3-nse-rolling-returns-monthly`
+
+- User requested a simple gap percentage, explicitly without restoring the badge. Added neutral inline `Gap: +20.0%` text to the Fundamentals legend. No background, border, verdict colors, overvalued/undervalued/fair-value labels, or loss badges.
+- Formula: `(Price / EPS-based valuation − 1) × 100`, using actual unrounded currency values, displayed to one decimal with a positive sign where appropriate. Zero displays `0.0%`, not negative zero.
+- Preserved the previous valuation-selection rule: selected green EPS Value takes precedence; selected Trim. EPS Value is used if green is unchecked or missing. A hover title identifies the denominator. The price remains the comparison reference even when its chart line is hidden.
+- Hide the gap when neither applicable valuation series is selected. Nonpositive or missing valuations and invalid ratios show `Gap: —`, not a misleading financial percentage. Existing hover/zoom/pan/reset and checkbox refresh paths update the readout.
+- Negative-EPS chart shading remains removed as requested. Rolling overlay, percentile heatmap and all badges remain removed; P/E still defaults off. No changes to chart formulas, embedded financial data, trimmed-EPS methodology, or other tabs.
+- Updated README and added three focused browser scenarios for signed/zero gaps, neutral styling, hover and scale/timeframe consistency, green precedence/trimmed fallback, hidden selections, and missing/zero/negative valuation. Strengthened the existing hidden-valuation check.
+- Validation passed: **40 JavaScript unit tests**, **30 focused Fundamentals checks** (including the 132-asset sweep and mobile layout), and the **all-tab browser smoke suite**. Whitespace checks passed. Python and the separate project-browser suite were not rerun for this small legend change.
+- Saved on this working branch; no commit, push, PR, merge, website deployment, or Worker deployment performed for this request.
+
+### Fundamentals — light green shading at gap ≤ −39%
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Validation timestamp:** 2026-11-13 05:18:56 UTC (sandbox clock)<br>
+**Working branch:** `arena/869cd2d3-nse-rolling-returns-monthly`
+
+- Added light green background bands at 10% opacity for monthly observations with gap **≤ −39%**, including exactly −39%. Bands extend vertically within the chart plot and horizontally to midpoints between adjacent monthly observations; no interpolation of missing valuations is introduced.
+- Extracted one shared gap calculation/valuation-selection helper for both the existing plain-text readout and shading. Green-first and selected trimmed fallback behavior is unchanged. Hiding both valuation series hides the shading; hiding Price alone does not change the comparison reference.
+- Threshold uses the full-precision gap, not the rounded legend: −38.99% does not shade even though its readout rounds to −39.0%. Missing, zero, negative, and nonfinite valuations do not shade.
+- Implemented a Fundamentals-only Chart.js background plugin, drawn behind grid/curves and clipped to plot bounds. It recalculates on visibility updates and supports zoom, pan, reset, timeframe changes, and both logarithmic/linear scales.
+- Kept the gap readout plain: no valuation badges, verdicts, or loss warnings restored. This single-threshold shading does not restore the removed P/E percentile heatmap or negative-EPS shading. Embedded data, valuation curves, decomposition and all other tabs remain unchanged.
+- Updated README and added two browser checks covering the inclusive boundary, rounded near-miss, invalid observations, exact monthly band boundaries, opacity, plot clipping, zoom, scale changes, hidden series, green precedence, and trimmed fallback.
+- Validation passed: **40 JavaScript unit tests**, **32 Fundamentals browser checks**, **all-tab browser smoke tests**, **15 project browser scenarios**, and whitespace checks. No Python changes; Python tests not rerun.
+- Includes the earlier plain-gap change already saved on this branch. No commit, push, PR, merge, or deployment performed for this request.
+
+### Publication checkpoint — plain gap and −39% shading
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Preflight timestamp:** 2026-11-13 05:35:39 UTC (sandbox clock)<br>
+**Working branch:** `arena/869cd2d3-nse-rolling-returns-monthly`
+
+- User explicitly authorized deployment of both the plain gap percentage and light green chart shading for gap ≤ −39%. No badges, percentile heatmap, or negative-EPS warnings are restored.
+- Fresh local publication preflight passed after `npm ci`: 40 JavaScript tests, 32 focused Fundamentals checks, all-tab browser smoke suite, and 15 project browser scenarios. Whitespace checks passed.
+- Confirmed GitHub Pages publishes from `main` at the repository root. Publication procedure: commit/push this branch only, open its PR, wait for full GitHub regression CI (including Python), merge the explicit PR, and verify the Pages deployment and post-merge CI. Final outcome will be recorded on the PR.
+- No data refresh, valuation-methodology change, or Cloudflare Worker deployment is included.

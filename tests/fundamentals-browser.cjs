@@ -213,12 +213,117 @@ const server = http.createServer((req, res) => {
       });
       assert.deepEqual(values,['P/E: 10.0x','P/E: 5.0x','P/E: 20.0x']);
     });
+    await check('light green gap shading includes -39%, excludes rounded near-misses and unavailable values', async () => {
+      const result=await page.evaluate(()=>{
+        window.captureGapShading=function(){
+          const chart=fundamentalsChartInstance, ctx=chart.ctx;
+          const originalFill=ctx.fillRect,originalClip=ctx.clip;
+          const bands=[];let clipped=false;
+          ctx.clip=function(...args){clipped=true;return originalClip.apply(this,args);};
+          ctx.fillRect=function(left,top,width,height){bands.push({left,top,width,height,color:this.fillStyle});};
+          try {chart.config.plugins.find(p=>p.id==='fundGapShading').beforeDraw(chart);}
+          finally {ctx.fillRect=originalFill;ctx.clip=originalClip;}
+          return {bands,clipped,area:{...chart.chartArea}};
+        };
+        const price={},eps={};
+        [61,60,61.01,100,100,100,100,100,100,100,100,100].forEach((p,i)=>{
+          const d=addMonths('2020-01',i);price[d]=p;
+          if(i<9)eps[d]=10;else if(i===9)eps[d]=-10;else if(i===10)eps[d]=0;
+        });
+        installFundFixture({price,eps});
+        const linear=captureGapShading();
+        const x=fundamentalsChartInstance.scales.x;
+        const boundary=(x.getPixelForValue(1)+x.getPixelForValue(2))/2;
+        fundamentalsChartInstance.options.onHover({native:{}},[{index:2}]);
+        const rounded=document.querySelector('[data-fund-gap]').textContent;
+        setFundScaleType('logarithmic');const log=captureGapShading();
+        fundamentalsChartInstance.zoomScale('x',{min:4,max:8},'none');const zoom=captureGapShading();
+        resetFundZoom();document.getElementById('chkFundEps').checked=false;updateFundSeriesVisibility();
+        const hidden=captureGapShading();
+        return {linear,log,zoom,hidden,rounded,boundary};
+      });
+      assert.equal(result.rounded,'Gap: -39.0%'); // -38.99 rounds to -39, but must not shade.
+      assert.equal(result.linear.bands.length,2);assert.equal(result.log.bands.length,2);
+      assert.equal(result.zoom.bands.length,0);assert.equal(result.hidden.bands.length,0);
+      assert.equal(result.linear.clipped,true);
+      const last=result.linear.bands.at(-1);assert.ok(Math.abs(last.left+last.width-result.boundary)<.001);
+      for(const state of [result.linear,result.log])for(const b of state.bands){
+        assert.ok(b.left>=state.area.left && b.left+b.width<=state.area.right+.001);
+        assert.equal(b.top,state.area.top);assert.equal(b.height,state.area.bottom-state.area.top);
+        assert.match(b.color,/rgba\(34, 211, 160, 0\.1\)/);
+      }
+    });
+    await check('gap shading switches to selected trimmed valuation and suppresses missing/loss observations',async()=>{
+      const result=await page.evaluate(()=>{
+        RAW['Fixture Shade']={'2020-01':100,'2020-02':100,'2020-03':100,'2020-04':100};
+        RAW_PE['Fixture Shade']={'2020-01':10,'2020-02':10,'2020-03':10,'2020-04':10};
+        ALL_INDICES_TRIMMED_EPS['Fixture Shade']={'2020-01':20,'2020-02':-20,'2020-03':0};
+        try {
+          fundAssetMode='index';renderFundamentalsTab();document.getElementById('fundIndexSelect').value='Fixture Shade';
+          document.getElementById('chkFundEps').checked=true;document.getElementById('chkFundTrimmedEps').checked=true;renderFundamentalsTab();
+          const green=captureGapShading().bands.length;
+          document.getElementById('chkFundEps').checked=false;updateFundSeriesVisibility();
+          const trimmed=captureGapShading().bands.length;
+          document.getElementById('chkFundEps').checked=true;delete RAW_PE['Fixture Shade']['2020-01'];renderFundamentalsTab();
+          const fallback=captureGapShading().bands.length;
+          document.getElementById('chkFundEps').checked=false;document.getElementById('chkFundTrimmedEps').checked=false;updateFundSeriesVisibility();
+          return {green,trimmed,fallback,hidden:captureGapShading().bands.length};
+        }finally{delete RAW['Fixture Shade'];delete RAW_PE['Fixture Shade'];delete ALL_INDICES_TRIMMED_EPS['Fixture Shade'];}
+      });
+      assert.deepEqual(result,{green:0,trimmed:1,fallback:1,hidden:0});
+    });
+    await check('plain gap follows hover, preserves sign, and has no badge styling', async () => {
+      const result = await page.evaluate(() => {
+        installFundFixture({price:{'2020-01':100,'2020-02':100,'2020-03':100},eps:{'2020-01':10,'2020-02':20,'2020-03':5}});
+        return [0,1,2].map(index => {
+          fundamentalsChartInstance.options.onHover({native:{}},[{index}]);
+          const el = document.querySelector('[data-fund-gap]');
+          return {text:el.textContent, background:el.style.background, border:el.style.border};
+        });
+      });
+      assert.deepEqual(result.map(x=>x.text), ['Gap: 0.0%','Gap: -50.0%','Gap: +100.0%']);
+      assert.ok(result.every(x=>x.background==='' && x.border===''));
+      const values = await page.evaluate(() => {
+        const before=document.querySelector('[data-fund-gap]').textContent;
+        setFundScaleType('logarithmic');setFundTimeframe('3Y');
+        return [before,document.querySelector('[data-fund-gap]').textContent];
+      });
+      assert.equal(values[0],values[1]);
+    });
+    await check('plain gap uses trimmed fallback only when green is unchecked or missing',async()=>{
+      const results=await page.evaluate(()=>{
+        RAW['Fixture Gap']={'2020-01':100,'2020-02':120};
+        RAW_PE['Fixture Gap']={'2020-01':10,'2020-02':10};
+        ALL_INDICES_TRIMMED_EPS['Fixture Gap']={'2020-01':8,'2020-02':8};
+        try {
+          fundAssetMode='index';renderFundamentalsTab();document.getElementById('fundIndexSelect').value='Fixture Gap';
+          document.getElementById('chkFundEps').checked=true;document.getElementById('chkFundTrimmedEps').checked=true;renderFundamentalsTab();
+          const green=document.querySelector('[data-fund-gap]').textContent;
+          document.getElementById('chkFundEps').checked=false;updateFundSeriesVisibility();
+          const trimmed=document.querySelector('[data-fund-gap]').textContent;
+          const basis=document.querySelector('[data-fund-gap]').title;
+          document.getElementById('chkFundEps').checked=true;delete RAW_PE['Fixture Gap']['2020-02'];renderFundamentalsTab();
+          const fallback=document.querySelector('[data-fund-gap]').textContent;
+          document.getElementById('chkFundEps').checked=false;document.getElementById('chkFundTrimmedEps').checked=false;updateFundSeriesVisibility();
+          return {green,trimmed,basis,fallback,hidden:!document.querySelector('[data-fund-gap]')};
+        } finally {delete RAW['Fixture Gap'];delete RAW_PE['Fixture Gap'];delete ALL_INDICES_TRIMMED_EPS['Fixture Gap'];}
+      });
+      assert.equal(results.green,'Gap: 0.0%');assert.equal(results.trimmed,'Gap: +50.0%');
+      assert.match(results.basis,/Trim\. EPS Value/);assert.equal(results.fallback,'Gap: +50.0%');assert.equal(results.hidden,true);
+    });
+    await check('gap is unavailable for negative, zero, or missing valuation',async()=>{
+      const texts=await page.evaluate(()=>{
+        installFundFixture({price:{'2020-01':100,'2020-02':100,'2020-03':100,'2020-04':100},eps:{'2020-01':10,'2020-02':-10,'2020-03':0}});
+        return [1,2,3].map(index=>{fundamentalsChartInstance.options.onHover({native:{}},[{index}]);return document.querySelector('[data-fund-gap]').textContent;});
+      });
+      assert.deepEqual(texts,['Gap: —','Gap: —','Gap: —']);
+    });
     await check('hidden valuation lines do not continue emitting an IV gap badge', async () => {
       const hud = await page.evaluate(() => {
         installFundFixture(compoundFixture()); document.getElementById('chkFundEps').checked = false; updateFundSeriesVisibility();
         return document.getElementById('fundHoverHud').textContent;
       });
-      assert.doesNotMatch(hud, /Overvalued|Undervalued|Fairly Priced/);
+      assert.doesNotMatch(hud, /Gap:|Overvalued|Undervalued|Fairly Priced/);
     });
     await check('negative trimmed EPS remains readable without extra valuation badges', async () => {
       const hud = await page.evaluate(() => {
