@@ -3259,7 +3259,7 @@
                 <button type="button" class="tv-tool-btn" id="fundStockFetchBtn" onclick="fetchAndSelectStock(true)" style="background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);font-weight:600;padding:3px 8px;">Fetch ⚡</button>
                 <button type="button" class="tv-tool-btn" id="fundProxySettingsBtn" onclick="toggleProxySettingsModal()" style="padding:3px 6px;" title="CORS Proxy Settings">⚙️</button>
               </div>
-              <span id="fundStockStatus" style="font-size:0.68rem;font-family:monospace;color:var(--muted);"></span>
+              <span id="fundStockStatus" hidden role="alert" style="font-size:0.68rem;font-family:monospace;color:#f87171;"></span>
             </div>
 
             <div class="tv-btn-group">
@@ -14192,14 +14192,17 @@ function invalidateFundStockRequest() {
   fundStockRequestId++;
   var btn = document.getElementById('fundStockFetchBtn');
   if (btn) btn.disabled = false;
-  var status = document.getElementById('fundStockStatus');
-  if (status) status.textContent = '';
+  setFundStockError('');
   return fundStockRequestId;
 }
 
-function setFundStockStatus(message, color) {
+// Only errors occupy the stock-status area; loading/success remain silent.
+function setFundStockError(message) {
   var status = document.getElementById('fundStockStatus');
-  if (status) { status.textContent = message; status.style.color = color || 'var(--muted)'; }
+  if (status) {
+    status.textContent = message || '';
+    status.hidden = !message;
+  }
 }
 
 function clearFundamentalsChart() {
@@ -14379,8 +14382,7 @@ function selectStockChip(sym, label) {
   var inp = document.getElementById('fundStockInput');
   if (inp) inp.value = label || sym;
   updateStockChipsUI(sym);
-  var stat = document.getElementById('fundStockStatus');
-  if (stat) stat.textContent = '';
+  setFundStockError('');
   renderFundamentalsTab();
 }
 
@@ -14636,7 +14638,7 @@ async function fetchAndSelectStock(forceRefresh) {
     var readyUs = (typeof READY_US_STOCKS !== 'undefined') ? READY_US_STOCKS : (window.READY_US_STOCKS || {});
     var usObj = readyUs[sym] || fundCustomUsStockData[sym];
     if (usObj) fundCustomUsStockData[sym] = usObj;
-    setFundStockStatus(usObj ? '⚡ Loaded ' + (usObj.name || sym) + ' ($, offline cache)' : 'US ticker "' + sym + '" not in offline SEC EDGAR cache', usObj ? '#22d3a0' : '#f87171');
+    if (!usObj) setFundStockError('US ticker "' + sym + '" not in offline SEC EDGAR cache');
     renderFundamentalsTab();
     return;
   }
@@ -14646,11 +14648,7 @@ async function fetchAndSelectStock(forceRefresh) {
   var cached = fundCustomStockData[sym] || topDict[sym] || (sym === 'TMPV' && topDict.TATAMOTORS ? Object.assign({}, topDict.TATAMOTORS, { symbol: 'TMPV' }) : null);
   if (cached) fundCustomStockData[sym] = cached;
   renderFundamentalsTab(); // Remove an unrelated stock's old chart while loading.
-  if (!forceRefresh && cached) {
-    setFundStockStatus('⚡ Loaded ' + (cached.name || sym) + ' (₹, cached)', '#22d3a0');
-    return;
-  }
-  setFundStockStatus('⏳ Fetching ' + sym + ' live...', '#38bdf8');
+  if (!forceRefresh && cached) return;
   var fetchBtn = document.getElementById('fundStockFetchBtn');
   if (fetchBtn) fetchBtn.disabled = true;
   try {
@@ -14658,11 +14656,10 @@ async function fetchAndSelectStock(forceRefresh) {
     fundCustomStockData[sym] = stockObj;
     // Cache a late response but never overwrite a newer selection or its UI.
     if (requestId !== fundStockRequestId || fundAssetMode !== 'stock' || fundSelectedStock !== sym) return;
-    setFundStockStatus('✓ Loaded ' + sym + ' (' + stockObj.dates.length + ' months live, ' + (stockObj.epsBasis || 'EPS basis not supplied by proxy') + ')', '#22d3a0');
     renderFundamentalsTab();
   } catch (err) {
     if (requestId !== fundStockRequestId) return;
-    setFundStockStatus('❌ ' + String(err.message || err) + (cached ? ' — showing cached data, not a live refresh.' : ''), '#f87171');
+    setFundStockError('❌ ' + String(err.message || err) + (cached ? ' — showing cached data, not a live refresh.' : ''));
     renderFundamentalsTab();
   } finally {
     if (requestId === fundStockRequestId && fetchBtn) fetchBtn.disabled = false;
