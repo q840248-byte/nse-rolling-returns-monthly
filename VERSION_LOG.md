@@ -553,3 +553,32 @@ Changes remain on the active working branch. **No commit, push, PR, merge, websi
 - Fresh local publication preflight passed after `npm ci`: 40 JavaScript tests, 32 focused Fundamentals checks, all-tab browser smoke suite, and 15 project browser scenarios. Whitespace checks passed.
 - Confirmed GitHub Pages publishes from `main` at the repository root. Publication procedure: commit/push this branch only, open its PR, wait for full GitHub regression CI (including Python), merge the explicit PR, and verify the Pages deployment and post-merge CI. Final outcome will be recorded on the PR.
 - No data refresh, valuation-methodology change, or Cloudflare Worker deployment is included.
+
+---
+
+## Fundamentals — error-only stock fetch status
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Validation timestamp:** 2026-11-13 05:50:10 UTC (sandbox clock)<br>
+**Working branch:** `arena/06e5ad6c-nse-rolling-returns-monthly`
+
+- Removed the visible “Fetching … live”, live-success “Loaded … months …”, Indian cached-load, and US offline-cache success messages from the stock controls.
+- Converted the status helper to error-only handling. The status span starts hidden and is removed from layout whenever empty, so normal loading/success cannot add a flex item or disturb toolbar spacing. Added `role="alert"` for errors; error content remains safely assigned via `textContent`.
+- Preserved visible errors for failed fetches and unavailable US tickers, including the existing explicit cached-data warning when live refresh fails. New valid requests, stock-chip selection and asset-mode changes clear/hide stale errors. Older request failures cannot overwrite a newer selection.
+- Kept the Fetch button disabled during an active live request and restored afterward; did not add replacement progress labels. Chart/data loading, caching, request-race protection, EPS reporting-basis notes, calculations, gap readout and shading are unchanged.
+- Extended the offline browser smoke suite to verify no status text or layout box during pending requests, live success, Indian cache hits or US cache hits; preserved visible errors, reset behavior, button state and late-failure safety.
+- Validation passed: **40 JavaScript tests**, **32 Fundamentals browser checks**, **15 project browser scenarios**, extended **all-tab browser smoke suite**, and whitespace checks. No financial data or Python changes; Python tests not rerun.
+- Saved on the working branch only. No commit, push, pull request, merge, website deployment or Worker deployment performed for this request.
+
+### Publication checkpoint — error-only stock status
+
+**By Arena.ai Agent**<br>
+**Date:** 2026-11-12 (session date)<br>
+**Preflight timestamp:** 2026-11-13 05:52:49 UTC (sandbox clock)<br>
+**Working branch:** `arena/06e5ad6c-nse-rolling-returns-monthly`
+
+- User explicitly authorized deployment of the error-only Fundamentals stock-status change. Normal loading and success remain silent; genuine errors and cached-fallback warnings remain visible.
+- Fresh local preflight passed after `npm ci`: 40 JavaScript tests, extended all-tab browser smoke tests including error-only status coverage, 32 Fundamentals checks and 15 project browser scenarios. Whitespace checks passed.
+- Confirmed GitHub Pages publishes from `main` at repository root. Publication procedure: commit/push this branch only, open its PR, verify full GitHub CI (including Python), merge the explicit PR and verify Pages plus post-merge CI. Final deployment outcome will be recorded on the PR.
+- No financial-data refresh, calculation change, or Cloudflare Worker deployment is included.

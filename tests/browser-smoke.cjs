@@ -110,6 +110,50 @@ const server = http.createServer((req, res) => {
     });
     console.log('PASS late-request race, force refresh, cached fallback and safe error text');
     await page.evaluate(async () => {
+      const status = document.getElementById('fundStockStatus');
+      const button = document.getElementById('fundStockFetchBtn');
+      function silent(stage) {
+        if (status.textContent || !status.hidden || status.getClientRects().length) throw new Error(stage + ': status occupies layout');
+      }
+      function errorVisible(stage) {
+        if (!status.textContent || status.hidden || !status.getClientRects().length) throw new Error(stage + ': missing visible error');
+      }
+      errorVisible('refresh failure');
+      const original = fetchCustomStock;
+      try {
+        let finish;
+        fetchCustomStock = () => new Promise(resolve => {finish = resolve;});
+        document.getElementById('fundStockInput').value = 'TCS';
+        const pending = fetchAndSelectStock(true);
+        silent('fetch pending clears old error');
+        if (!button.disabled) throw new Error('Fetch button must remain disabled during request');
+        finish({...TOP_STOCKS_DATA.TCS, symbol:'TCS'}); await pending;
+        silent('live success');
+        if (button.disabled) throw new Error('Fetch button not restored after success');
+        await fetchAndSelectStock(false); silent('Indian cache hit');
+        fetchCustomStock = async () => {throw new Error('Test provider unavailable');};
+        document.getElementById('fundStockInput').value = 'NOCACHEERROR';
+        await fetchAndSelectStock(true); errorVisible('uncached provider failure');
+        if (!status.textContent.includes('Test provider unavailable')) throw new Error('Error detail lost');
+        selectStockChip('TCS'); silent('chip selection clears error');
+        switchFundAssetMode('us_stock');
+        document.getElementById('fundStockInput').value = 'UNKNOWN';
+        await fetchAndSelectStock(false); errorVisible('unknown US ticker');
+        document.getElementById('fundStockInput').value = 'AAPL';
+        await fetchAndSelectStock(false); silent('US cache hit clears error');
+        document.getElementById('fundStockInput').value = 'UNKNOWN';
+        await fetchAndSelectStock(false); errorVisible('US error before mode switch');
+        switchFundAssetMode('stock'); silent('mode switch clears error');
+        let fail;
+        fetchCustomStock = () => new Promise((resolve,reject) => {fail=reject;});
+        document.getElementById('fundStockInput').value = 'STALEERROR';
+        const stale = fetchAndSelectStock(true);
+        selectStockChip('TCS');fail(new Error('Old request failed'));await stale;
+        silent('stale failure does not overwrite selection');
+      } finally {fetchCustomStock = original;}
+    });
+    console.log('PASS error-only stock status: no loading/success layout, preserved errors and reset/race behavior');
+    await page.evaluate(async () => {
       const original = window.fetch;
       window.fetch = async () => ({ok: true, json: async () => ({datasets: [
         {metric: 'Price', values: ['06','05','04','03','02','01'].flatMap(m => [[`2024-${m}-28`, 200], [`2024-${m}-01`, 100]])},
