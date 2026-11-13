@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('rolling_returns.html', 'utf8');
 const ctx = vm.createContext({});
-for (const name of ['normalizeFundamentalsStock', 'escapeFundText', 'parseFundObservation']) {
+for (const name of ['normalizeFundamentalsStock', 'escapeFundText', 'parseFundObservation', 'formatFundLegendValue']) {
   const source = html.match(new RegExp('function ' + name + '\\([^]*?\\n\\}'));
   assert.ok(source, name); vm.runInContext(source[0], ctx);
 }
@@ -27,4 +27,14 @@ test('source observations require real dates and complete finite numeric values'
 });
 test('dynamic fundamentals identifiers are escaped before HUD markup', () => {
   assert.equal(ctx.escapeFundText('<img src="x" onerror=\'bad\'>&'), '&lt;img src=&quot;x&quot; onerror=&#39;bad&#39;&gt;&amp;');
+});
+
+test('legend formatter uses actual currency plus rebased chart value and preserves missing/zero/loss values', () => {
+  assert.equal(ctx.formatFundLegendValue(1226.9,126,'₹'),'₹1226.9 (126)');
+  assert.equal(ctx.formatFundLegendValue(12.26,126.43,'$'),'$12.3 (126.4)');
+  assert.equal(ctx.formatFundLegendValue(0,0,'₹'),'₹0.0 (0)');
+  assert.equal(ctx.formatFundLegendValue(-8,-80,'₹'),'₹-8.0 (-80)');
+  assert.equal(ctx.formatFundLegendValue(null,null,'₹'),'— (—)');
+  assert.equal(ctx.formatFundLegendValue(10,null,'₹'),'₹10.0 (—)');
+  assert.equal(ctx.formatFundLegendValue(Infinity,NaN,'₹'),'— (—)');
 });

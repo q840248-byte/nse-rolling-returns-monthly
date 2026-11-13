@@ -39,8 +39,8 @@ const server = http.createServer((req, res) => {
       window.installFundFixture = function(data) {
         fundAssetMode = 'stock'; fundSelectedStock = 'FIXTURE';
         fundCustomStockData.FIXTURE = {symbol: 'FIXTURE', ...data};
-        fundHorizon = 1; fundTimeframe = 'MAX'; fundScaleType = 'linear';
-        ['chkFundPrice','chkFundEps','chkFundPe','chkFundRolling','chkFundHeatmap','chkFundTrimmedEps'].forEach(id => document.getElementById(id).checked = true);
+        fundTimeframe = 'MAX'; fundScaleType = 'linear';
+        ['chkFundPrice','chkFundEps','chkFundPe','chkFundTrimmedEps'].forEach(id => document.getElementById(id).checked = true);
         renderFundamentalsTab();
       };
       window.compoundFixture = function() {
@@ -59,13 +59,23 @@ const server = http.createServer((req, res) => {
       try {await fn(); console.log('PASS ' + name); passed++;}
       catch (error) {console.error('FAIL ' + name + ': ' + error.message); failed++;}
     }
+    await check('fresh Fundamentals defaults to Price/EPS/Trim with P/E unchecked',async()=>{
+      const state=await page.evaluate(()=>({
+        labels:[...document.querySelectorAll('#tabContent9 .fund-checkbox-label')].map(el=>el.textContent.trim()),
+        pe:document.getElementById('chkFundPe').checked,
+        peVisible:fundamentalsChartInstance.isDatasetVisible(2),axis:fundamentalsChartInstance.options.scales.yPe.display,
+        entries:[...document.querySelectorAll('#fundHoverHud [data-fund-series]')].map(el=>el.dataset.fundSeries)
+      }));
+      assert.deepEqual(state.labels,['Price','EPS Value','P/E','Trim. EPS Value']);
+      assert.equal(state.pe,false);assert.equal(state.peVisible,false);assert.equal(state.axis,false);
+      assert.deepEqual(state.entries,['chkFundPrice','chkFundEps','chkFundTrimmedEps']);
+    });
     await check('analytical 20% price, 10% EPS, 9.1% multiple CAGR decomposition', async () => {
       const data = await page.evaluate(() => {
         installFundFixture(compoundFixture());
-        return {rows: [...document.querySelectorAll('#fundDecompTbody tr')].map(r => [...r.cells].map(c => c.textContent)), rolling: fundamentalsChartInstance.data.datasets[3].data.at(-1)};
+        return {rows: [...document.querySelectorAll('#fundDecompTbody tr')].map(r => [...r.cells].map(c => c.textContent))};
       });
       for (const row of data.rows) {assert.equal(row[1], '+20.0%/yr'); assert.equal(row[2], '+10.0%/yr'); assert.equal(row[3], '+9.1%/yr');}
-      assert.equal(data.rolling, 20);
     });
     await check('all stock price/IV lines off hides the primary axis (no phantom trimmed series)', async () => {
       assert.equal(await page.evaluate(() => {
@@ -94,11 +104,17 @@ const server = http.createServer((req, res) => {
       });
       assert.ok(values.every(v => v === null));
     });
-    await check('one-year overlay does not substitute a thirteen-month return', async () => {
-      assert.equal(await page.evaluate(() => {
-        installFundFixture({price: {'2020-01': 100, '2021-02': 120}, eps: {'2020-01': 10, '2021-02': 12}, pe: {'2020-01': 10, '2021-02': 10}});
-        return fundamentalsChartInstance.data.datasets[3].data.at(-1);
-      }), null);
+    await check('rolling controls, dataset, axis, and heatmap plugin are completely removed', async () => {
+      const state = await page.evaluate(() => {
+        installFundFixture(compoundFixture());
+        return {labels: fundamentalsChartInstance.data.datasets.map(ds=>ds.label),
+          removedControls: ['chkFundRolling','chkFundHeatmap','fundHoriz1Y','fundHoriz3Y','fundHoriz5Y','fundHoriz10Y'].every(id=>!document.getElementById(id)),
+          axes: Object.keys(fundamentalsChartInstance.options.scales), plugins: (fundamentalsChartInstance.config.plugins || []).map(p=>p.id)};
+      });
+      assert.deepEqual(state.labels,['Price','EPS Value','P/E','Trim. EPS Value']);
+      assert.equal(state.removedControls,true);
+      assert.ok(!state.axes.includes('yCagr'));
+      assert.ok(!state.plugins.includes('pePercentileHeatmap'));
     });
     await check('three-year decomposition does not substitute a four-year window', async () => {
       const row = await page.evaluate(() => {
@@ -158,7 +174,7 @@ const server = http.createServer((req, res) => {
         try {
           fundAssetMode = 'index'; renderFundamentalsTab();
           document.getElementById('fundIndexSelect').value = 'Fixture Index'; renderFundamentalsTab();
-          return fundamentalsChartInstance.data.datasets[4].data.at(-1);
+          return fundamentalsChartInstance.data.datasets[3].data.at(-1);
         } finally {delete RAW['Fixture Index']; delete RAW_PE['Fixture Index']; delete ALL_INDICES_TRIMMED_EPS['Fixture Index'];}
       }), null);
     });
@@ -187,18 +203,15 @@ const server = http.createServer((req, res) => {
       assert.deepEqual(data.log, [100,null,null,100]);
       assert.equal(data.spanGaps, false);
     });
-    await check('heatmap uses expanding history, not future PE values', async () => {
-      const huds = await page.evaluate(() => {
-        const price = {'2020-01': 100, '2020-02': 100, '2020-03': 100};
-        installFundFixture({price, eps: {'2020-01': 10, '2020-02': 20, '2020-03': 5}});
-        const texts = [];
-        for (let index = 0; index < 3; index++) {
-          fundamentalsChartInstance.options.onHover({native: {}}, [{index}]);
-          texts.push(document.getElementById('fundHoverHud').textContent);
-        }
-        return texts;
+    await check('P/E legend shows only a multiple, without percentile or rolling values', async () => {
+      const values = await page.evaluate(() => {
+        installFundFixture({price:{'2020-01':100,'2020-02':100,'2020-03':100},eps:{'2020-01':10,'2020-02':20,'2020-03':5}});
+        return [0,1,2].map(index=>{
+          fundamentalsChartInstance.options.onHover({native:{}},[{index}]);
+          return document.querySelector('[data-fund-series="chkFundPe"]').textContent;
+        });
       });
-      assert.match(huds[0], /100th %ile/); assert.match(huds[1], /50th %ile/); assert.match(huds[2], /100th %ile/);
+      assert.deepEqual(values,['P/E: 10.0x','P/E: 5.0x','P/E: 20.0x']);
     });
     await check('hidden valuation lines do not continue emitting an IV gap badge', async () => {
       const hud = await page.evaluate(() => {
@@ -207,7 +220,7 @@ const server = http.createServer((req, res) => {
       });
       assert.doesNotMatch(hud, /Overvalued|Undervalued|Fairly Priced/);
     });
-    await check('negative trimmed-only valuation produces a loss badge using the active model', async () => {
+    await check('negative trimmed EPS remains readable without extra valuation badges', async () => {
       const hud = await page.evaluate(() => {
         RAW['Fixture Index'] = {'2020-01': 100, '2020-02': 110}; RAW_PE['Fixture Index'] = {'2020-01': 10, '2020-02': 10};
         ALL_INDICES_TRIMMED_EPS['Fixture Index'] = {'2020-01': 8, '2020-02': -8};
@@ -217,21 +230,26 @@ const server = http.createServer((req, res) => {
           return document.getElementById('fundHoverHud').textContent;
         } finally {delete RAW['Fixture Index']; delete RAW_PE['Fixture Index']; delete ALL_INDICES_TRIMMED_EPS['Fixture Index'];}
       });
-      assert.match(hud, /Net Loss:.*Trimmed EPS/);
+      assert.match(hud, /Trim\. EPS Value: ₹-80\.0 \(-80\)/);
+      assert.doesNotMatch(hud, /Net Loss|Overvalued|Undervalued|Fairly Priced/);
     });
-    await check('heatmap clips its background drawing to the chart plot', async () => {
-      assert.equal(await page.evaluate(() => {
-        installFundFixture(compoundFixture());
-        const chart = fundamentalsChartInstance, ctx = chart.ctx, original = ctx.clip;
-        let clipped = false; ctx.clip = function(...args) {clipped = true; return original.apply(this, args);};
-        try {chart.config.plugins[0].beforeDraw(chart);} finally {ctx.clip = original;}
-        return clipped;
-      }), true);
+    await check('legend currency and rebased values track hover and timeframe changes',async()=>{
+      const result=await page.evaluate(()=>{
+        installFundFixture({price:{'2020-01':100,'2024-01':200},eps:{'2020-01':10,'2024-01':20}});
+        function values(){return [...document.querySelectorAll('#fundHoverHud [data-fund-series]')].map(e=>e.textContent);}
+        const latest=values();
+        fundamentalsChartInstance.options.onHover({native:{}},[{index:0}]);const first=values();
+        setFundTimeframe('3Y');const short=values();
+        return {latest,first,short};
+      });
+      assert.deepEqual(result.latest,['Price: ₹200.0 (200)','EPS Value: ₹200.0 (200)','P/E: 10.0x']);
+      assert.deepEqual(result.first,['Price: ₹100.0 (100)','EPS Value: ₹100.0 (100)','P/E: 10.0x']);
+      assert.deepEqual(result.short,['Price: ₹200.0 (100)','EPS Value: ₹200.0 (100)','P/E: 10.0x']);
     });
     await check('all embedded indices, Indian stocks and US stocks render finite datasets', async () => {
       const counts = await page.evaluate(() => {
-        fundTimeframe = 'MAX'; fundScaleType = 'logarithmic'; fundHorizon = 5;
-        ['chkFundPrice','chkFundEps','chkFundPe','chkFundRolling','chkFundHeatmap','chkFundTrimmedEps'].forEach(id => document.getElementById(id).checked = true);
+        fundTimeframe = 'MAX'; fundScaleType = 'logarithmic';
+        ['chkFundPrice','chkFundEps','chkFundPe','chkFundTrimmedEps'].forEach(id => document.getElementById(id).checked = true);
         function validate(key) {
           const c = fundamentalsChartInstance;
           if (!c || !c.data.labels.length) throw new Error('Missing chart for ' + key);
@@ -254,18 +272,52 @@ const server = http.createServer((req, res) => {
     });
     await check('all series toggles and axes behave in each of the three asset modes', async () => {
       await page.evaluate(() => {
-        const toggles = ['chkFundPrice','chkFundEps','chkFundPe','chkFundRolling','chkFundTrimmedEps'];
+        const toggles = ['chkFundPrice','chkFundEps','chkFundPe','chkFundTrimmedEps'];
         for (const mode of ['index','stock','us_stock']) {
           switchFundAssetMode(mode);
           for (let i = 0; i < toggles.length; i++) {
             document.getElementById(toggles[i]).checked = false; updateFundSeriesVisibility();
             if (fundamentalsChartInstance.isDatasetVisible(i)) throw new Error(mode + ': failed to hide ' + toggles[i]);
+            if (document.querySelector('[data-fund-series="'+toggles[i]+'"]')) throw new Error(mode+': hidden legend entry remains');
           }
-          if (fundamentalsChartInstance.options.scales.y.display || fundamentalsChartInstance.options.scales.yPe.display || fundamentalsChartInstance.options.scales.yCagr.display) throw new Error('Axis still visible: ' + mode);
+          if (fundamentalsChartInstance.options.scales.y.display || fundamentalsChartInstance.options.scales.yPe.display) throw new Error('Axis still visible: ' + mode);
           toggles.forEach(id => document.getElementById(id).checked = true); updateFundSeriesVisibility();
-          if (mode !== 'index' && fundamentalsChartInstance.isDatasetVisible(4)) throw new Error('Stock trimmed series visible');
+          if (mode !== 'index' && fundamentalsChartInstance.isDatasetVisible(3)) throw new Error('Stock trimmed series visible');
+          const entries=[...document.querySelectorAll('#fundHoverHud [data-fund-series]')];
+          if (entries.length !== (mode==='index'?4:3)) throw new Error('Missing selected legend entry');
+          if (mode==='us_stock' && !entries[0].textContent.includes('$')) throw new Error('US currency incorrect');
         }
       });
+    });
+    await check('every checkbox combination has exactly the matching legend entries',async()=>{
+      await page.evaluate(()=>{
+        const ids=['chkFundPrice','chkFundEps','chkFundPe','chkFundTrimmedEps'];
+        for(const mode of ['index','stock','us_stock']) {
+          switchFundAssetMode(mode);
+          for(let mask=0;mask<16;mask++) {
+            ids.forEach((id,i)=>document.getElementById(id).checked=Boolean(mask&(1<<i)));
+            updateFundSeriesVisibility();
+            const expected=ids.filter((id,i)=>Boolean(mask&(1<<i))&&(i!==3||mode==='index'));
+            const actual=[...document.querySelectorAll('#fundHoverHud [data-fund-series]')].map(el=>el.dataset.fundSeries);
+            if(JSON.stringify(actual)!==JSON.stringify(expected))throw new Error(mode+' '+mask+': '+actual);
+            fundamentalsChartInstance.options.onHover({native:{}},[{index:0}]);
+            const hovered=[...document.querySelectorAll('#fundHoverHud [data-fund-series]')].map(el=>el.dataset.fundSeries);
+            if(JSON.stringify(hovered)!==JSON.stringify(expected))throw new Error('Hover restored hidden entries');
+          }
+        }
+      });
+    });
+    await check('P/E stays unchecked through rerenders until the user enables it',async()=>{
+      const state=await page.evaluate(()=>{
+        document.getElementById('chkFundPe').checked=false;
+        for(const mode of ['index','stock','us_stock']) {
+          switchFundAssetMode(mode);setFundTimeframe('5Y');setFundScaleType('linear');resetFundZoom();
+          if(fundamentalsChartInstance.isDatasetVisible(2)||document.querySelector('[data-fund-series="chkFundPe"]'))throw new Error('P/E unexpectedly enabled');
+        }
+        document.getElementById('chkFundPe').checked=true;updateFundSeriesVisibility();
+        return {visible:fundamentalsChartInstance.isDatasetVisible(2),axis:fundamentalsChartInstance.options.scales.yPe.display};
+      });
+      assert.deepEqual(state,{visible:true,axis:true});
     });
     await check('US ticker suggestions survive focusing the search input', async () => {
       await page.evaluate(() => switchFundAssetMode('us_stock'));
@@ -289,6 +341,7 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => {resetFundZoom(); switchFundAssetMode('index');});
     });
     fs.mkdirSync(path.join(root, 'artifacts'), {recursive: true});
+    await page.evaluate(()=>{document.getElementById('chkFundPe').checked=false;document.getElementById('fundIndexSelect').value='Nifty 50';setFundTimeframe('MAX');setFundScaleType('logarithmic');updateFundSeriesVisibility();document.getElementById('panel9').scrollIntoView({block:'start'});});
     await page.screenshot({path: path.join(root, 'artifacts/fundamentals-focused-desktop.png')});
     await page.setViewportSize({width: 390, height: 844});
     await page.waitForTimeout(150);
