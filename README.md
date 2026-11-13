@@ -70,6 +70,19 @@ GitHub Actions runs the offline suite on pushes and pull requests. The scheduled
 
 The tab uses a full-history median P/E as a **valuation estimate**, not a point-in-time backtest. The index green series uses harmonized P/E/EPS; the orange supplied trimmed series intentionally shares that median baseline when available. No missing trimmed observations are extrapolated. Stock P/E is derived at render time from valid price/EPS for a consistent decomposition; the persisted caches are not rewritten. Historical EPS preprocessing and corporate-action adjustments still need source-level validation.
 
+## Trimmed-EPS methodology audit
+
+See [TRIMMED_EPS_AUDIT.md](TRIMMED_EPS_AUDIT.md) for the all-56-index review, diagnostic dates, provenance findings, and the inputs needed to validate the custom calculation. **The orange data is not yet constituent-validated.** The page reads precomputed values; no reproducible trimming generator or complete historical constituent/weight/earnings dataset was found in the inspected repository revisions. The owner subsequently supplied the intended formula and external script filenames; see [TRIMMED_EPS_METHOD.md](TRIMMED_EPS_METHOD.md). The actual generator and inputs have not been uploaded or inspected. The scheduled updater does not rebuild that table. Passing chart tests does not certify its financial methodology.
+
+Regenerate the offline structural report without changing application data:
+
+```sh
+python -B audit_trimmed_eps.py --output TRIMMED_EPS_AUDIT.md
+python -B -m unittest discover -s tests -p test_trimmed_eps_audit.py -v
+```
+
+The report checks dates, coverage, duplicate keys, numerical validity, comparator availability, and large changes. Its flags are reconciliation leads, not evidence that an observation is necessarily wrong. The report also includes the manually investigated implementation/history findings; they should be re-reviewed when the application methodology changes.
+
 ## Change history
 
 See [VERSION_LOG.md](VERSION_LOG.md) for signed, UTC-timestamped changes, regression evidence, and remaining risks. Repository changes do not automatically imply that the Cloudflare Worker has been deployed or that live financial sources have been verified.
