@@ -3253,12 +3253,12 @@
 
             <!-- Stocks Controls (Search + Fetch + Proxy Gear) -->
             <div id="fundStockControlsContainer" style="display:none;align-items:center;gap:6px;">
-              <div style="position:relative;display:flex;align-items:center;gap:4px;">
-                <input type="text" id="fundStockInput" list="fundStockDatalist" placeholder="Stock (e.g. RELIANCE)..." style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;width:150px;text-transform:uppercase;" onfocus="fundAssetMode === 'us_stock' ? populateUsStockDatalist() : populateStockDatalist()" onkeydown="if(event.key==='Enter') fetchAndSelectStock(true)" value="RELIANCE" />
+              <form id="fundStockForm" autocomplete="off" onsubmit="event.preventDefault(); fetchAndSelectStock(true); return false;" style="position:relative;display:flex;align-items:center;gap:4px;margin:0;">
+                <input type="text" id="fundStockInput" list="fundStockDatalist" placeholder="Stock (e.g. RELIANCE)..." style="background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 8px;font-size:0.72rem;font-family:monospace;width:150px;text-transform:uppercase;" onfocus="fundAssetMode === 'us_stock' ? populateUsStockDatalist() : populateStockDatalist()" onchange="fundNormalizeStockInput()" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" enterkeyhint="go" value="RELIANCE" />
                 <datalist id="fundStockDatalist"></datalist>
                 <button type="button" class="tv-tool-btn" id="fundStockFetchBtn" onclick="fetchAndSelectStock(true)" style="background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);font-weight:600;padding:3px 8px;">Fetch ⚡</button>
                 <button type="button" class="tv-tool-btn" id="fundProxySettingsBtn" onclick="toggleProxySettingsModal()" style="padding:3px 6px;" title="CORS Proxy Settings">⚙️</button>
-              </div>
+              </form>
               <span id="fundStockStatus" hidden role="alert" style="font-size:0.68rem;font-family:monospace;color:#f87171;"></span>
             </div>
 
@@ -3358,6 +3358,10 @@
             <div style="margin-bottom:14px;">
               <label style="display:block;font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-family:monospace;">PROXY ENDPOINT URL</label>
               <input type="text" id="fundProxyUrlInput" placeholder="https://restless-block-425c.q840248.workers.dev" style="width:100%;box-sizing:border-box;background:#1a1e2d;color:var(--text);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:8px 10px;font-size:0.78rem;font-family:monospace;" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin:-6px 0 14px 0;flex-wrap:wrap;">
+              <button type="button" onclick="testFundProxyConnection()" class="tv-tool-btn" style="padding:5px 12px;font-size:0.72rem;">Test Connection</button>
+              <span id="fundProxyTestResult" hidden style="font-size:0.68rem;font-family:monospace;color:var(--muted);overflow-wrap:anywhere;"></span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <button type="button" onclick="resetDefaultProxyUrl()" class="tv-tool-btn" style="padding:6px 12px;font-size:0.72rem;">Reset Default</button>
@@ -14187,11 +14191,75 @@ var fundSelectedStock = 'RELIANCE';
 var fundCustomStockData = {}; // In-memory cache for Indian stocks (₹)
 var fundCustomUsStockData = {}; // Separate cache for US stocks ($)
 var fundStockRequestId = 0;
+var FUND_DEFAULT_PROXY_URL = 'https://restless-block-425c.q840248.workers.dev';
+var FUND_PROXY_TIMEOUT_MS = 75000; // Unknown symbols need a Screener search plus two chart calls.
+
+// localStorage throws (not just returns null) in private mode and inside in-app
+// browsers, which previously killed the whole fetch before it even started.
+function fundGetProxyUrl() {
+  try {
+    var saved = localStorage.getItem('fund_stock_proxy_url');
+    return (saved && saved.trim()) || FUND_DEFAULT_PROXY_URL;
+  } catch (e) {
+    return FUND_DEFAULT_PROXY_URL;
+  }
+}
+
+function fundSetProxyUrl(url) {
+  try {
+    if (url) localStorage.setItem('fund_stock_proxy_url', url);
+    else localStorage.removeItem('fund_stock_proxy_url');
+  } catch (e) {}
+}
+
+// AbortSignal.timeout is missing on older Android WebViews and iOS Safari.
+// Fall back to AbortController, and to no signal at all as a last resort.
+function fundTimeoutSignal(ms) {
+  try {
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+  } catch (e) {}
+  try {
+    if (typeof AbortController === 'function') {
+      var controller = new AbortController();
+      setTimeout(function() { try { controller.abort(); } catch (e) {} }, ms);
+      return controller.signal;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function fundIsTransientError(err) {
+  if (!err) return false;
+  if (err.name === 'AbortError' || err.name === 'TimeoutError') return true;
+  if (typeof err.status === 'number') return err.status >= 500 || err.status === 429 || err.status === 408;
+  return err.name === 'TypeError' || /failed to fetch|networkerror|network error|load failed/i.test(String(err.message || ''));
+}
+
+// Translate network-layer failures into something actionable on a phone.
+function fundDescribeFetchError(err, symbol) {
+  var raw = String((err && (err.name === 'TimeoutError' ? 'the request timed out' : err.message)) || err || 'Unknown error');
+  if (err && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
+    return 'Request timed out after ' + Math.round(FUND_PROXY_TIMEOUT_MS / 1000) + 's for ' + symbol + '. Screener may be slow right now — tap Fetch ⚡ again.';
+  }
+  if (err && err.name === 'TypeError') {
+    return 'Could not reach the stock proxy for ' + symbol + ' (' + raw + '). ' +
+      'Common causes on mobile: no/degraded connection, a private-DNS or ad-blocker filter blocking *.workers.dev, or private browsing. ' +
+      'Tap ⚙️ then "Test Connection" to check from this device.';
+  }
+  return raw;
+}
+
+function setFundStockBusy(isBusy) {
+  var btn = document.getElementById('fundStockFetchBtn');
+  if (!btn) return;
+  btn.disabled = !!isBusy;
+  btn.textContent = isBusy ? 'Fetching…' : 'Fetch ⚡';
+  btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+}
 
 function invalidateFundStockRequest() {
   fundStockRequestId++;
-  var btn = document.getElementById('fundStockFetchBtn');
-  if (btn) btn.disabled = false;
+  setFundStockBusy(false);
   setFundStockError('');
   return fundStockRequestId;
 }
@@ -14203,6 +14271,16 @@ function setFundStockError(message) {
     status.textContent = message || '';
     status.hidden = !message;
   }
+}
+
+// Normalise whatever the phone keyboard produced (extra spaces, lowercase,
+// "reliance industries") as soon as the field is committed.
+function fundNormalizeStockInput() {
+  var inp = document.getElementById('fundStockInput');
+  if (!inp) return;
+  var val = cleanStockSymbol(inp.value);
+  if (val && val !== inp.value) inp.value = val;
+  if (val && fundAssetMode === 'stock') setFundStockError('');
 }
 
 function clearFundamentalsChart() {
@@ -14413,7 +14491,7 @@ function toggleProxySettingsModal(show) {
   if (modal.style.display === 'flex') {
     var inp = document.getElementById('fundProxyUrlInput');
     if (inp) {
-      inp.value = localStorage.getItem('fund_stock_proxy_url') || 'https://restless-block-425c.q840248.workers.dev';
+      inp.value = fundGetProxyUrl();
     }
   }
 }
@@ -14422,19 +14500,53 @@ function saveProxySettings() {
   var inp = document.getElementById('fundProxyUrlInput');
   if (inp) {
     var url = inp.value.trim();
-    if (url) {
-      localStorage.setItem('fund_stock_proxy_url', url);
-    } else {
-      localStorage.removeItem('fund_stock_proxy_url');
-    }
+    fundSetProxyUrl(url);
+    setFundProxyTestResult('');
   }
   toggleProxySettingsModal(false);
 }
 
 function resetDefaultProxyUrl() {
   var inp = document.getElementById('fundProxyUrlInput');
-  if (inp) inp.value = 'https://restless-block-425c.q840248.workers.dev';
-  localStorage.setItem('fund_stock_proxy_url', 'https://restless-block-425c.q840248.workers.dev');
+  if (inp) inp.value = FUND_DEFAULT_PROXY_URL;
+  fundSetProxyUrl(FUND_DEFAULT_PROXY_URL);
+  setFundProxyTestResult('');
+}
+
+function setFundProxyTestResult(message, isError) {
+  var out = document.getElementById('fundProxyTestResult');
+  if (!out) return;
+  out.textContent = message || '';
+  out.hidden = !message;
+  out.style.color = isError ? '#f87171' : '#4ade80';
+}
+
+// Verifies that THIS device/browser can actually reach the Worker, so network
+// blocks (private DNS, ad-blockers, captive portals) are visible instead of
+// surfacing as a generic "Failed to fetch" during a stock lookup.
+async function testFundProxyConnection() {
+  var inp = document.getElementById('fundProxyUrlInput');
+  var base = (inp && inp.value.trim()) || fundGetProxyUrl();
+  var started = Date.now();
+  setFundProxyTestResult('Testing…', false);
+  try {
+    var url = new URL(base);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('URL must start with http:// or https://');
+    url.pathname = url.pathname.replace(/\/$/, '') + '/api/search';
+    url.search = '?q=' + encodeURIComponent('RELIANCE');
+    url.hash = '';
+    var signal = fundTimeoutSignal(25000);
+    var opts = { headers: { 'Accept': 'application/json' }, cache: 'no-store' };
+    if (signal) opts.signal = signal;
+    var resp = await fetch(url.toString(), opts);
+    var ms = Date.now() - started;
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var body = await resp.json();
+    var count = Array.isArray(body) ? body.length : (body && Array.isArray(body.results) ? body.results.length : 0);
+    setFundProxyTestResult('✅ Reachable in ' + ms + ' ms' + (count ? ' (' + count + ' Screener matches)' : ''), false);
+  } catch (err) {
+    setFundProxyTestResult('❌ ' + fundDescribeFetchError(err, 'the proxy') + ' [' + (Date.now() - started) + ' ms]', true);
+  }
 }
 
 function cleanStockSymbol(inputStr) {
@@ -14501,8 +14613,17 @@ function cleanStockSymbol(inputStr) {
 function buildStockProxyUrl(proxyBase, symbol) {
   const url = new URL(proxyBase);
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Proxy URL must use HTTP or HTTPS');
-  const path = url.pathname.replace(/\/$/, '');
-  url.pathname = /\/(api\/)?stock$/.test(path) ? path : path + '/api/stock';
+  var path = url.pathname.replace(/\/+$/, '');
+  // Accept a bare host, a .../api base, or a full .../api/stock endpoint
+  // without ever producing a doubled /api/api/stock segment.
+  if (/\/stock$/.test(path)) {
+    // already a stock endpoint
+  } else if (/\/api$/.test(path)) {
+    path = path + '/stock';
+  } else {
+    path = path + '/api/stock';
+  }
+  url.pathname = path;
   url.searchParams.set('symbol', symbol);
   url.hash = '';
   return url.toString();
@@ -14517,15 +14638,40 @@ function parseFundObservation(point) {
   return { date, value };
 }
 
-async function fetchCustomStock(symbol) {
-  var proxyBase = localStorage.getItem('fund_stock_proxy_url') || 'https://restless-block-425c.q840248.workers.dev';
+// useCache=false for an explicit refresh; true for a first-time lookup, so a
+// retried request on a slow link can be served from the Worker's cache instead
+// of paying for the Screener round trips again.
+function fundStockFetchOptions(useCache) {
+  var options = { headers: { 'Accept': 'application/json' }, cache: useCache ? 'default' : 'no-store' };
+  var signal = fundTimeoutSignal(FUND_PROXY_TIMEOUT_MS);
+  if (signal) options.signal = signal;
+  return options;
+}
+
+async function fetchStockProxyJson(targetUrl, useCache) {
+  var resp;
+  try {
+    resp = await fetch(targetUrl, fundStockFetchOptions(useCache));
+  } catch (err) {
+    // Retry once: phones flake on the first request after a radio wake-up.
+    if (!fundIsTransientError(err)) throw err;
+    await new Promise(function(resolve) { setTimeout(resolve, 600); });
+    resp = await fetch(targetUrl, fundStockFetchOptions(useCache));
+  }
+
+  if (!resp.ok) {
+    var httpErr = new Error('Proxy responded with HTTP ' + resp.status);
+    httpErr.status = resp.status;
+    throw httpErr;
+  }
+  return resp.json();
+}
+
+async function fetchCustomStock(symbol, useCache) {
+  var proxyBase = fundGetProxyUrl();
   var targetUrl = buildStockProxyUrl(proxyBase, symbol);
 
-  var resp = await fetch(targetUrl, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(30000) });
-  if (!resp.ok) {
-    throw new Error('Proxy responded with HTTP ' + resp.status);
-  }
-  var data = await resp.json();
+  var data = await fetchStockProxyJson(targetUrl, useCache);
   if (data && data.error) throw new Error(data.error);
   if (!data || !Array.isArray(data.datasets)) throw new Error('Invalid fundamentals response: datasets must be an array');
 
@@ -14649,20 +14795,19 @@ async function fetchAndSelectStock(forceRefresh) {
   if (cached) fundCustomStockData[sym] = cached;
   renderFundamentalsTab(); // Remove an unrelated stock's old chart while loading.
   if (!forceRefresh && cached) return;
-  var fetchBtn = document.getElementById('fundStockFetchBtn');
-  if (fetchBtn) fetchBtn.disabled = true;
+  setFundStockBusy(true);
   try {
-    var stockObj = await fetchCustomStock(sym);
+    var stockObj = await fetchCustomStock(sym, !forceRefresh);
     fundCustomStockData[sym] = stockObj;
     // Cache a late response but never overwrite a newer selection or its UI.
     if (requestId !== fundStockRequestId || fundAssetMode !== 'stock' || fundSelectedStock !== sym) return;
     renderFundamentalsTab();
   } catch (err) {
     if (requestId !== fundStockRequestId) return;
-    setFundStockError('❌ ' + String(err.message || err) + (cached ? ' — showing cached data, not a live refresh.' : ''));
+    setFundStockError('❌ ' + fundDescribeFetchError(err, sym) + (cached ? ' — showing cached data, not a live refresh.' : ''));
     renderFundamentalsTab();
   } finally {
-    if (requestId === fundStockRequestId && fetchBtn) fetchBtn.disabled = false;
+    if (requestId === fundStockRequestId) setFundStockBusy(false);
   }
 }
 
@@ -15489,6 +15634,25 @@ window.fetchAndSelectStock = fetchAndSelectStock;
 window.toggleProxySettingsModal = toggleProxySettingsModal;
 window.saveProxySettings = saveProxySettings;
 window.resetDefaultProxyUrl = resetDefaultProxyUrl;
+window.testFundProxyConnection = testFundProxyConnection;
+window.fundNormalizeStockInput = fundNormalizeStockInput;
+
+// Tab 9's card uses backdrop-filter, which makes it a containing block for
+// position:fixed children. Left nested, the proxy dialog anchors to the tall
+// card instead of the screen and lands off-screen on phones (dark overlay,
+// no visible dialog). Promote it to <body> once the DOM is ready.
+(function relocateFundProxyModal() {
+  function move() {
+    var modal = document.getElementById('fundProxyModal');
+    if (!modal || !document.body || modal.parentElement === document.body) return;
+    document.body.appendChild(modal);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', move);
+  } else {
+    move();
+  }
+})();
 </script>
 
 </body>
