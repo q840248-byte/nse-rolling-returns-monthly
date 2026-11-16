@@ -19,7 +19,7 @@ Open `/rolling_returns.html` on the server. Chart.js, Hammer, and the zoom plugi
 | `rolling_returns.html` | UI, calculations, and embedded price, valuation, and stock datasets |
 | `update_data.py` | Incremental or `--full` NSE price/P/E and commodity updates |
 | `update_commodities.py` | Commodity CSV generation; `--update-html` patches the asset-specific RAW blocks |
-| `build_top_stocks.py` | Processes stock Price/EPS histories; synchronizes JSON, standalone JS, and the HTML's embedded stock cache |
+| `build_top_stocks.py` | Processes stock Price/EPS histories into `top_stocks_cache.json` and `top_stocks_data.js` reference artifacts (the page fetches stocks live and embeds none) |
 | `stock-proxy-worker.js` | Cloudflare Worker for live Indian stock search and fundamentals |
 | `pe_index_mapping.json` | Provider identifiers for P/E requests |
 
@@ -71,7 +71,7 @@ GitHub Actions runs the offline suite on pushes and pull requests. The scheduled
 
 ## Fundamentals verification
 
-`npm run test:fundamentals` runs focused Chromium checks using controlled return/valuation fixtures, then renders every embedded Fundamentals asset (56 indices, 67 Indian stocks, 9 US stocks). It checks exact decomposition horizons, median-based curve rebasing, loss/zero-EPS behavior, missing data, hover/zoom/reset consistency, every combination of the four series toggles, default P/E visibility, US suggestions, and the 390px layout.
+`npm run test:fundamentals` runs focused Chromium checks using controlled return/valuation fixtures, then renders every Fundamentals asset (56 indices, 67 Indian stocks, 9 US stocks). It checks exact decomposition horizons, median-based curve rebasing, loss/zero-EPS behavior, missing data, hover/zoom/reset consistency, every combination of the four series toggles, default P/E visibility, US suggestions, and the 390px layout.
 
 The four controls are **Price**, **EPS Value**, **P/E**, and **Trim. EPS Value**. P/E starts unchecked; only checked series appear in the legend. Currency values show actual price or EPS-based valuation, followed by the corresponding plotted rebased value, for example `₹1226.9 (126)`; US stocks use `$`. P/E displays only its multiple, such as `20.6x`. Missing values remain `—`; zero and negative valuation amounts are retained in the legend, although nonpositive points cannot be plotted on a logarithmic axis. Trimmed values apply only to indices.
 

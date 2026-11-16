@@ -39,6 +39,17 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('#tabContent' + tab).isVisible(), true, `Tab ${tab}`);
       console.log(`PASS tab ${tab} opens`);
     }
+    // Indian stocks are never embedded, so browser checks supply a live fixture.
+    await page.evaluate(() => {
+      window.LIVE_STOCK_FIXTURE = {
+        symbol: 'FIXTURE', name: 'Fixture Ltd',
+        dates: ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06'],
+        price: {'2024-01': 100, '2024-02': 110, '2024-03': 121, '2024-04': 133, '2024-05': 146, '2024-06': 161},
+        eps: {'2024-01': 10, '2024-02': 10, '2024-03': 10, '2024-04': 10, '2024-05': 10, '2024-06': 10},
+        pe: {'2024-01': 10, '2024-02': 11, '2024-03': 12, '2024-04': 13, '2024-05': 15, '2024-06': 16},
+      };
+      if (typeof TOP_STOCKS_DATA !== 'undefined' || window.TOP_STOCKS_DATA) throw new Error('Embedded stock cache must not exist');
+    });
     await page.evaluate(() => {
       const date = Object.keys(RAW_PE['Nifty 50']).sort().at(-1);
       const saved = GSEC_10Y[date];
@@ -55,7 +66,27 @@ const server = http.createServer((req, res) => {
       if (!document.getElementById('capeHoverHud').textContent.includes('Incomplete')) throw new Error('Missing smoothing warning');
     });
     console.log('PASS missing bond yield and incomplete smoothed-P/E window warnings');
-    await page.evaluate(() => switchFundAssetMode('stock'));
+    // Entering Stocks mode must trigger a live fetch for the default symbol.
+    await page.evaluate(async () => {
+      window.__stockFetches = 0;
+      window.__origFetchCustomStock = fetchCustomStock;
+      window.__series = {};
+      // Build a 24-month series so timeframe/zoom controls have room to work.
+      const months = [];
+      for (let y = 2023; y <= 2024; y++) for (let m = 1; m <= 12; m++) months.push(y + '-' + String(m).padStart(2, '0'));
+      const fixture = {symbol: 'DEFAULT', name: 'Default Ltd', dates: months, price: {}, eps: {}, pe: {}};
+      months.forEach((mo, i) => {fixture.price[mo] = 100 + i; fixture.eps[mo] = 10; fixture.pe[mo] = 10 + i / 10;});
+      window.__series = fixture;
+      fetchCustomStock = async () => {window.__stockFetches++; return {...window.__series};};
+      try {
+        switchFundAssetMode('stock');
+        for (let i = 0; i < 100 && !fundamentalsChartInstance; i++) await new Promise(r => setTimeout(r, 20));
+        if (window.__stockFetches < 1) throw new Error('Entering stocks mode did not fetch live');
+      } finally {
+        // Restore the real fetcher so later checks exercise live behaviour.
+        fetchCustomStock = window.__origFetchCustomStock;
+      }
+    });
     await page.waitForTimeout(150);
     assert.ok(await page.evaluate(() => fundamentalsChartInstance.data.labels.length > 12));
     await page.evaluate(() => {setFundTimeframe('5Y'); setFundScaleType('linear');});
@@ -76,7 +107,7 @@ const server = http.createServer((req, res) => {
     console.log('PASS fundamentals zoom, pan, scale-switch retention and reset');
     await page.evaluate(() => switchFundAssetMode('us_stock'));
     assert.ok(await page.evaluate(() => fundamentalsChartInstance.data.labels.length > 12));
-    console.log('PASS cached Indian/US fundamentals and scale/timeframe controls');
+    console.log('PASS live Indian/US fundamentals and scale/timeframe controls');
     fs.mkdirSync(path.join(root, 'artifacts'), {recursive: true});
     await page.screenshot({path: path.join(root, 'artifacts/fundamentals.png')});
     await page.evaluate(() => {
@@ -95,20 +126,32 @@ const server = http.createServer((req, res) => {
         document.getElementById('fundStockInput').value = 'DELAYED';
         const pending = fetchAndSelectStock(true);
         selectStockChip('TCS');
-        finish({...TOP_STOCKS_DATA.RELIANCE, symbol: 'DELAYED'});
+        finish({...window.LIVE_STOCK_FIXTURE, symbol: 'DELAYED'});
         await pending;
         if (fundSelectedStock !== 'TCS') throw new Error('Late response replaced newer selection');
         let calls = 0;
         fetchCustomStock = async () => {calls++; throw new Error('<img src=x onerror="window.injected=true">');};
+        // A symbol already fetched this session may fall back to that session result.
+        fundCustomStockData.TCS = {...window.LIVE_STOCK_FIXTURE, symbol: 'TCS'};
         document.getElementById('fundStockInput').value = 'TCS';
         await fetchAndSelectStock(true);
         if (calls !== 1) throw new Error('Force refresh skipped the default proxy');
         if (document.querySelector('#fundStockStatus img') || window.injected) throw new Error('Unsafe error rendering');
-        if (!document.getElementById('fundStockStatus').textContent.includes('showing cached data')) throw new Error('Missing refresh failure warning');
+        const healthMsg = document.getElementById('fundStockStatus').textContent;
+        if (!healthMsg.includes('showing cached data')) throw new Error('Session result not reported as refresh fallback');
         if (document.getElementById('fundStockFetchBtn').disabled) throw new Error('Fetch button stuck disabled');
+        // A symbol never fetched has nothing to fall back to: plain error, no cache claim.
+        fetchCustomStock = async () => {throw new Error('Provider offline');};
+        document.getElementById('fundStockInput').value = 'NEVERFETCHED';
+        await fetchAndSelectStock(false);
+        const bareMsg = document.getElementById('fundStockStatus').textContent;
+        if (bareMsg.includes('showing cached data')) throw new Error('Claimed cache fallback without any cached data');
+        if (!bareMsg.includes('Provider offline')) throw new Error('Uncached failure detail lost');
+        // Nothing was rendered for it either: the tab must not show another stock's chart.
+        if (fundamentalsChartInstance !== null) throw new Error('Never-fetched stock left a stale chart');
       } finally {fetchCustomStock = original;}
     });
-    console.log('PASS late-request race, force refresh, cached fallback and safe error text');
+    console.log('PASS late-request race, force refresh, session fallback and safe error text');
     await page.evaluate(async () => {
       const status = document.getElementById('fundStockStatus');
       const button = document.getElementById('fundStockFetchBtn');
@@ -127,10 +170,24 @@ const server = http.createServer((req, res) => {
         const pending = fetchAndSelectStock(true);
         silent('fetch pending clears old error');
         if (!button.disabled) throw new Error('Fetch button must remain disabled during request');
-        finish({...TOP_STOCKS_DATA.TCS, symbol:'TCS'}); await pending;
+        finish({...window.LIVE_STOCK_FIXTURE, symbol:'TCS'}); await pending;
         silent('live success');
         if (button.disabled) throw new Error('Fetch button not restored after success');
-        await fetchAndSelectStock(false); silent('Indian cache hit');
+        let sampleCalls = 0;
+        fetchCustomStock = async () => {sampleCalls++; return {...window.LIVE_STOCK_FIXTURE, symbol:'TCS'};};
+        document.getElementById('fundStockInput').value = 'TCS';
+        await fetchAndSelectStock(false); silent('Indian live success');
+        if (sampleCalls !== 1) throw new Error('Indian stock lookup skipped the live fetch');
+        await fetchAndSelectStock(false);
+        if (sampleCalls !== 2) throw new Error('Repeat lookup served from an embedded cache');
+        // Same-session memory of a live result is allowed; a failed refresh may use it,
+        // and it must say so rather than pretending the data is current.
+        fetchCustomStock = async () => {throw new Error('Test provider unavailable');};
+        await fetchAndSelectStock(true);
+        const fallbackMsg = document.getElementById('fundStockStatus').textContent;
+        if (!fallbackMsg.includes('showing cached data')) throw new Error('Session result not used as refresh fallback');
+        if (!fallbackMsg.includes('Test provider unavailable')) throw new Error('Fallback hid the failure reason');
+        selectStockChip('TCS'); silent('chip selection clears error');
         fetchCustomStock = async () => {throw new Error('Test provider unavailable');};
         document.getElementById('fundStockInput').value = 'NOCACHEERROR';
         await fetchAndSelectStock(true); errorVisible('uncached provider failure');

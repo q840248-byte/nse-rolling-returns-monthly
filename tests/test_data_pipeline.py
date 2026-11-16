@@ -104,16 +104,22 @@ class StockTests(unittest.TestCase):
                   ['2024-04-01', 'Infinity'], ['not-a-date', 5], None]
         self.assertEqual(stocks.sanitize_eps_points(points), [('2024-01-01', 10.0)])
 
-    def test_embedded_stock_cache_matches_generated_files(self):
+    def test_application_embeds_no_stock_history(self):
+        # Indian stocks are fetched live from the proxy; the page must not carry
+        # an offline copy of any stock's price/EPS history.
         html = (ROOT / 'rolling_returns.html').read_text()
-        embedded = json.loads(re.search(r'const TOP_STOCKS_DATA = (\{.*?\});', html)[1])
+        self.assertNotIn('TOP_STOCKS_DATA', html)
+        self.assertNotRegex(html, r'const TOP_STOCKS_DATA\s*=')
+
+    def test_generated_stock_artifact_is_valid_json(self):
+        # top_stocks_data.js remains a reference artifact for the builder, but is
+        # no longer read by the application at runtime.
         cache = json.loads((ROOT / 'top_stocks_cache.json').read_text())
         js = json.loads(re.search(r'const TOP_STOCKS_DATA = (\{.*?\});', (ROOT / 'top_stocks_data.js').read_text())[1])
-        self.assertEqual(cache, embedded)
         self.assertEqual(cache, js)
 
 class CacheBuildTests(unittest.TestCase):
-    def test_partial_build_preserves_failed_stocks_and_updates_embedded_cache(self):
+    def test_partial_build_preserves_failed_stocks_and_leaves_page_alone(self):
         stock = {'symbol': 'GOOD', 'name': 'Good Ltd', 'id': 1}
         failed = {'symbol': 'FAILED', 'name': 'Failed Ltd', 'id': 2}
         with tempfile.TemporaryDirectory() as tmp:
@@ -122,7 +128,7 @@ class CacheBuildTests(unittest.TestCase):
             try:
                 os.chdir(tmp)
                 Path('top_stocks_cache.json').write_text(json.dumps({'FAILED': {'symbol': 'FAILED', 'old': True}}))
-                Path('rolling_returns.html').write_text('const TOP_STOCKS_DATA = {};\n// rest of app')
+                Path('rolling_returns.html').write_text('// the app embeds no stock history\n')
                 Path('raw_screener_cache.json').write_text(json.dumps({'GOOD': {'cons': {'datasets': []}, 'sa': None}}))
                 processed = {**stock, 'dates': ['2024-01'], 'eps': {'2024-01': 10}}
                 with patch.object(stocks, 'STOCKS_CATALOG', [stock, failed]), \
@@ -132,8 +138,8 @@ class CacheBuildTests(unittest.TestCase):
                 data = json.loads(Path('top_stocks_cache.json').read_text())
                 self.assertTrue(data['FAILED']['old'])
                 self.assertEqual(data['GOOD'], processed)
-                embedded = json.loads(re.search(r'const TOP_STOCKS_DATA = (.*);', Path('rolling_returns.html').read_text())[1])
-                self.assertEqual(embedded, data)
+                # The builder must leave the page untouched now that nothing is embedded.
+                self.assertNotIn('TOP_STOCKS_DATA', Path('rolling_returns.html').read_text())
             finally:
                 os.chdir(old_cwd)
 
