@@ -303,16 +303,8 @@ def main(force_refresh=False):
     if refreshed == 0:
         raise RuntimeError("No stocks refreshed; existing output files were preserved")
 
-    # Prepare the embedded cache before writing outputs. The HTML is the app's
-    # runtime source; writing only the standalone JS/JSON leaves it stale.
-    html_path = Path("rolling_returns.html")
-    html = html_path.read_text(encoding="utf-8")
-    match = re.search(r'const TOP_STOCKS_DATA = (\{.*?\});', html)
-    if not match:
-        raise ValueError("Embedded TOP_STOCKS_DATA block not found; outputs were preserved")
-    serialized = json.dumps(all_stocks, separators=(',', ':'), allow_nan=False)
-    patched_html = html[:match.start(1)] + serialized + html[match.end(1):]
-
+    # The application fetches every stock live from the proxy and embeds no
+    # stock history, so only the standalone artifacts are written here.
     with open(raw_cache_file, "w", encoding="utf-8") as f:
         json.dump(raw_cache, f)
 
@@ -327,8 +319,7 @@ def main(force_refresh=False):
         f.write("const TOP_STOCKS_DATA = ")
         json.dump(all_stocks, f, separators=(',', ':'))
         f.write(";\nif (typeof window !== 'undefined') { window.TOP_STOCKS_DATA = TOP_STOCKS_DATA; }\n")
-    html_path.write_text(patched_html, encoding="utf-8")
-    print("Generated top_stocks_data.js and synchronized rolling_returns.html")
+    print("Generated top_stocks_data.js (reference artifact; the app fetches stocks live)")
 
 if __name__ == "__main__":
     main()

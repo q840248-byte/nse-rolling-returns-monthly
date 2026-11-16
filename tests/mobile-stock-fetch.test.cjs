@@ -155,3 +155,35 @@ test('stock proxy URLs stay well formed for the configured base', () => {
   assert.equal(ctx.buildStockProxyUrl('https://proxy.example.dev/api', 'TCS'),
     'https://proxy.example.dev/api/stock?symbol=TCS');
 });
+
+// ── No embedded stock cache: every Indian lookup must go live ──────────────
+const htmlSource = fs.readFileSync('rolling_returns.html', 'utf8');
+
+test('the page ships no embedded Indian stock history', () => {
+  assert.equal(/TOP_STOCKS_DATA/.test(htmlSource), false, 'TOP_STOCKS_DATA must not appear in the page');
+  assert.equal(/const\s+TOP_STOCKS_DATA\s*=/.test(htmlSource), false);
+});
+
+test('a stock lookup never short-circuits on cached data', () => {
+  const body = htmlSource.match(/async function fetchAndSelectStock\(forceRefresh\)[^]*?\n\}/);
+  assert.ok(body, 'fetchAndSelectStock not found');
+  const src = body[0];
+  assert.equal(/TOP_STOCKS_DATA/.test(src), false, 'lookup must not read an embedded cache');
+  assert.equal(/if \(!forceRefresh && cached\) return;/.test(src), false,
+    'the cached short-circuit must be gone so every lookup hits the network');
+  assert.match(src, /await fetchCustomStock\(/, 'lookup must always fetch live');
+});
+
+test('stock rendering reads only live fetch results', () => {
+  const body = htmlSource.match(/function renderFundamentalsTab\([^]*?\n\}/);
+  assert.ok(body, 'renderFundamentalsTab not found');
+  assert.equal(/TOP_STOCKS_DATA/.test(body[0]), false);
+  assert.match(body[0], /fundCustomStockData\[fundSelectedStock\]/);
+});
+
+test('US stock mode keeps its offline SEC EDGAR cache untouched', () => {
+  // Scope decision: only Indian stocks were moved to live-only fetching.
+  assert.match(htmlSource, /READY_US_STOCKS/);
+  const body = htmlSource.match(/async function fetchAndSelectStock\(forceRefresh\)[^]*?\n\}/)[0];
+  assert.match(body, /READY_US_STOCKS/, 'US lookup must still use READY_US_STOCKS');
+});

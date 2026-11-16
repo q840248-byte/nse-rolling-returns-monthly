@@ -38,3 +38,5 @@ jobs:
         run: npm run test:project
       - name: Phone profile for Tab 9 stock search and fetch
         run: npm run test:mobile
+      - name: Live-only stock fetching (no embedded stock history)
+        run: npm run test:live

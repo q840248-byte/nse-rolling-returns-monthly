@@ -2,6 +2,50 @@
 
 Entries are signed by the agent doing the work and timestamped in **UTC**. This file is maintained inside the project repository. Changes listed here do not imply a production deployment, a live-provider audit, or a guarantee that every defect has been found.
 
+## Review 2026-11-16.1 — Stock fundamentals fetched live only (no embedded stock history)
+
+**By Arena.ai Agent**<br>
+**Started:** 2026-11-16 (UTC)<br>
+**Verification completed:** 2026-11-16 (UTC)<br>
+**Branch:** `arena/03f75f8b-nse-rolling-returns-monthly`<br>
+**Base commit:** `45076b47818f34fdabfbb4154552e36e98d3fa53`<br>
+**Status:** Implemented and locally verified; not committed, pushed, merged, or deployed by the agent.
+
+### 1. Scope decision
+
+The owner asked that **no stock be kept in cache** and that **every stock be fetched live**. Option (a) was chosen: no stock history is embedded in the page at all, so a live fetch is required for every symbol. US stocks (`READY_US_STOCKS`) were explicitly left untouched, since they have no live provider and would otherwise lose all data.
+
+### 2. What changed
+
+1. **Embedded cache removed:** the `TOP_STOCKS_DATA` block (67 symbols, 808,505 bytes) and its `window` assignment were deleted from `rolling_returns.html`. The page shrank from 1,981,012 to 1,172,507 bytes (−41%).
+2. **No cache short-circuit:** `fetchAndSelectStock` no longer reads an embedded dictionary and no longer returns early when a symbol is "already cached". Every lookup calls `fetchCustomStock`.
+3. **Session memory only:** the in-memory `fundCustomStockData` map remains as a per-session record of results fetched live in this page load. It is never seeded from offline data, and it is used only so a failed explicit refresh can show the earlier live result with the existing "showing cached data, not a live refresh" warning. A symbol never fetched live now fails with a plain error and no cache claim.
+4. **Rendering is live-only:** `renderFundamentalsTab` reads `fundCustomStockData` and nothing else for Indian stocks.
+5. **Chips and mode switch:** `selectStockChip` no longer seeds from the dictionary; `switchFundAssetMode('stock')` fetches the selected symbol live when no session result exists.
+6. **Builder:** `build_top_stocks.py` no longer searches for or patches an embedded block. It still writes `top_stocks_cache.json` and `top_stocks_data.js` as reference artifacts, and now fails no longer when the page contains no embedded cache.
+7. **US mode unchanged:** the offline SEC EDGAR path and its messages are untouched.
+
+### 3. Behavioural trade-offs (accepted)
+
+- **No offline fallback:** the 67 bluechips that previously loaded with zero connectivity (RELIANCE, TCS, ITC, SBIN, …) now require the proxy like every other symbol. This was the requested behaviour, not a regression.
+- **Every page visit fetches:** there is no embedded first paint for stocks; entering Stocks mode issues a request.
+- **The app depends on the Worker** for all Indian stock data. A Worker outage now removes stock fundamentals entirely rather than degrading to cached symbols.
+
+### 4. Verification
+
+- **`npm test`:** 55/55, plus 4 new static checks (16 in the mobile unit file) asserting the page contains no `TOP_STOCKS_DATA`, no cached short-circuit, live-only rendering, and an intact US cache.
+- **New `npm run test:live`** (wired into CI): 6/6 on a 390×844 touch profile with the proxy intercepted — no embedded data on load; entering Stocks mode fetches live; **RELIANCE, formerly a guaranteed cache hit, now issues `?symbol=RELIANCE`**; the chart renders from the live payload; a second symbol also fetches live; US mode still renders from its offline cache.
+- **`npm run test:browser`:** 19/19, with stock scenarios reworked to drive `fetchCustomStock` fixtures now that no cache exists.
+- **`npm run test:fundamentals`:** 32/32 (catalog sweep now reports `{indices:56, indian:2, us:9}` from live fixtures instead of 67 embedded stocks).
+- **`npm run test:project`:** 15/15. **`npm run test:mobile`:** 9/9.
+- **Python:** 31/31, including a new assertion that the page embeds no stock history and that a partial build leaves the page untouched.
+
+### 5. Remaining risks
+
+- Stock fundamentals now fail when offline or when the Worker/Screener is unavailable; previously bluechips still worked.
+- `top_stocks_data.js` remains in the repository as a reference artifact and is no longer loaded by the page; it can be removed in a later change if it is not wanted.
+- The reported mobile certificate problem was an on-device/on-network TLS interception, not a code defect; nothing in this change alters that diagnosis or its fix.
+
 ## Review 2026-11-13.1 — Mobile stock search/fetch failure in Tab 9
 
 **By Arena.ai Agent**<br>

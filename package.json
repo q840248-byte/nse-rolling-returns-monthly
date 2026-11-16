@@ -15,6 +15,7 @@
     "test:browser": "node tests/browser-smoke.cjs",
     "test:fundamentals": "node tests/fundamentals-browser.cjs",
     "test:project": "node tests/project-browser.cjs",
-    "test:mobile": "node tests/mobile-stock-fetch.cjs"
+    "test:mobile": "node tests/mobile-stock-fetch.cjs",
+    "test:live": "node tests/live-stock-fetch.cjs"
   }
 }

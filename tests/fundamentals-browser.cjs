@@ -367,12 +367,22 @@ const server = http.createServer((req, res) => {
         const indices = [...document.getElementById('fundIndexSelect').options].map(o => o.value);
         for (const key of indices) {document.getElementById('fundIndexSelect').value = key; renderFundamentalsTab(); validate(key);}
         fundAssetMode = 'stock';
-        for (const key of Object.keys(TOP_STOCKS_DATA)) {fundSelectedStock = key; renderFundamentalsTab(); validate(key);}
+        // Indian stocks are never embedded: the page must ship no stock history
+        // and every symbol must render only from a live fetch result.
+        if (typeof TOP_STOCKS_DATA !== 'undefined' || window.TOP_STOCKS_DATA) throw new Error('Embedded stock cache must not exist');
+        const liveStocks = {
+          RELIANCE: {symbol: 'RELIANCE', dates: ['2024-01','2024-02','2024-03'], price: {'2024-01': 100, '2024-02': 110, '2024-03': 121}, eps: {'2024-01': 10, '2024-02': 11, '2024-03': 12}},
+          TCS: {symbol: 'TCS', dates: ['2024-01','2024-02','2024-03'], price: {'2024-01': 200, '2024-02': 210, '2024-03': 220}, eps: {'2024-01': 20, '2024-02': 21, '2024-03': 22}},
+        };
+        for (const key of Object.keys(liveStocks)) {
+          fundCustomStockData[key] = liveStocks[key];
+          fundSelectedStock = key; renderFundamentalsTab(); validate(key);
+        }
         fundAssetMode = 'us_stock';
         for (const key of Object.keys(READY_US_STOCKS)) {fundSelectedUsStock = key; renderFundamentalsTab(); validate(key);}
-        return {indices: indices.length, indian: Object.keys(TOP_STOCKS_DATA).length, us: Object.keys(READY_US_STOCKS).length};
+        return {indices: indices.length, indian: Object.keys(liveStocks).length, us: Object.keys(READY_US_STOCKS).length};
       });
-      assert.deepEqual(counts, {indices: 56, indian: 67, us: 9});
+      assert.deepEqual(counts, {indices: 56, indian: 2, us: 9});
       console.log('  Catalog sweep:', JSON.stringify(counts));
     });
     await check('all series toggles and axes behave in each of the three asset modes', async () => {
