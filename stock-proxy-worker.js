@@ -179,7 +179,7 @@ export default {
         const data = await res.json();
         return new Response(JSON.stringify(data), {
           status: res.status,
-          headers: CORS_HEADERS
+          headers: { ...CORS_HEADERS, 'Cache-Control': 'public, max-age=3600' }
         });
       }
 
@@ -200,23 +200,30 @@ export default {
             compId = KNOWN_MAP[symbol];
           } else {
             const queries = symbol.includes('-') ? [symbol, symbol.replace(/-/g, ' ')] : [symbol];
-            for (const q of queries) {
-              if (compId) break;
+            // Run every search variant at once instead of one after another:
+            // unknown symbols previously burned a full round trip per variant,
+            // which is what pushed slow mobile links past the client timeout.
+            const searchTries = queries.map(q => {
               const searchUrl = `https://www.screener.in/api/company/search/?q=${encodeURIComponent(q)}`;
-              const sRes = await fetchUpstream(searchUrl, { headers: SCREENER_HEADERS });
-              if (sRes.ok) {
-                const sData = await sRes.json();
-                if (Array.isArray(sData) && sData.length > 0) {
-                  let match = sData.find(item => item.url && item.url.toUpperCase().includes(`/COMPANY/${symbol}/`));
-                  if (!match) {
-                    match = sData.find(item => item.url && item.url.toUpperCase().includes(`/${symbol}/`));
-                  }
-                  if (!match) {
-                    match = sData.find(item => item.name && item.name.trim().toUpperCase() === symbol);
-                  }
-                  compId = match ? match.id : null;
-                }
+              return fetchUpstream(searchUrl, { headers: SCREENER_HEADERS })
+                .then(async sRes => {
+                  if (!sRes.ok) return [];
+                  const sData = await sRes.json();
+                  return Array.isArray(sData) ? sData : [];
+                })
+                .catch(() => []);
+            });
+            const searchResults = await Promise.all(searchTries);
+            for (const sData of searchResults) {
+              if (compId || !sData.length) continue;
+              let match = sData.find(item => item.url && item.url.toUpperCase().includes(`/COMPANY/${symbol}/`));
+              if (!match) {
+                match = sData.find(item => item.url && item.url.toUpperCase().includes(`/${symbol}/`));
               }
+              if (!match) {
+                match = sData.find(item => item.name && item.name.trim().toUpperCase() === symbol);
+              }
+              compId = match ? match.id : null;
             }
             if (!compId) {
               const pageRes = await fetchUpstream(`https://www.screener.in/company/${encodeURIComponent(symbol)}/`, { headers: SCREENER_HEADERS, redirect: 'follow' });
@@ -329,7 +336,9 @@ export default {
 
         return new Response(JSON.stringify(chartData), {
           status: 200,
-          headers: CORS_HEADERS
+          // Fundamentals are monthly data: short-lived caching makes a repeat
+          // lookup on a slow mobile link immediate instead of another 2 upstream calls.
+          headers: { ...CORS_HEADERS, 'Cache-Control': 'public, max-age=600, stale-while-revalidate=86400' }
         });
       }
 

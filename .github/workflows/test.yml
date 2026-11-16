@@ -36,3 +36,5 @@ jobs:
         run: npm run test:fundamentals
       - name: Cross-tab valuations, allocation, empty states, and mobile review
         run: npm run test:project
+      - name: Phone profile for Tab 9 stock search and fetch
+        run: npm run test:mobile

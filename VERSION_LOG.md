@@ -2,6 +2,56 @@
 
 Entries are signed by the agent doing the work and timestamped in **UTC**. This file is maintained inside the project repository. Changes listed here do not imply a production deployment, a live-provider audit, or a guarantee that every defect has been found.
 
+## Review 2026-11-13.1 — Mobile stock search/fetch failure in Tab 9
+
+**By Arena.ai Agent**<br>
+**Started:** 2026-11-13 (UTC)<br>
+**Verification completed:** 2026-11-13 (UTC)<br>
+**Branch:** `arena/fc7de468-nse-rolling-returns-monthly`<br>
+**Base commit:** `9d98e6fd58fcca09d54e4f62c81a10731019aac0`<br>
+**Status:** Implemented and locally verified; not committed, pushed, merged, or deployed by the agent.
+
+### 1. Reported symptom
+
+Searching a stock in Tab 9 Fundamentals worked on a desktop browser but failed on Android Chrome, whether on Wi-Fi or mobile data, for symbols outside the embedded cache. Cached bluechips (e.g. RELIANCE) still loaded on the phone, which localised the fault to the live lookup path rather than CORS, TLS, or the page itself.
+
+### 2. Root causes
+
+1. **Unsaved symbol input on the phone keyboard.** The search field had no enclosing form. Mobile keyboards report their action key as "Go", which does not emit the `Enter` keystroke the field listened for, so tapping Go could do nothing at all.
+2. **Timeout budget too small for uncached symbols.** `/api/stock` must resolve an unknown symbol through a Screener search (plus a page fallback) and then fetch consolidated and standalone charts. Each upstream call had a 15 s Worker timeout while the browser aborted the whole request at 30 s, so a slow mobile link failed with a bare `Failed to fetch`.
+3. **`localStorage` access outside `try`.** Private mode and several in-app browsers throw on `localStorage.getItem`, which aborted `fetchCustomStock` before any request was sent.
+4. **`AbortSignal.timeout` unavailable.** Older Android WebViews and iOS Safari lack it, so constructing the request threw immediately.
+5. **Serial search variants in the Worker.** Hyphenated symbols queried the hyphenated and spaced forms one after another, doubling latency exactly where mobile links are slowest.
+6. **No visible in-progress state.** Loading was deliberately silent, so a multi-second mobile fetch looked like a dead button.
+7. **Proxy dialog off-screen on phones (found during verification).** `#panel9` uses `backdrop-filter`, which makes it a containing block for `position: fixed` descendants. The settings dialog anchored to the tall card instead of the viewport and rendered below the fold, leaving a dark overlay with no visible dialog.
+
+### 3. Changes
+
+1. **Form-wrapped search:** `#fundStockInput` now lives in `#fundStockForm`; submit (keyboard Go/Enter) calls `fetchAndSelectStock(true)` with `preventDefault`, so no navigation occurs. Added `enterkeyhint="go"`, `autocapitalize="characters"`, `autocorrect="off"`, and an `onchange` normaliser so phone-typed input such as `" reliance industries "` becomes `RELIANCE`.
+2. **Safe storage helpers:** `fundGetProxyUrl` / `fundSetProxyUrl` wrap `localStorage` and fall back to the default Worker so private-mode browsing cannot abort a lookup.
+3. **Timeout compatibility:** `fundTimeoutSignal` prefers `AbortSignal.timeout`, falls back to `AbortController`, and finally to no signal. The lookup budget rose from 30 s to 75 s to match the real upstream cost of an uncached symbol.
+4. **One retry for transient failures only:** `fetchStockProxyJson` retries once after 600 ms on network errors, aborts, timeouts, 429, 408, and 5xx. Deterministic answers such as 404 are not retried.
+5. **Actionable mobile errors:** `fundDescribeFetchError` explains "Failed to fetch" in terms of degraded connectivity, private DNS/ad-blocker filtering of `*.workers.dev`, or private browsing, and points at the new connection test. Provider messages pass through unchanged.
+6. **Visible progress:** the Fetch button shows `Fetching…` with `aria-busy` and `disabled` while the request is in flight, then restores.
+7. **Cache policy kept honest:** a first-time lookup may be served from the Worker cache (`cache: 'default'`), while an explicit Fetch ⚡ refresh bypasses it (`cache: 'no-store'`), so existing refresh semantics are unchanged.
+8. **Proxy URL normalisation:** `buildStockProxyUrl` accepts a bare host, a `.../api` base, or a full `.../api/stock` endpoint without producing a doubled `/api/api/stock` segment.
+9. **Device connection test:** the proxy dialog gained a `Test Connection` button that calls `/api/search?q=RELIANCE` and reports reachability plus round-trip latency, so a blocked network is diagnosed on the device instead of guessed at.
+10. **Dialog placement:** the dialog is promoted to `<body>` on load, so it is centred on the screen (verified at 390×844) instead of below the fold.
+11. **Worker latency and caching:** hyphenated search variants now run concurrently with per-variant failure isolation; successful chart and search responses carry `Cache-Control` so repeats are instant on a slow link, while error responses stay uncached.
+
+### 4. Verification
+
+- `npm test`: 55/55, including 12 new mobile-fetch unit tests and 3 new proxy tests (concurrent search, failure isolation, cacheability).
+- `npm run test:browser`: 19/19. `npm run test:fundamentals`: 32/32. `npm run test:project`: 15/15.
+- `python -m unittest discover -s tests`: 30/30, unchanged, confirming the data pipeline is untouched.
+- New `npm run test:mobile` (wired into CI): 9/9 in a touch-emulated 390×844 Android profile — form submit, no navigation, symbol normalisation, busy state, error guidance, private-mode fallback, dialog centring, device connection test, and no sideways overflow.
+
+### 5. Remaining risks
+
+- The Worker changes require redeploying `stock-proxy-worker.js` to Cloudflare. Until then the client-side fixes apply but server-side latency and caching improvements do not.
+- Screener.in rate limiting can still fail a lookup; the retry now covers it but does not guarantee success.
+- The reported device was not tested directly. The reproduction used an emulated Android profile with external hosts blocked, so a device-specific network filter can only be confirmed with the in-app connection test.
+
 ## Review 2026-11-12.1 — Integrated application review and regression fixes
 
 **By Arena.ai Agent**<br>
