@@ -178,7 +178,7 @@ const server = http.createServer((req, res) => {
         } finally {delete RAW['Fixture Index']; delete RAW_PE['Fixture Index']; delete ALL_INDICES_TRIMMED_EPS['Fixture Index'];}
       }), null);
     });
-    await check('IV rebasing preserves Price/IV and the full-history median across timeframes', async () => {
+    await check('IV rebasing preserves latest expanding median across timeframes', async () => {
       const data = await page.evaluate(() => {
         const fixture = compoundFixture(); installFundFixture(fixture);
         const multiples = Object.values(fixture.pe).sort((a,b) => a-b);
@@ -189,6 +189,39 @@ const server = http.createServer((req, res) => {
       });
       assert.ok(Math.abs(data.max[0] / data.max[1] - data.expected) < .0002);
       assert.ok(Math.abs(data.short[0] / data.short[1] - data.expected) < .0002);
+    });
+    await check('stock history uses expanding medians, not future data, and hover agrees', async () => {
+      const result = await page.evaluate(() => {
+        const data = {price:{'2020-01':100,'2020-02':100,'2020-03':100},eps:{'2020-01':10,'2020-02':20,'2020-03':5}};
+        installFundFixture(data);
+        const before = fundamentalsChartInstance.data.datasets[1].data.slice();
+        fundamentalsChartInstance.options.onHover({native:{}},[{index:1}]);
+        const hud = document.getElementById('fundHoverHud').textContent;
+        data.price['2021-01'] = 1000; data.eps['2021-01'] = 1;
+        installFundFixture(data);
+        return {before, after:fundamentalsChartInstance.data.datasets[1].data.slice(0,3), hud, note:document.getElementById('fundDataNote').textContent};
+      });
+      assert.deepEqual(result.before,[100,150,50]);
+      assert.deepEqual(result.after,result.before);
+      assert.match(result.hud,/EPS Value: ₹150.0 \(150\)/);
+      assert.match(result.hud,/Gap: -33.3%/);
+      assert.match(result.note,/not verified point-in-time/);
+    });
+    await check('stock fetch does not delete an early observation because of future EPS', async () => {
+      const result = await page.evaluate(async () => {
+        const original = fetchStockProxyJson;
+        try {
+          const prices = [], eps = [];
+          for (let i=0;i<8;i++) {
+            const date=addMonths('2020-01',i)+'-15'; prices.push([date,100]);
+            eps.push([date,i===2 ? 500 : 10]);
+          }
+          fetchStockProxyJson=async()=>({datasets:[{metric:'Price',values:prices},{metric:'EPS',values:eps}]});
+          const stock=await fetchCustomStock('TEST',true);
+          return stock.eps['2020-03'];
+        } finally {fetchStockProxyJson=original;}
+      });
+      assert.equal(result,500);
     });
     await check('loss/zero EPS: no valid P/E, log gaps, negative linear IV, no invented bridge', async () => {
       const data = await page.evaluate(() => {
@@ -213,7 +246,7 @@ const server = http.createServer((req, res) => {
       });
       assert.deepEqual(values,['P/E: 10.0x','P/E: 5.0x','P/E: 20.0x']);
     });
-    await check('light green gap shading includes -39%, excludes rounded near-misses and unavailable values', async () => {
+    await check('stock shading is strictly below -39%, excludes exact and rounded near-misses', async () => {
       const result=await page.evaluate(()=>{
         window.captureGapShading=function(){
           const chart=fundamentalsChartInstance, ctx=chart.ctx;
@@ -226,15 +259,15 @@ const server = http.createServer((req, res) => {
           return {bands,clipped,area:{...chart.chartArea}};
         };
         const price={},eps={};
-        [61,60,61.01,100,100,100,100,100,100,100,100,100].forEach((p,i)=>{
+        [100,100,100,100,100,100,100,100,100,61,60,61.01,100,100,100].forEach((p,i)=>{
           const d=addMonths('2020-01',i);price[d]=p;
-          if(i<9)eps[d]=10;else if(i===9)eps[d]=-10;else if(i===10)eps[d]=0;
+          if(i<12)eps[d]=10;else if(i===12)eps[d]=-10;else if(i===13)eps[d]=0;
         });
         installFundFixture({price,eps});
         const linear=captureGapShading();
         const x=fundamentalsChartInstance.scales.x;
-        const boundary=(x.getPixelForValue(1)+x.getPixelForValue(2))/2;
-        fundamentalsChartInstance.options.onHover({native:{}},[{index:2}]);
+        const boundary=(x.getPixelForValue(10)+x.getPixelForValue(11))/2;
+        fundamentalsChartInstance.options.onHover({native:{}},[{index:11}]);
         const rounded=document.querySelector('[data-fund-gap]').textContent;
         setFundScaleType('logarithmic');const log=captureGapShading();
         fundamentalsChartInstance.zoomScale('x',{min:4,max:8},'none');const zoom=captureGapShading();
@@ -243,7 +276,7 @@ const server = http.createServer((req, res) => {
         return {linear,log,zoom,hidden,rounded,boundary};
       });
       assert.equal(result.rounded,'Gap: -39.0%'); // -38.99 rounds to -39, but must not shade.
-      assert.equal(result.linear.bands.length,2);assert.equal(result.log.bands.length,2);
+      assert.equal(result.linear.bands.length,1);assert.equal(result.log.bands.length,1);
       assert.equal(result.zoom.bands.length,0);assert.equal(result.hidden.bands.length,0);
       assert.equal(result.linear.clipped,true);
       const last=result.linear.bands.at(-1);assert.ok(Math.abs(last.left+last.width-result.boundary)<.001);
@@ -281,7 +314,7 @@ const server = http.createServer((req, res) => {
           return {text:el.textContent, background:el.style.background, border:el.style.border};
         });
       });
-      assert.deepEqual(result.map(x=>x.text), ['Gap: 0.0%','Gap: -50.0%','Gap: +100.0%']);
+      assert.deepEqual(result.map(x=>x.text), ['Gap: 0.0%','Gap: -33.3%','Gap: +100.0%']);
       assert.ok(result.every(x=>x.background==='' && x.border===''));
       const values = await page.evaluate(() => {
         const before=document.querySelector('[data-fund-gap]').textContent;

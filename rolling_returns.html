@@ -3341,7 +3341,7 @@
           </div>
           <div style="margin-top:12px;font-size:0.72rem;color:var(--muted);line-height:1.6;">
             <strong style="color:#06b6d4;display:inline-flex;align-items:center;gap:4px;">💡 How to read the decomposition:</strong>
-            For positive endpoint EPS, <strong>(1 + Price CAGR) = (1 + EPS CAGR) × (1 + P/E CAGR)</strong>: the components compound, not add. Earnings and multiple changes describe historical price returns, excluding dividends; neither establishes that an asset is safe or fairly valued. EPS is nominal, not inflation-adjusted. EPS Value and Trim. EPS Value retain the median-multiple valuation scale. Legend currency figures show actual series values; parentheses show the plotted rebased values. The full-history median includes later observations when viewing the past. Index EPS and P/E are harmonized; the orange trimmed series uses the same median multiple when available, not an independently fitted valuation.
+            For positive endpoint EPS, <strong>(1 + Price CAGR) = (1 + EPS CAGR) × (1 + P/E CAGR)</strong>: the components compound, not add. Earnings and multiple changes describe historical price returns, excluding dividends; neither establishes that an asset is safe or fairly valued. EPS is nominal, not inflation-adjusted. EPS Value and Trim. EPS Value retain the median-multiple valuation scale. Legend currency figures show actual series values; parentheses show the plotted rebased values. Stocks use the median of positive P/E observations through each month; the underlying EPS data is not verified point-in-time and may be revised or processed with later data. Indices still use the full-history median, including later observations. Index EPS and P/E are harmonized; the orange trimmed series uses the same median multiple when available, not an independently fitted valuation.
           </div>
         </div>
 
@@ -14689,26 +14689,9 @@ async function fetchCustomStock(symbol, useCache) {
   var byYm = {};
   rawPts.forEach(function(pt) { byYm[pt.ym] = pt.eps; });
   var epsPoints = Object.keys(byYm).sort().map(function(ym) { return { ym: ym, eps: byYm[ym] }; });
-  if (epsPoints.length >= 4) {
-    var absVals = epsPoints.map(function(p) { return Math.abs(p.eps); }).filter(function(v) { return v > 0; }).sort(function(a, b) { return a - b; });
-    var medAbs = absVals.length ? absVals[Math.floor(absVals.length / 2)] : 1;
-    var jumpLim = Math.max(15, 10 * medAbs);
-    epsPoints = epsPoints.filter(function(p, idx, arr) {
-      if (idx === 0 || idx === arr.length - 1) return true;
-      var d1 = Math.abs(p.eps - arr[idx - 1].eps), d2 = Math.abs(p.eps - arr[idx + 1].eps);
-      var neighborDiff = Math.abs(arr[idx + 1].eps - arr[idx - 1].eps);
-      return !(d1 > jumpLim && d2 > jumpLim && neighborDiff <= jumpLim * 0.6);
-    });
-    if (epsPoints.length >= 5) {
-      var firstVal = epsPoints[0].eps, runEnd = 0;
-      while (runEnd < epsPoints.length && Math.abs(epsPoints[runEnd].eps - firstVal) < 1e-6) runEnd++;
-      if (runEnd < epsPoints.length && runEnd > 0) {
-        var y0 = parseInt(epsPoints[0].ym.slice(0, 4), 10) * 12 + parseInt(epsPoints[0].ym.slice(5, 7), 10);
-        var y1 = parseInt(epsPoints[runEnd].ym.slice(0, 4), 10) * 12 + parseInt(epsPoints[runEnd].ym.slice(5, 7), 10);
-        if ((y1 - y0) > 13 && runEnd - 1 > 0) epsPoints = epsPoints.slice(runEnd - 1);
-      }
-    }
-  }
+  // Do not clean past observations using later observations: a whole-series
+  // spike filter or trimming a long flat prefix can introduce look-ahead.
+  // Provider-side processing and EPS publication dates remain unverified.
 
   if (!epsPoints.length) {
     throw new Error('No valid EPS data points returned for ' + symbol);
@@ -14907,6 +14890,26 @@ function escapeFundText(value) {
   return String(value).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
 }
 
+// One median per month, including only positive P/E observations up to that
+// month. Dates are chronological. This alone does not make provider EPS PIT.
+function computeFundExpandingMedians(dates, peValues) {
+  var sorted = [], result = {};
+  dates.forEach(function(d) {
+    var pe = peValues && peValues[d];
+    if (Number.isFinite(pe) && pe > 0) {
+      var lo = 0, hi = sorted.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >>> 1;
+        if (sorted[mid] < pe) lo = mid + 1; else hi = mid;
+      }
+      sorted.splice(lo, 0, pe);
+    }
+    var n = sorted.length;
+    result[d] = !n ? null : n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+  });
+  return result;
+}
+
 function renderFundamentalsTab() {
   var canvas = document.getElementById('fundamentalsChart');
   var hud = document.getElementById('fundHoverHud');
@@ -15082,21 +15085,27 @@ function renderFundamentalsTab() {
   var medianTrimmedPe = rawMedianDirect != null ? medianPe : calcMedian(allTrimPeValues);
   var note = document.getElementById('fundDataNote');
   if (note) {
-    note.textContent = (fundAssetMode === 'index' ? 'Index EPS inferred from harmonized P/E; orange series uses supplied trimmed EPS. ' : 'Stock EPS basis: ' + (stockObj.epsBasis || (fundAssetMode === 'us_stock' ? 'embedded US cache; reporting basis not specified' : 'not supplied')) + '. ') +
-      'Latest price: ' + commonDates[commonDates.length - 1] + '. EPS Value curves are full-history median-multiple estimates, not point-in-time backtests or fair-value guarantees. Missing EPS/trimmed values are not estimated. Decomposition uses the latest date, independent of chart zoom.';
+    note.textContent = (fundAssetMode === 'index' ?
+      'Index EPS inferred from harmonized P/E; orange series uses supplied trimmed EPS. Index valuations use full-history median P/E, including later dates. ' :
+      'Stock EPS basis: ' + (stockObj.epsBasis || (fundAssetMode === 'us_stock' ? 'embedded US cache; reporting basis not specified' : 'not supplied')) + '. Stock EPS Value uses the median positive P/E available in the dataset through each month (including that month); early medians can be unreliable. Green shading: gap below −39%. IMPORTANT: source EPS dates, revisions and provider processing are not verified point-in-time, so this is not a certified historical backtest. ') +
+      'Latest price: ' + commonDates[commonDates.length - 1] + '. EPS Value is not a fair-value guarantee. Missing EPS/trimmed values are not estimated. Decomposition uses the latest date, independent of chart zoom.';
   }
 
   // Labels remain stable across asset modes, timeframes, and median changes.
   document.getElementById('chkFundEpsLabel').textContent = 'EPS Value';
   document.getElementById('chkFundTrimmedEpsLabel').textContent = 'Trim. EPS Value';
 
-  // Preserve the existing valuation curve: EPS(t) × full-history median P/E.
+  // Stock curve: EPS(t) × expanding median P/E. Index curve remains unchanged.
+  // Stocks: each date's median only uses observations through that date.
+  // Indices retain their existing full-history median and trimmed calculation.
+  var stockMedianByDate = fundAssetMode === 'index' ? null : computeFundExpandingMedians(commonDates, peData.values);
   var intrinsicValueMap = {};
   for (var iv = 0; iv < commonDates.length; iv++) {
     var ivDate = commonDates[iv];
     var ivEps = epsMap[ivDate];
-    if (Number.isFinite(ivEps) && medianPe != null) {
-      intrinsicValueMap[ivDate] = ivEps * medianPe;
+    var ivMedian = stockMedianByDate ? stockMedianByDate[ivDate] : medianPe;
+    if (Number.isFinite(ivEps) && ivMedian != null) {
+      intrinsicValueMap[ivDate] = ivEps * ivMedian;
     } else {
       intrinsicValueMap[ivDate] = null;
     }
@@ -15173,7 +15182,7 @@ function renderFundamentalsTab() {
       for (var i = 0; i < fDates.length; i++) {
         var info = getFundGap(fDates[i]);
         // Compare the full-precision gap, not the rounded legend percentage.
-        if (!info.enabled || info.value == null || info.value > -39) continue;
+        if (!info.enabled || info.value == null || (fundAssetMode === 'index' ? info.value > -39 : info.value >= -39)) continue;
         var center = x.getPixelForValue(i);
         var left = i > 0 ? (x.getPixelForValue(i - 1) + center) / 2 : area.left;
         var right = i < fDates.length - 1 ? (center + x.getPixelForValue(i + 1)) / 2 : area.right;

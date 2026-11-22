@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('rolling_returns.html', 'utf8');
 const ctx = vm.createContext({});
-for (const name of ['normalizeFundamentalsStock', 'escapeFundText', 'parseFundObservation', 'formatFundLegendValue']) {
+for (const name of ['normalizeFundamentalsStock', 'escapeFundText', 'parseFundObservation', 'formatFundLegendValue', 'computeFundExpandingMedians']) {
   const source = html.match(new RegExp('function ' + name + '\\([^]*?\\n\\}'));
   assert.ok(source, name); vm.runInContext(source[0], ctx);
 }
@@ -37,4 +37,14 @@ test('legend formatter uses actual currency plus rebased chart value and preserv
   assert.equal(ctx.formatFundLegendValue(null,null,'₹'),'— (—)');
   assert.equal(ctx.formatFundLegendValue(10,null,'₹'),'₹10.0 (—)');
   assert.equal(ctx.formatFundLegendValue(Infinity,NaN,'₹'),'— (—)');
+});
+
+test('expanding median includes only positive P/E through each date and survives invalid months', () => {
+  const dates = ['2020-01','2020-02','2020-03','2020-04','2020-05'];
+  const pe = {'2020-01': 10, '2020-02': 20, '2020-03': null, '2020-04': 5, '2020-05': -2};
+  const out = ctx.computeFundExpandingMedians(dates, pe);
+  assert.deepEqual(dates.map(d=>out[d]), [10,15,15,10,10]);
+  const more = ctx.computeFundExpandingMedians([...dates,'2025-01'], {...pe,'2025-01':1000});
+  for (const d of dates) assert.equal(more[d],out[d]);
+  assert.equal(ctx.computeFundExpandingMedians(['2020-01'],{'2020-01':null})['2020-01'], null);
 });
