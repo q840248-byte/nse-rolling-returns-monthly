@@ -22,6 +22,7 @@ Open `/rolling_returns.html` on the server. Chart.js, Hammer, and the zoom plugi
 | `build_top_stocks.py` | Processes stock Price/EPS histories into `top_stocks_cache.json` and `top_stocks_data.js` reference artifacts (the page fetches stocks live and embeds none) |
 | `stock-proxy-worker.js` | Cloudflare Worker for live Indian stock search and fundamentals |
 | `pe_index_mapping.json` | Provider identifiers for P/E requests |
+| `monthly_sweep.py` | Runs the standalone first-5-minute two-stage screen for many months from one crawl; see `MONTHLY_SWEEP.md` |
 
 Run data scripts from the repository root. They contact external financial providers; **do not run them just to test code**. The offline test suite uses mocks and temporary files instead.
 

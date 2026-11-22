@@ -6,3 +6,6 @@ artifacts/
 raw_screener_cache.json
 gold_silver_inr_adjusted.csv
 gold_silver_inr_monthly.csv
+sweeps/
+sweeps_trial/
+.sweep_cache/
