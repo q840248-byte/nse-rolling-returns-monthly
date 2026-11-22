@@ -687,6 +687,50 @@ class TokenLoadingTests(unittest.TestCase):
         self.assertEqual(df.iloc[0]["exchange"], "NSE")
 
 
+class PathResolutionTests(unittest.TestCase):
+    """Running by full path from elsewhere must still find the local tokens file."""
+
+    def test_relative_tokens_resolved_beside_the_script(self):
+        parser = ms.build_parser()
+        args = parser.parse_args(["--tokens", "tokens.xlsx", "--start-month", "2026-04-01"])
+        with tempfile.TemporaryDirectory() as tmp:
+            here = os.path.join(tmp, "scripts")
+            os.makedirs(here, exist_ok=True)
+            tokens = os.path.join(here, "tokens.xlsx")
+            open(tokens, "wb").close()
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmp)  # a different working directory
+                original = ms.__file__
+                ms.__file__ = os.path.join(here, "monthly_sweep.py")
+                try:
+                    ms.resolve_paths(args)
+                finally:
+                    ms.__file__ = original
+            finally:
+                os.chdir(cwd)
+        self.assertTrue(os.path.isabs(args.tokens))
+        self.assertTrue(args.tokens.endswith("tokens.xlsx"))
+
+    def test_absolute_tokens_path_is_untouched(self):
+        parser = ms.build_parser()
+        given = os.path.abspath(os.path.join("somewhere", "tokens.xlsx"))
+        args = parser.parse_args(["--tokens", given, "--start-month", "2026-04-01"])
+        ms.resolve_paths(args)
+        self.assertEqual(args.tokens, given)
+
+    def test_outputs_land_beside_the_tokens_file(self):
+        parser = ms.build_parser()
+        with tempfile.TemporaryDirectory() as tmp:
+            tokens = os.path.join(tmp, "tokens.xlsx")
+            open(tokens, "wb").close()
+            args = parser.parse_args(["--tokens", tokens, "--start-month", "2026-04-01",
+                                      "--cache-dir", ".c"])
+            ms.resolve_paths(args)
+        self.assertEqual(args.out, os.path.join(tmp, "sweeps"))
+        self.assertEqual(args.cache_dir, os.path.join(tmp, ".c"))
+
+
 class CliTests(unittest.TestCase):
     def test_config_from_args_defaults_match_manual_runs(self):
         parser = ms.build_parser()

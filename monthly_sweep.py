@@ -944,8 +944,33 @@ def _load_kite() -> Any:
     return kite
 
 
+def resolve_paths(args: argparse.Namespace) -> None:
+    """Resolve relative inputs against the script's folder, then fall back to CWD.
+
+    The original High_5m.py always looked for tokens.xlsx next to itself, so it
+    worked no matter where you ran it from. Keep that behaviour: running
+    ``python C:\\...\\monthly_sweep.py`` from your home directory should still
+    find ``C:\\...\\tokens.xlsx``. An absolute --tokens path is left untouched.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    if not os.path.isabs(args.tokens):
+        beside_script = os.path.join(here, args.tokens)
+        if os.path.exists(beside_script) or not os.path.exists(args.tokens):
+            args.tokens = beside_script
+    if not os.path.isabs(args.out):
+        args.out = os.path.join(os.path.dirname(os.path.abspath(args.tokens)), args.out)
+    if args.cache_dir and not os.path.isabs(args.cache_dir):
+        args.cache_dir = os.path.join(os.path.dirname(os.path.abspath(args.tokens)), args.cache_dir)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    resolve_paths(args)
+    if args.plan and not os.path.exists(args.tokens):
+        print(f"⚠ tokens file not found: {args.tokens}")
+        print("  Pass --tokens with a full path, or put the file next to monthly_sweep.py.")
+        return 1
     cfg = config_from_args(args)
     if args.plan:
         print(plan_windows(cfg).to_string(index=False))
